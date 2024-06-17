@@ -1,0 +1,6 @@
+build/
+debug/
+private/
+imgui.ini
+.vscode/
+profiling/
