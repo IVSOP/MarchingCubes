@@ -1,5 +1,5 @@
-#ifndef QUADCONTAINER_H
-#define QUADCONTAINER_H
+#ifndef VERTCONTAINER_H
+#define VERTCONTAINER_H
 
 #include "common.hpp"
 #include <vector>
@@ -7,19 +7,19 @@
 // specialized structure, since a vector was too slow. I want to be able to memcpy lots of data, not build/emplace one by one (compiler usually does it when I don't want to)
 // it is meant to be very unsafe, minimal and fast. no constructors for the objects are used, and they are never empty-initialized
 template <typename T>
-class QuadContainer {
+class VertContainer {
 public:
-	QuadContainer() = delete; // for max performance you have to decide on an initial size > 0
+	VertContainer() = delete; // for max performance you have to decide on an initial size > 0
 	
 	// !!!!!cap > 0 otherwise when doubling size it gets stuck at 0
 	// didnt know a better way to check this at the time
-	QuadContainer(std::size_t cap)
+	VertContainer(std::size_t cap)
 	: _sp(0), _capacity(cap)
 	{
 		_data = reinterpret_cast<T *>(std::malloc(sizeof(T) * cap));
 	}
 
-	~QuadContainer() {
+	~VertContainer() {
 		free(_data);
 	}
 

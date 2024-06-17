@@ -11,25 +11,15 @@
 
 struct World {
 	Chunk chunks[WORLD_SIZE_X][WORLD_SIZE_Y][WORLD_SIZE_Z]; // this order can be changed, need to test it for performance
-	std::vector<ChunkInfo> info; // [WORLD_SIZE_X][WORLD_SIZE_Y][WORLD_SIZE_Z];
-	std::vector<IndirectData> indirect; // avoid the first alocations, try different numbers
 
-	QuadContainer<Quad> quads; // so I dont have to constantly alloc and free
+	VertContainer<Vertex> verts; // so I dont have to constantly alloc and free
 
 	constexpr Chunk &get(const glm::uvec3 &position) {
 		return chunks[position.x][position.y][position.z];
 	}
 
-	std::vector<ChunkInfo> &getInfo() {
-		return info;
-	}
-
-	QuadContainer<Quad> &getQuads() {
-		return quads;
-	}
-
-	std::vector<IndirectData> &getIndirect() {
-		return indirect;
+	VertContainer<Vertex> &getVerts() {
+		return verts;
 	}
 
 	void buildData(const glm::vec3 &playerPosition);
@@ -45,18 +35,14 @@ struct World {
 	}
 
 	World()
-	: info(1 << 10), indirect(1 << 10), quads(1 << 10) // why tf is 2e10 == 20000000000?????????????
+	: verts(1 << 10) // why tf is 2e10 == 20000000000?????????????
 	{
 	}
 
-	World(std::ifstream &file);
-
 	void copyChunkTo(const Chunk &chunk, const glm::uvec3 position) {
 		chunks[position.x][position.y][position.z] = chunk;
-		chunks[position.x][position.y][position.z].quadsHaveChanged = true;
+		chunks[position.x][position.y][position.z].vertsHaveChanged = true;
 	}
-
-	
 
 	// I have no idea if this math is correct
 	// basically / chunk size to get a chunk ID
@@ -171,8 +157,6 @@ struct World {
 			}
 		}
 	}
-
-	void saveTo(std::ofstream &file);
 };
 
 

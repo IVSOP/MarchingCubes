@@ -6,39 +6,15 @@
 
 #include <GL/glew.h> // GLfloat
 
-// struct Vertex { // struct of vertices as sent to the GPU. position is relative to the chunk, and the normal can only be 0, 1, ..., 5
-// 	glm::u8vec3 pos = glm::u8vec3(0);
-// 	GLubyte normal = 0;
-// 	GLubyte material_id = 0;
-
-//     // friend std::ostream &operator<<(std::ostream &os, const Vertex &p) {
-//     //     os << "Vertex: { x: " << p.coords.x << ", y: " << p.coords.y << ", z: " << p.coords.z << ", n_x: " << p.normal.x << ", n_y: " << p.normal.y << ", n_z: " << p.normal.z << ", t_x: " << p.tex_coord.x << ", t_y: " << p.tex_coord.y << " }";
-//     //     return os;
-//     // }
-
-//     Vertex() = default;
-// };
-
-struct HighlightInstance {
+struct Vertex { // struct of vertices as sent to the GPU. position is relative to the chunk, and the normal can only be 0, 1, ..., 5
 	glm::vec3 coords;
-	GLint normal;
+	glm::vec2 tex_coords;
+	GLint material_id;
 
-	HighlightInstance(const glm::vec3 &coords, GLuint normal)
-	: coords(coords), normal(normal) {}
-};
+	Vertex() = default;
 
-struct InstanceVertex {
-	glm::vec3 coords;
-	// glm::vec2 tex_coords;
-
-	InstanceVertex(const glm::vec3 &coords)
-	: coords(coords) {}
-
-	// InstanceVertex(const glm::vec3 &coords, const glm::vec2 &tex_coords)
-	// : coords(coords), tex_coords(tex_coords) {}
-
-	// InstanceVertex(GLfloat x, GLfloat y, GLfloat z, GLfloat u, GLfloat v)
-	// : coords(x, y, z), tex_coords(u, v) {}
+	Vertex(glm::vec3 coords, glm::vec2 tex_coords, GLint material_id)
+	: coords(coords), tex_coords(tex_coords), material_id(material_id) { }
 };
 
 struct AxisVertex { // to draw the axis

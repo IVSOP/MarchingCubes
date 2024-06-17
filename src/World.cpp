@@ -6,9 +6,7 @@
 // yes very ugly will clean this up later
 // make player position align to the chunk somehow???????/ doing == on floats is kind of bad
 void World::buildData(const glm::vec3 &playerPosition) {
-	quads.clear();
-	indirect.clear();
-	info.clear();
+	verts.clear();
 
 	GLuint start_index = 0, end_index = 0;
 
@@ -18,82 +16,7 @@ void World::buildData(const glm::vec3 &playerPosition) {
 
 				const glm::vec3 coords = getChunkCoordsFloat(x, y, z);
 
-				if (playerPosition.y > coords.y + CHUNK_SIZE_FLOAT) {
-					end_index += chunks[x][y][z].addQuadsTo(quads, 1); // copy quads into  my array
-
-					indirect.emplace_back(start_index, end_index - start_index); // add indirect data
-					info.emplace_back(coords, 1.0f); // add to the info buffer, for this normal
-				} else if (playerPosition.y < coords.y) {
-					end_index += chunks[x][y][z].addQuadsTo(quads, 0);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 0.0f);
-				} else { // at same height
-					end_index += chunks[x][y][z].addQuadsTo(quads, 0);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 0.0f);
-					start_index = end_index;
-
-					end_index += chunks[x][y][z].addQuadsTo(quads, 1);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 1.0f);
-				}
-				start_index = end_index;
-
-				if (playerPosition.x > coords.x + CHUNK_SIZE_FLOAT) {
-					end_index += chunks[x][y][z].addQuadsTo(quads, 5);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 5.0f);
-
-				} else if (playerPosition.x < coords.x) {
-					end_index += chunks[x][y][z].addQuadsTo(quads, 4);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 4.0f);
-
-				} else {
-					end_index += chunks[x][y][z].addQuadsTo(quads, 4);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 4.0f);
-					start_index = end_index;
-
-					end_index += chunks[x][y][z].addQuadsTo(quads, 5);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 5.0f);
-
-				}
-				start_index = end_index;
-
-				if (playerPosition.z > coords.z + CHUNK_SIZE_FLOAT) {
-					end_index += chunks[x][y][z].addQuadsTo(quads, 3);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 3.0f);
-
-				} else if (playerPosition.z < coords.z) {
-					end_index += chunks[x][y][z].addQuadsTo(quads, 2);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 2.0f);
-
-				} else {
-					end_index += chunks[x][y][z].addQuadsTo(quads, 2);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 2.0f);
-					start_index = end_index;
-
-					end_index += chunks[x][y][z].addQuadsTo(quads, 3);
-
-					indirect.emplace_back(start_index, end_index - start_index);
-					info.emplace_back(coords, 3.0f);
-				}
-				start_index = end_index;
+				(void)chunks[x][y][z].addVertsTo(verts);
 			}
 		}
 	}
@@ -251,66 +174,4 @@ SelectedBlockInfo World::getSelectedBlock(const glm::vec3 &position, const glm::
 	}
 	// nothing found within range
 	return SelectedBlockInfo(-1, 0, 0, true, {});
-}
-
-void World::saveTo(std::ofstream &file) {
-	uLong total = 0; // acumulator for determining compression ratio
-	uLong bound = compressBound(WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE);
-	uLong len;
-	// in order to not be ridiculous, will compress data in chunks
-	uint16_t size;
-	Bytef *buff = new Bytef[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE]; // kinda big, will be better on the heap
-	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
-		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
-			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
-				len = bound;
-
-											// a voxel is already a byte, no need to do anything
-				if (compress(buff, &len, reinterpret_cast<Bytef *>(&chunks[x][y][z].voxels[0][0][0]), CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE) != Z_OK) {
-					print_error("error compressing");
-					exit(1);
-				}
-				size = len;
-
-				// this is probably really very bad right? idk the best way to write a single int. ill assume the buffering will amortize the slowness of this
-				file.write(reinterpret_cast<char *>(&size), sizeof(size));
-				file.write(reinterpret_cast<char *>(buff), sizeof(Bytef) * len);
-
-				total += len;
-			}
-		}
-	}
-
-	printf("World compression ratio: %lf (from %ld to %ld)\n", 
-		static_cast<double>(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z) / static_cast<double>(total),
-		CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z, total);
-
-	delete[] buff;
-}
-
-World::World(std::ifstream &file)
-: info(1 << 10), indirect(1 << 10), quads(1 << 10)
-{
-	uint16_t size;
-	uLong len;
-	Bytef *buff = new Bytef[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE]; // kinda big, will be better on the heap
-	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
-		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
-			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
-
-				file.read(reinterpret_cast<char *>(&size), sizeof(size));
-				file.read(reinterpret_cast<char *>(buff), size);
-
-				len = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
-
-											// a voxel is already a byte, no need to do anything
-				if (uncompress(reinterpret_cast<Bytef *>(&chunks[x][y][z].voxels[0][0][0]), &len, buff, size) != Z_OK) {
-					print_error("error decompressing");
-					exit(1);
-				}
-			}
-		}
-	}
-
-	delete[] buff;
 }

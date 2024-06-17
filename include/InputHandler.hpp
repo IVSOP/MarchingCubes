@@ -82,7 +82,7 @@ public:
 
 	// changes camera
 	// pointers because its easier, idk if using references would be copying the object (in the caller)
-	void applyInputs(World *world, const SelectedBlockInfo &selectedInfo, GLfloat break_radius, Camera *camera, int windowWidth, int windowHeight, GLfloat deltatime);
+	void applyInputs(World *world, Camera *camera, int windowWidth, int windowHeight, GLfloat deltatime);
 };
 
 #endif

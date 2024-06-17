@@ -209,4 +209,169 @@ struct Bitmap<32> {
 	}
 };
 
+template<>
+struct Bitmap<8> {
+	uint8_t data;
+
+	constexpr Bitmap()
+	: data(0) { }
+
+	constexpr Bitmap(const uint8_t number)
+	: data(number) { }
+
+	constexpr Bitmap(const Bitmap<8>& other)
+    : data(other.data) { }
+
+	~Bitmap() = default;
+
+	constexpr void clear() {
+		data = 0;
+	}
+
+	constexpr bool operator[](uint8_t index) const {
+		return (data >> index) & 0x1;
+	}
+
+	constexpr bool operator[](uint8_t index) {
+		return (data >> index) & 0x1;
+	}
+
+	constexpr Bitmap<8> operator&(const Bitmap<8> &other) const {
+		Bitmap<8> res;
+		res.data = data & other.data;
+		return res;
+	}
+
+	constexpr Bitmap<8> operator&(const uint8_t other) const {
+		Bitmap<8> res;
+		res.data = data & other;
+		return res;
+	}
+
+	constexpr Bitmap<8> operator<<(const uint8_t number) const {
+		Bitmap<8> res;
+		res.data = data << number;
+		return res;
+	}
+
+	constexpr Bitmap<8> operator>>(const uint8_t number) const {
+		Bitmap<8> res;
+		res.data = data >> number;
+		return res;
+	}
+
+	constexpr Bitmap<8> operator~() const {
+		Bitmap<8> res;
+		res.data = ~data;
+		return res;
+	}
+
+	constexpr void operator=(const Bitmap<8> &other) {
+		data = other.data;
+	}
+
+	constexpr bool operator==(const Bitmap<8> &other) {
+		return data == other.data;
+	}
+
+	constexpr void operator&=(const uint8_t number) {
+		data &= number;
+	}
+
+	constexpr void operator&=(const Bitmap<8> &other) {
+		data &= other.data;
+	}
+
+	constexpr void operator|=(const uint8_t number) {
+		data |= number;
+	}
+
+	constexpr void operator|=(const Bitmap<8> &other) {
+		data |= other.data;
+	}
+
+	constexpr void operator<<=(const uint8_t number) {
+		data <<= number;
+	}
+
+	constexpr void operator>>=(const uint8_t number) {
+		data >>= number;
+	}
+
+	constexpr bool operator!=(const uint8_t number) const {
+		return data != number;
+	}
+
+	constexpr bool operator!=(const Bitmap<8> &other) const {
+		return data != other.data;
+	}
+
+	constexpr void operator++(int) {
+		data++;
+	}
+
+	constexpr void setBit(uint8_t index) {
+		data |= (0x1 << index);
+	}
+
+	constexpr void clearBit(uint8_t index) {
+		data &= ~(0x1 << index);
+	}
+
+	constexpr uint8_t value() const {
+		return data;
+	}
+
+	constexpr bool allTrue() const {
+		return data == 0xFF;
+	}
+
+
+	constexpr uint8_t trailing_ones() const {
+		return std::countr_one(data);
+	}
+
+	constexpr uint8_t trailing_zeroes() const {
+		return std::countr_zero(data);
+	}
+
+	constexpr void setAllTrue() {
+		data = 0xFF;
+	}
+
+	constexpr void clearFromTo(uint8_t start, uint8_t finish) {
+		uint8_t mask = ((0x1 << (finish - start + 1)) - 1) << start;
+		data &= ~mask;
+	}
+
+	constexpr void clearFromStartTo(uint8_t finish) {
+		uint8_t mask = (0x1 << (finish + 1)) - 1;
+		data &= ~mask;
+	}
+
+	constexpr void setFromTo(uint8_t start, uint8_t finish) {
+		uint8_t mask = ((0x1 << (finish - start + 1)) - 1) << start;
+		data &= mask;
+	}
+
+	constexpr void setFromStartTo(uint8_t finish) {
+		uint8_t mask = (0x1 << (finish + 1)) - 1;
+		data &= mask;
+	}
+
+	constexpr void print() const {
+		printf("%08b\n", data);
+	}
+
+	constexpr void printInverted() const {
+		uint8_t reversed = 0;
+		for (GLuint i = 0; i < 8; i++) {
+			reversed <<= 1;
+			reversed |= ((data >> i) & 1);
+		}
+		printf("%08b\n", reversed);
+	}
+};
+
+
 #endif

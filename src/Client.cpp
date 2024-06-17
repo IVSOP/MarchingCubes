@@ -77,21 +77,16 @@ void Client::mainloop() {
 
         // printf("delta is %f (%f fps)\n", deltaTime, 1.0f / deltaTime);
 		Camera *camera = player.get()->getCamera();
-		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(camera->Position, camera->Front, renderer->break_range);
+		// SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(camera->Position, camera->Front, renderer->break_range);
         inputHandler.applyInputs(
 			world.get(),
-			selectedBlock,
-			renderer.get()->break_radius,
 			camera, windowManager.get()->windowWidth,windowManager.get()->windowHeight, static_cast<GLfloat>(deltaTime));
 
         // std::unique_lock<std::mutex> lock = std::unique_lock<std::mutex>(mtx);
         // renderer.get()->draw(draw_quads, projection, *camera.get(), window, deltaTime);
     	world.get()->buildData(camera->Position);
 		renderer.get()->draw(
-			world.get()->getQuads(),
-			world.get()->getIndirect(),
-			world.get()->getInfo(),
-			selectedBlock,
+			world.get()->getVerts(),
 			windowManager.get()->projection,
 			*camera, // ??????????????????????????????????? why
 			windowManager.get()->window, deltaTime);
@@ -114,21 +109,21 @@ void Client::mainloop() {
     }
 }
 
-void Client::saveWorldTo(const std::string &filepath) const {
-	std::ofstream file(filepath, std::ios::binary);
+// void Client::saveWorldTo(const std::string &filepath) const {
+// 	std::ofstream file(filepath, std::ios::binary);
 
-	player.get()->saveTo(file);
-	world.get()->saveTo(file);
+// 	player.get()->saveTo(file);
+// 	world.get()->saveTo(file);
 
-	file.flush();
-	file.close();
-}
+// 	file.flush();
+// 	file.close();
+// }
 
-void Client::loadWorldFrom(const std::string &filepath) {
-	std::ifstream file(filepath, std::ios::binary);
+// void Client::loadWorldFrom(const std::string &filepath) {
+// 	std::ifstream file(filepath, std::ios::binary);
 
-	// got lazy, maybe it is faster to iterate and change pre-existing world???
-	player = std::make_unique<Player>(file);
-	world = std::make_unique<World>(file);
-	// inputHandler = InputHandler(glfw_handleMouseMov_callback, glfw_handleMouseKey_callback);
-}
+// 	// got lazy, maybe it is faster to iterate and change pre-existing world???
+// 	player = std::make_unique<Player>(file);
+// 	world = std::make_unique<World>(file);
+// 	// inputHandler = InputHandler(glfw_handleMouseMov_callback, glfw_handleMouseKey_callback);
+// }
