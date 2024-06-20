@@ -2,16 +2,17 @@
 
 // https://paulbourke.net/geometry/polygonise/polygonise1.gif
 // https://github.com/SebLague/Terraforming/blob/main/Assets/Marching%20Cubes/Scripts/Compute/Includes/MarchTables.compute
+#define WORLD_OFFSET glm::vec3(0.0f, 0.0f, 1.0f)
 
 const glm::vec3 LookupTable::corner_coords[8] = {
-	glm::vec3(0.0f, 0.0f, 0.0f),
-	glm::vec3(1.0f, 0.0f, 0.0f),
-	glm::vec3(1.0f, 0.0f, -1.0f),
-	glm::vec3(0.0f, 0.0f, -1.0f),
-	glm::vec3(0.0f, 1.0f, 0.0f),
-	glm::vec3(1.0f, 1.0f, 0.0f),
-	glm::vec3(1.0f, 1.0f, -1.0f),
-	glm::vec3(0.0f, 1.0f, -1.0f),
+	glm::vec3(0.0f, 0.0f, 0.0f) + WORLD_OFFSET,
+	glm::vec3(1.0f, 0.0f, 0.0f) + WORLD_OFFSET,
+	glm::vec3(1.0f, 0.0f, -1.0f) + WORLD_OFFSET,
+	glm::vec3(0.0f, 0.0f, -1.0f) + WORLD_OFFSET,
+	glm::vec3(0.0f, 1.0f, 0.0f) + WORLD_OFFSET,
+	glm::vec3(1.0f, 1.0f, 0.0f) + WORLD_OFFSET,
+	glm::vec3(1.0f, 1.0f, -1.0f) + WORLD_OFFSET,
+	glm::vec3(0.0f, 1.0f, -1.0f) + WORLD_OFFSET
 };
 
 

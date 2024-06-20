@@ -122,30 +122,10 @@ struct Chunk {
 		// if (cubedata == 0) {
 		// 	return;
 		// }
-
-		if (cubedata & 1) {
-			points.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
-		}
-		if (cubedata & 2) {
-			points.emplace_back(glm::vec3(1.0f, 0.0f, 0.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
-		}
-		if (cubedata & 4) {
-			points.emplace_back(glm::vec3(1.0f, 0.0f, -1.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
-		}
-		if (cubedata & 8) {
-			points.emplace_back(glm::vec3(0.0f, 0.0f, -1.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
-		}
-		if (cubedata & 16) {
-			points.emplace_back(glm::vec3(0.0f, 1.0f, 0.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
-		}
-		if (cubedata & 32) {
-			points.emplace_back(glm::vec3(1.0f, 1.0f, 0.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
-		}
-		if (cubedata & 64) {
-			points.emplace_back(glm::vec3(1.0f, 1.0f, -1.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
-		}
-		if (cubedata & 128) {
-			points.emplace_back(glm::vec3(0.0f, 1.0f, -1.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
+		for (GLubyte corner = 0; corner < 8; corner ++) {
+			if (cubedata & (1 << corner)) {
+				points.emplace_back(LookupTable::corner_coords[corner] + pos_in_chunk, glm::vec2(0.0f), 0);
+			}
 		}
 
 		// get indices corresponding to the given configuration
