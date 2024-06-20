@@ -76,6 +76,7 @@ add_executable(MarchingCubes
 		src/WindowManager.cpp
 		src/InputHandler.cpp
 		src/Material.cpp
+		src/LookupTable.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp

@@ -60,7 +60,7 @@ public:
         return _data[index];
     }
 
-	constexpr T * data() const { return _data; } // const?????
+	constexpr T * data() const { return _data; }
 	constexpr std::size_t size() const { return _sp; }
 	constexpr std::size_t capacity() const { return _capacity; }
 private:

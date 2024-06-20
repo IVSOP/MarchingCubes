@@ -13,7 +13,7 @@ struct Vertex { // struct of vertices as sent to the GPU. position is relative t
 
 	Vertex() = default;
 
-	Vertex(glm::vec3 coords, glm::vec2 tex_coords, GLint material_id)
+	Vertex(const glm::vec3 &coords, const glm::vec2 &tex_coords, GLint material_id)
 	: coords(coords), tex_coords(tex_coords), material_id(material_id) { }
 };
 

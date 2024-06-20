@@ -54,11 +54,11 @@ public:
 	bool wireframe = false;
 	bool limitFPS = false;
 	double fps = 60.0f;
+	Shader pointshader;
 
 	std::unique_ptr<TextureArray> textureArray = nullptr; // pointer since it starts as null and gets initialized later. unique_ptr so it always gets deleted
 
-	void draw(const VertContainer<Vertex> &verts, const glm::mat4 &projection, Camera &camera, GLFWwindow * window, GLfloat deltaTime); // const
-	void drawAxis(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
+	void draw(const VertContainer<Vertex> &verts, const VertContainer<Vertex> &points, const glm::mat4 &projection, Camera &camera, GLFWwindow * window, GLfloat deltaTime); // const
 
 	void loadTextures();
 	void resizeViewport(GLsizei viewport_width, GLsizei viewport_height);
@@ -68,7 +68,8 @@ public:
 
 private:
 	void prepareFrame(Camera &camera, GLfloat deltatime);
-	void drawLighting(const VertContainer<Vertex> &verts, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera); // camera is for debugging
+	void drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Vertex> &points, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera); // camera is for debugging
+	void drawAxis(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 	void bloomBlur(int passes);
 	void merge();
 	void endFrame(GLFWwindow * window);

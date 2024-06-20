@@ -17,6 +17,7 @@ void World::buildData(const glm::vec3 &playerPosition) {
 				const glm::vec3 coords = getChunkCoordsFloat(x, y, z);
 
 				(void)chunks[x][y][z].addVertsTo(verts);
+				(void)chunks[x][y][z].addPointsTo(debug_points);
 			}
 		}
 	}

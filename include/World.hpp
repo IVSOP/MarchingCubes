@@ -13,6 +13,7 @@ struct World {
 	Chunk chunks[WORLD_SIZE_X][WORLD_SIZE_Y][WORLD_SIZE_Z]; // this order can be changed, need to test it for performance
 
 	VertContainer<Vertex> verts; // so I dont have to constantly alloc and free
+	VertContainer<Vertex> debug_points;
 
 	constexpr Chunk &get(const glm::uvec3 &position) {
 		return chunks[position.x][position.y][position.z];
@@ -20,6 +21,10 @@ struct World {
 
 	VertContainer<Vertex> &getVerts() {
 		return verts;
+	}
+
+	VertContainer<Vertex> &getPoints() {
+		return debug_points;
 	}
 
 	void buildData(const glm::vec3 &playerPosition);
@@ -35,7 +40,7 @@ struct World {
 	}
 
 	World()
-	: verts(1 << 10) // why tf is 2e10 == 20000000000?????????????
+	: verts(1 << 10), debug_points(1 << 10) // why tf is 2e10 == 20000000000?????????????
 	{
 	}
 

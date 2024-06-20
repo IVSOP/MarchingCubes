@@ -8,12 +8,13 @@
 
 static_assert(CHUNK_SIZE == 32, "Chunk size needs to be 32 due to hardcoded values in greedy meshing");
 
-#include "common.hpp"
 #include <vector>
 #include "VertContainer.hpp"
 #include "Bitmap.hpp"
 
 #include "Vertex.hpp"
+
+#include "LookupTable.hpp"
 
 // normal {
 // 	0 - y (bottom)
@@ -25,11 +26,11 @@ static_assert(CHUNK_SIZE == 32, "Chunk size needs to be 32 due to hardcoded valu
 // }
 
 struct Voxel {
-	Bitmap<8> info = 0;
+	Bitmap<8> data = 0;
 	GLbyte material_id;
 
-	constexpr Voxel() : material_id(-1) {}
-	constexpr Voxel(GLbyte material_id) : material_id(material_id) {}
+	constexpr Voxel() : data(0), material_id(-1) {}
+	constexpr Voxel(uint8_t data, GLbyte material_id) : data(data), material_id(material_id) {}
 };
 
 struct Chunk {
@@ -38,6 +39,7 @@ struct Chunk {
 	bool vertsHaveChanged = true;
 	// [i] corresponds to normal == i
 	std::vector<Vertex> verts; // I suspect that most chunks will have empty space so I use a vector. idk how bad this is, memory will be extremely sparse. maybe using a fixed size array here will be better, need to test
+	std::vector<Vertex> debug_points;
 
 	// tells what positions are filled by an opaque block or not
 	// used as [y][z] to get the bitmask
@@ -73,7 +75,7 @@ struct Chunk {
 		vertsHaveChanged = true;
 	}
 
-	std::vector<Vertex> getVertx(GLuint normal) {
+	std::vector<Vertex> getVerts(GLuint normal) {
 		if (vertsHaveChanged) {
 			rebuildVerts();
 		}
@@ -89,6 +91,14 @@ struct Chunk {
 		return verts.size();
 	}
 
+	constexpr GLuint addPointsTo(VertContainer<Vertex> &_points) {
+		if (vertsHaveChanged) {
+			rebuildVerts();
+		}
+		_points.add(debug_points);
+		return debug_points.size();
+	}
+
 	constexpr bool voxelAt(GLuint x, GLuint y, GLuint z) {
 		return ! isEmptyAt(x, y, z);
 	}
@@ -102,11 +112,118 @@ struct Chunk {
 			return voxels[a][b][c].material_id;
 	}
 
+	void generateVoxelTriangles(std::vector<Vertex> &verts, std::vector<Vertex> &points, GLuint x, GLuint y, GLuint z) const {
+		// Bitmap<8> cubedata = voxels[y][z][x].data;
+		uint8_t cubedata = voxels[y][z][x].data.data; // cursed but whatever, will change in the future
+
+		const glm::vec3 pos_in_chunk = glm::vec3(static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z));
+
+		// also check 0xFF????
+		// if (cubedata == 0) {
+		// 	return;
+		// }
+
+		if (cubedata & 1) {
+			points.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
+		}
+		if (cubedata & 2) {
+			points.emplace_back(glm::vec3(1.0f, 0.0f, 0.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
+		}
+		if (cubedata & 4) {
+			points.emplace_back(glm::vec3(1.0f, 0.0f, -1.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
+		}
+		if (cubedata & 8) {
+			points.emplace_back(glm::vec3(0.0f, 0.0f, -1.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
+		}
+		if (cubedata & 16) {
+			points.emplace_back(glm::vec3(0.0f, 1.0f, 0.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
+		}
+		if (cubedata & 32) {
+			points.emplace_back(glm::vec3(1.0f, 1.0f, 0.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
+		}
+		if (cubedata & 64) {
+			points.emplace_back(glm::vec3(1.0f, 1.0f, -1.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
+		}
+		if (cubedata & 128) {
+			points.emplace_back(glm::vec3(0.0f, 1.0f, -1.0f) + pos_in_chunk, glm::vec2(0.0f), 0);
+		}
+
+		// get indices corresponding to the given configuration
+		const int8_t *edgeIndices = LookupTable::triTable[cubedata];
+
+		Vertex triangle[3];
+		triangle[0].tex_coords = glm::vec2(0.0f);
+		triangle[1].tex_coords = glm::vec2(0.0f);
+		triangle[2].tex_coords = glm::vec2(0.0f);
+		triangle[0].material_id = 0;
+		triangle[1].material_id = 0;
+		triangle[2].material_id = 0;
+		for (int i = 0; i < 16; i += 3) {
+			// If edge index is -1, then no further vertices exist in this configuration
+			if (edgeIndices[i] == -1) { break; }
+
+			// Get indices of the two corner points defining the edge that the surface passes through.
+			// (Do this for each of the three edges we're currently looking at).
+			int edgeIndexA = edgeIndices[i];
+			int a0 = LookupTable::cornerIndexAFromEdge[edgeIndexA];
+			int a1 = LookupTable::cornerIndexBFromEdge[edgeIndexA];
+
+			int edgeIndexB = edgeIndices[i + 1];
+			int b0 = LookupTable::cornerIndexAFromEdge[edgeIndexB];
+			int b1 = LookupTable::cornerIndexBFromEdge[edgeIndexB];
+
+			int edgeIndexC = edgeIndices[i + 2];
+			int c0 = LookupTable::cornerIndexAFromEdge[edgeIndexC];
+			int c1 = LookupTable::cornerIndexBFromEdge[edgeIndexC];
+
+			// Calculate positions of each vertex
+			// instead of interpolating, for now just get the mid point
+			triangle[0].coords = ((LookupTable::corner_coords[a0] + LookupTable::corner_coords[a1]) / 2.0f) + pos_in_chunk;
+			triangle[1].coords = ((LookupTable::corner_coords[b0] + LookupTable::corner_coords[b1]) / 2.0f) + pos_in_chunk;
+			triangle[2].coords = ((LookupTable::corner_coords[c0] + LookupTable::corner_coords[c1]) / 2.0f) + pos_in_chunk;
+
+			verts.push_back(triangle[0]);
+			verts.push_back(triangle[1]);
+			verts.push_back(triangle[2]);
+
+			
+		}
+
+		// // LookupTable::triTable[cubedata][...] returns indices of the triangle for this cube configuration
+		// Vertex triangle[3];
+		// triangle[0].tex_coords = glm::vec2(0.0f);
+		// triangle[1].tex_coords = glm::vec2(0.0f);
+		// triangle[2].tex_coords = glm::vec2(0.0f);
+		// triangle[0].material_id = 0;
+		// triangle[1].material_id = 0;
+		// triangle[2].material_id = 0;
+		// for (int i = 0; LookupTable::triTable[cubedata][i] != -1; i += 3) {
+		// 	triangle[0].coords = LookupTable::corner_coords[LookupTable::triTable[cubedata][i]];
+		// 	triangle[1].coords = LookupTable::corner_coords[LookupTable::triTable[cubedata][i + 1]];
+		// 	triangle[2].coords = LookupTable::corner_coords[LookupTable::triTable[cubedata][i + 2]];
+        // 	verts.push_back(triangle[0]);
+		// 	verts.push_back(triangle[1]);
+		// 	verts.push_back(triangle[2]);
+
+		// 	printf("pushed %f %f %f (%d)\n", triangle[0].coords.x, triangle[0].coords.y, triangle[0].coords.z, LookupTable::triTable[cubedata][i]);
+		// 	printf("pushed %f %f %f (%d)\n", triangle[1].coords.x, triangle[1].coords.y, triangle[1].coords.z, LookupTable::triTable[cubedata][i + 1]);
+		// 	printf("pushed %f %f %f (%d)\n", triangle[2].coords.x, triangle[2].coords.y, triangle[2].coords.z, LookupTable::triTable[cubedata][i + 2]);
+		// }
+
+	}
+
 	void rebuildVerts() {
 		vertsHaveChanged = false;
+		verts.clear();
+		debug_points.clear();
 
-		printf("REBUILD VERTS IS UNFINISHED\n");
-		// TODO...............................
+		for (GLuint y = 0; y < CHUNK_SIZE; y ++) {
+			for (GLuint z = 0; z < CHUNK_SIZE; z ++) {
+				for (GLuint x = 0; x < CHUNK_SIZE; x ++) {
+					generateVoxelTriangles(verts, debug_points, x, y, z);
+				}
+			}
+		}
 	}
 };
 

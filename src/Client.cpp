@@ -2,7 +2,7 @@
 
 Client::Client()
 : windowManager(std::make_unique<WindowManager>(1920, 1080, this)),
-  player(std::make_unique<Player>(glm::vec3(64, 64, 264), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0))),
+  player(std::make_unique<Player>(glm::vec3(64, 16, 64), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0))),
   world(std::make_unique<World>()),
   renderer(std::make_unique<Renderer>(1920, 1080)), // get these from window manager???
   inputHandler(glfw_handleMouseMov_callback, glfw_handleMouseKey_callback) // funcs from window manager
@@ -12,23 +12,24 @@ Client::Client()
 
 
 	Chunk chunk;
-	Voxel voxel = Voxel(0);
-	for (GLuint y = 0; y < CHUNK_SIZE; y++) {
-		for (GLuint z = 0; z < CHUNK_SIZE; z++) {
-			for (GLuint x = 0; x < CHUNK_SIZE; x++) {
-				voxel.material_id = 0;
-				if (x == 5) voxel.material_id = 1;
+	GLubyte value = 0;
+	for (GLuint y = 0; y < CHUNK_SIZE; y += 8) {
+		for (GLuint z = 0; z < CHUNK_SIZE; z += 8) {
+			for (GLuint x = 0; x < CHUNK_SIZE; x += 8) {
+				Voxel voxel = Voxel(value, 0);
+				// if (x == 5) voxel.material_id = 1;
 				chunk.insertVoxelAt(glm::uvec3(x, y, z), voxel);
+				value ++;
 			}
 		}
 	}
 
-	voxel.material_id = 1;
-	for (GLuint z = 0; z < CHUNK_SIZE; z++) {
-		for (GLuint x = 0; x < CHUNK_SIZE; x++) {
-			chunk.insertVoxelAt(glm::uvec3(x, 15, z), voxel);
-		}
-	}
+	// voxel.material_id = 1;
+	// for (GLuint z = 0; z < CHUNK_SIZE; z++) {
+	// 	for (GLuint x = 0; x < CHUNK_SIZE; x++) {
+	// 		chunk.insertVoxelAt(glm::uvec3(x, 15, z), voxel);
+	// 	}
+	// }
 
 	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
 		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
@@ -36,6 +37,7 @@ Client::Client()
 				// world.get()->copyChunkTo(chunk, glm::uvec3(x, 0, z));
 				// world.get()->copyChunkTo(chunk, glm::uvec3(x, 15, z));
 				world.get()->copyChunkTo(chunk, glm::uvec3(x, y, z));
+				return;
 			}
 		}
 	}
@@ -87,6 +89,7 @@ void Client::mainloop() {
     	world.get()->buildData(camera->Position);
 		renderer.get()->draw(
 			world.get()->getVerts(),
+			world.get()->getPoints(),
 			windowManager.get()->projection,
 			*camera, // ??????????????????????????????????? why
 			windowManager.get()->window, deltaTime);
