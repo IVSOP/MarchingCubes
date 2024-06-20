@@ -1,5 +1,30 @@
 #include "Client.hpp"
 
+#include "LookupTable.hpp"
+
+// check if inside a sphere
+bool contained_in(const glm::vec3 &coords) {
+	constexpr glm::vec3 center(0.0f);
+	constexpr GLfloat radius = 8.0f;
+	if ((coords.x - center.x) * (coords.x - center.x) + (coords.y - center.y) * (coords.y - center.y) + (coords.z - center.z) * (coords.z - center.z) <= radius * radius ) {
+		return true;
+	}
+	return false;
+}
+
+GLubyte sphere_getValue(GLuint x, GLuint y, GLuint z) {
+	GLubyte value = 0;
+	glm::vec3 coords;
+	for (GLubyte corner = 0; corner < 8; corner++) {
+		const glm::vec3 &pos = LookupTable::corner_coords[corner];
+		coords = pos + glm::vec3(static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z));
+		if (contained_in(coords)) {
+			value |= 1 << corner;
+		}
+	}
+	return value;
+}
+
 Client::Client()
 : windowManager(std::make_unique<WindowManager>(1920, 1080, this)),
   player(std::make_unique<Player>(glm::vec3(64, 16, 64), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0))),
@@ -12,31 +37,24 @@ Client::Client()
 
 
 	Chunk chunk;
-	GLubyte value = 0;
-	for (GLuint y = 0; y < CHUNK_SIZE; y += 8) {
-		for (GLuint z = 0; z < CHUNK_SIZE; z += 8) {
-			for (GLuint x = 0; x < CHUNK_SIZE; x += 8) {
-				Voxel voxel = Voxel(value, 0);
+	for (GLuint y = 0; y < CHUNK_SIZE; y ++) {
+		for (GLuint z = 0; z < CHUNK_SIZE; z ++) {
+			for (GLuint x = 0; x < CHUNK_SIZE; x ++) {
+				Voxel voxel = Voxel(sphere_getValue(x, y, z), 0);
 				// if (x == 5) voxel.material_id = 1;
 				chunk.insertVoxelAt(glm::uvec3(x, y, z), voxel);
-				value ++;
 			}
 		}
 	}
 
-	// voxel.material_id = 1;
-	// for (GLuint z = 0; z < CHUNK_SIZE; z++) {
-	// 	for (GLuint x = 0; x < CHUNK_SIZE; x++) {
-	// 		chunk.insertVoxelAt(glm::uvec3(x, 15, z), voxel);
-	// 	}
-	// }
 
 	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
 		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
 			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
 				// world.get()->copyChunkTo(chunk, glm::uvec3(x, 0, z));
 				// world.get()->copyChunkTo(chunk, glm::uvec3(x, 15, z));
-				world.get()->copyChunkTo(chunk, glm::uvec3(x, y, z));
+				// world.get()->copyChunkTo(chunk1, glm::uvec3(x, y, z));
+				world.get()->copyChunkTo(chunk, glm::uvec3(x + 1, y, z + 1));
 				return;
 			}
 		}

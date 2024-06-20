@@ -182,11 +182,10 @@ struct Chunk {
 			triangle[1].coords = ((LookupTable::corner_coords[b0] + LookupTable::corner_coords[b1]) / 2.0f) + pos_in_chunk;
 			triangle[2].coords = ((LookupTable::corner_coords[c0] + LookupTable::corner_coords[c1]) / 2.0f) + pos_in_chunk;
 
-			verts.push_back(triangle[0]);
-			verts.push_back(triangle[1]);
+			// TODO got lazy, in the future invert the lookup table
 			verts.push_back(triangle[2]);
-
-			
+			verts.push_back(triangle[1]);
+			verts.push_back(triangle[0]);
 		}
 
 		// // LookupTable::triTable[cubedata][...] returns indices of the triangle for this cube configuration
