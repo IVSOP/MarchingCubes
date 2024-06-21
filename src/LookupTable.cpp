@@ -2,17 +2,16 @@
 
 // https://paulbourke.net/geometry/polygonise/polygonise1.gif
 // https://github.com/SebLague/Terraforming/blob/main/Assets/Marching%20Cubes/Scripts/Compute/Includes/MarchTables.compute
-#define WORLD_OFFSET glm::vec3(0.0f, 0.0f, 1.0f)
 
 const glm::vec3 LookupTable::corner_coords[8] = {
-	glm::vec3(0.0f, 0.0f, 0.0f) + WORLD_OFFSET,
-	glm::vec3(1.0f, 0.0f, 0.0f) + WORLD_OFFSET,
-	glm::vec3(1.0f, 0.0f, -1.0f) + WORLD_OFFSET,
-	glm::vec3(0.0f, 0.0f, -1.0f) + WORLD_OFFSET,
-	glm::vec3(0.0f, 1.0f, 0.0f) + WORLD_OFFSET,
-	glm::vec3(1.0f, 1.0f, 0.0f) + WORLD_OFFSET,
-	glm::vec3(1.0f, 1.0f, -1.0f) + WORLD_OFFSET,
-	glm::vec3(0.0f, 1.0f, -1.0f) + WORLD_OFFSET
+	glm::vec3(0.0f, 0.0f, 0.0f),
+	glm::vec3(1.0f, 0.0f, 0.0f),
+	glm::vec3(1.0f, 0.0f, 1.0f),
+	glm::vec3(0.0f, 0.0f, 1.0f),
+	glm::vec3(0.0f, 1.0f, 0.0f),
+	glm::vec3(1.0f, 1.0f, 0.0f),
+	glm::vec3(1.0f, 1.0f, 1.0f),
+	glm::vec3(0.0f, 1.0f, 1.0f)
 };
 
 
@@ -311,4 +310,33 @@ const int8_t LookupTable::triTable[256][16] = {
     { 0, 9, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
     { 0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
     {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }
+};
+
+const glm::vec3 LookupTable::finalCoords[12] = {
+	// cornerA - cornerB, defining a certain edge
+	// result is point in the middle of both corners
+	// 0 - 1
+	(LookupTable::corner_coords[0] + LookupTable::corner_coords[1]) / 2.0f,
+	// 1 - 2
+	(LookupTable::corner_coords[1] + LookupTable::corner_coords[2]) / 2.0f,
+	// 2 - 3
+	(LookupTable::corner_coords[2] + LookupTable::corner_coords[3]) / 2.0f,
+	// 3 - 0
+	(LookupTable::corner_coords[3] + LookupTable::corner_coords[0]) / 2.0f,
+	// 4 - 5
+	(LookupTable::corner_coords[4] + LookupTable::corner_coords[5]) / 2.0f,
+	// 5 - 6
+	(LookupTable::corner_coords[5] + LookupTable::corner_coords[6]) / 2.0f,
+	// 6 - 7
+	(LookupTable::corner_coords[6] + LookupTable::corner_coords[7]) / 2.0f,
+	// 7 - 4
+	(LookupTable::corner_coords[7] + LookupTable::corner_coords[4]) / 2.0f,
+	// 0 - 4
+	(LookupTable::corner_coords[0] + LookupTable::corner_coords[4]) / 2.0f,
+	// 1 - 5
+	(LookupTable::corner_coords[1] + LookupTable::corner_coords[5]) / 2.0f,
+	// 2 - 6
+	(LookupTable::corner_coords[2] + LookupTable::corner_coords[6]) / 2.0f,
+	// 3 - 7
+	(LookupTable::corner_coords[3] + LookupTable::corner_coords[7]) / 2.0f,
 };

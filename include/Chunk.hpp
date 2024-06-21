@@ -128,7 +128,7 @@ struct Chunk {
 			}
 		}
 
-		// get indices corresponding to the given configuration
+		// for this configuration, get list of indices corresponding to 'activated' edges
 		const int8_t *edgeIndices = LookupTable::triTable[cubedata];
 
 		Vertex triangle[3];
@@ -138,34 +138,47 @@ struct Chunk {
 		triangle[0].material_id = 0;
 		triangle[1].material_id = 0;
 		triangle[2].material_id = 0;
+
+		// for every 3 edges we can make a triangle
 		for (int i = 0; i < 16; i += 3) {
 			// If edge index is -1, then no further vertices exist in this configuration
 			if (edgeIndices[i] == -1) { break; }
+			
+			// TODO edgeTable[cubedata] already gives all 3 corners (bit [i] == 1 means one of the corners is [i]). test if that approach is faster 
 
-			// Get indices of the two corner points defining the edge that the surface passes through.
-			// (Do this for each of the three edges we're currently looking at).
-			int edgeIndexA = edgeIndices[i];
-			int a0 = LookupTable::cornerIndexAFromEdge[edgeIndexA];
-			int a1 = LookupTable::cornerIndexBFromEdge[edgeIndexA];
+			// instead of doing the commented approach, since I always just get the mid point instead of interpolating,
+			// this means I can precompute the values to be faster
+				// // for the 3 current edges being considered, get the two corners that define them
+				// int edgeIndexA = edgeIndices[i];
+				// int a0 = LookupTable::cornerIndexAFromEdge[edgeIndexA];
+				// int a1 = LookupTable::cornerIndexBFromEdge[edgeIndexA];
 
-			int edgeIndexB = edgeIndices[i + 1];
-			int b0 = LookupTable::cornerIndexAFromEdge[edgeIndexB];
-			int b1 = LookupTable::cornerIndexBFromEdge[edgeIndexB];
+				// int edgeIndexB = edgeIndices[i + 1];
+				// int b0 = LookupTable::cornerIndexAFromEdge[edgeIndexB];
+				// int b1 = LookupTable::cornerIndexBFromEdge[edgeIndexB];
 
-			int edgeIndexC = edgeIndices[i + 2];
-			int c0 = LookupTable::cornerIndexAFromEdge[edgeIndexC];
-			int c1 = LookupTable::cornerIndexBFromEdge[edgeIndexC];
+				// int edgeIndexC = edgeIndices[i + 2];
+				// int c0 = LookupTable::cornerIndexAFromEdge[edgeIndexC];
+				// int c1 = LookupTable::cornerIndexBFromEdge[edgeIndexC];
 
-			// Calculate positions of each vertex
-			// instead of interpolating, for now just get the mid point
-			triangle[0].coords = ((LookupTable::corner_coords[a0] + LookupTable::corner_coords[a1]) / 2.0f) + pos_in_chunk;
-			triangle[1].coords = ((LookupTable::corner_coords[b0] + LookupTable::corner_coords[b1]) / 2.0f) + pos_in_chunk;
-			triangle[2].coords = ((LookupTable::corner_coords[c0] + LookupTable::corner_coords[c1]) / 2.0f) + pos_in_chunk;
+				// // Calculate positions of each vertex
+				// // instead of interpolating, I get the mid point
+				// triangle[0].coords = ((LookupTable::corner_coords[a0] + LookupTable::corner_coords[a1]) / 2.0f) + pos_in_chunk;
+				// triangle[1].coords = ((LookupTable::corner_coords[b0] + LookupTable::corner_coords[b1]) / 2.0f) + pos_in_chunk;
+				// triangle[2].coords = ((LookupTable::corner_coords[c0] + LookupTable::corner_coords[c1]) / 2.0f) + pos_in_chunk;
+
+			const int edgeIndexA = edgeIndices[i];
+			const int edgeIndexB = edgeIndices[i + 1];
+			const int edgeIndexC = edgeIndices[i + 2];
+
+			triangle[0].coords = LookupTable::finalCoords[edgeIndexA] + pos_in_chunk;
+			triangle[1].coords = LookupTable::finalCoords[edgeIndexB] + pos_in_chunk;
+			triangle[2].coords = LookupTable::finalCoords[edgeIndexC] + pos_in_chunk;
 
 			// TODO got lazy, in the future invert the lookup table
-			verts.push_back(triangle[2]);
-			verts.push_back(triangle[1]);
 			verts.push_back(triangle[0]);
+			verts.push_back(triangle[1]);
+			verts.push_back(triangle[2]);
 		}
 
 		// // LookupTable::triTable[cubedata][...] returns indices of the triangle for this cube configuration

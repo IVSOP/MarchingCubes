@@ -463,13 +463,13 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, verts.size()));
 
 		// draw points
-		pointshader.use();
-		pointshader.setMat4("u_Model", model);
-		pointshader.setMat4("u_View", view);
-		pointshader.setMat4("u_Projection", projection);
-		glEnable( GL_PROGRAM_POINT_SIZE );
-		GLCall(glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(Vertex), points.data(), GL_STATIC_DRAW));
-		GLCall(glDrawArrays(GL_POINTS, 0, points.size()));
+		// pointshader.use();
+		// pointshader.setMat4("u_Model", model);
+		// pointshader.setMat4("u_View", view);
+		// pointshader.setMat4("u_Projection", projection);
+		// glEnable( GL_PROGRAM_POINT_SIZE );
+		// GLCall(glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(Vertex), points.data(), GL_STATIC_DRAW));
+		// GLCall(glDrawArrays(GL_POINTS, 0, points.size()));
 
 		if (showAxis) {
 			drawAxis(glm::mat4(1.0f), view, projection);

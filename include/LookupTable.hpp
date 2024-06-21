@@ -15,6 +15,7 @@ struct LookupTable {
 	static const glm::vec3 corner_coords[8];
 	// for each of the 256 cube configuration cases, array with the indices of the vertex
 	static const int8_t triTable[256][16];
+	static const glm::vec3 finalCoords[12];
 };
 
 // typedef struct {
