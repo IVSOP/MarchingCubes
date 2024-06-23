@@ -14,7 +14,7 @@ uniform mat4 u_Projection;
 
 const vec3 lookup_array[] = vec3[12](
 	vec3(0.5, 0.0, 0.0),
-	vec3(0.5, 0.0, 0.5),
+	vec3(1.0, 0.0, 0.5),
 	vec3(0.5, 0.0, 1.0),
 	vec3(0.0, 0.0, 0.5),
 	vec3(0.5, 1.0, 0.0),

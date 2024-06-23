@@ -10,11 +10,11 @@ bool contained_in(const glm::vec3 &coords) {
 		return true;
 	}
 
-	// constexpr glm::vec3 center2(16.0f, 8.0f, 16.0f);
-	// constexpr GLfloat radius2 = 10.5f;
-	// if ((coords.x - center2.x) * (coords.x - center2.x) + (coords.y - center2.y) * (coords.y - center2.y) + (coords.z - center2.z) * (coords.z - center2.z) <= radius2 * radius2 ) {
-	// 	return true;
-	// }
+	constexpr glm::vec3 center2(16.0f, 8.0f, 16.0f);
+	constexpr GLfloat radius2 = 10.5f;
+	if ((coords.x - center2.x) * (coords.x - center2.x) + (coords.y - center2.y) * (coords.y - center2.y) + (coords.z - center2.z) * (coords.z - center2.z) <= radius2 * radius2 ) {
+		return true;
+	}
 
 	return false;
 }

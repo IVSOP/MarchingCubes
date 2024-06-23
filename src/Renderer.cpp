@@ -464,7 +464,6 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 		// bind the render buffer to this FBO (maybe this is missing actualy binding it, idk, but it gets regenerated automatically when screen is resized)
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, lightingFBODepthBuffer);
 
-
 		// specify 2 attachments
 		constexpr GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 		GLCall(glDrawBuffers(2, attachments));
