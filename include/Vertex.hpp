@@ -6,15 +6,23 @@
 
 #include <GL/glew.h> // GLfloat
 
-struct Vertex { // struct of vertices as sent to the GPU. position is relative to the chunk, and the normal can only be 0, 1, ..., 5
-	glm::vec3 coords;
-	glm::vec2 tex_coords;
+struct Point {
+	glm::vec3 pos;
+
+	Point(const glm::vec3 &pos)
+	: pos(pos) { }
+};
+
+// naming is hard, this data is actually applied per instance
+struct Vertex {
+	glm::ivec3 local_pos;
+	glm::ivec3 edges;
 	GLint material_id;
 
 	Vertex() = default;
 
-	Vertex(const glm::vec3 &coords, const glm::vec2 &tex_coords, GLint material_id)
-	: coords(coords), tex_coords(tex_coords), material_id(material_id) { }
+	Vertex(const glm::ivec3 &local_pos, const glm::ivec3 &edges, GLint material_id)
+	: local_pos(local_pos), edges(edges), material_id(material_id) { }
 };
 
 struct AxisVertex { // to draw the axis

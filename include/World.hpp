@@ -13,7 +13,7 @@ struct World {
 	Chunk chunks[WORLD_SIZE_X][WORLD_SIZE_Y][WORLD_SIZE_Z]; // this order can be changed, need to test it for performance
 
 	VertContainer<Vertex> verts; // so I dont have to constantly alloc and free
-	VertContainer<Vertex> debug_points;
+	VertContainer<Point> debug_points;
 
 	constexpr Chunk &get(const glm::uvec3 &position) {
 		return chunks[position.x][position.y][position.z];
@@ -23,7 +23,7 @@ struct World {
 		return verts;
 	}
 
-	VertContainer<Vertex> &getPoints() {
+	VertContainer<Point> &getPoints() {
 		return debug_points;
 	}
 

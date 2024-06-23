@@ -7,6 +7,7 @@
 // make player position align to the chunk somehow???????/ doing == on floats is kind of bad
 void World::buildData(const glm::vec3 &playerPosition) {
 	verts.clear();
+	debug_points.clear();
 
 	GLuint start_index = 0, end_index = 0;
 

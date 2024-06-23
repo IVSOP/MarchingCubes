@@ -39,7 +39,7 @@ struct Chunk {
 	bool vertsHaveChanged = true;
 	// [i] corresponds to normal == i
 	std::vector<Vertex> verts; // I suspect that most chunks will have empty space so I use a vector. idk how bad this is, memory will be extremely sparse. maybe using a fixed size array here will be better, need to test
-	std::vector<Vertex> debug_points;
+	std::vector<Point> debug_points;
 
 	// tells what positions are filled by an opaque block or not
 	// used as [y][z] to get the bitmask
@@ -91,7 +91,7 @@ struct Chunk {
 		return verts.size();
 	}
 
-	constexpr GLuint addPointsTo(VertContainer<Vertex> &_points) {
+	constexpr GLuint addPointsTo(VertContainer<Point> &_points) {
 		if (vertsHaveChanged) {
 			rebuildVerts();
 		}
@@ -112,33 +112,27 @@ struct Chunk {
 			return voxels[a][b][c].material_id;
 	}
 
-	void generateVoxelTriangles(std::vector<Vertex> &verts, std::vector<Vertex> &points, GLuint x, GLuint y, GLuint z) const {
+	void generateVoxelTriangles(std::vector<Vertex> &verts, std::vector<Point> &points, GLuint x, GLuint y, GLuint z) const {
 		// Bitmap<8> cubedata = voxels[y][z][x].data;
 		uint8_t cubedata = voxels[y][z][x].data.data; // cursed but whatever, will change in the future
 
-		const glm::vec3 pos_in_chunk = glm::vec3(static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z));
+		// if it is completely inside or outside, nothing gets drawn
+		// idk if this makes anything faster, but it helps when using debug points
+		if (cubedata == 0xFF || cubedata == 0x00) {
+			return;
+		}
 
-		// also check 0xFF????
-		// if (cubedata == 0) {
-		// 	return;
-		// }
+		const glm::vec3 pos_in_chunk = glm::vec3(static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z));
 		for (GLubyte corner = 0; corner < 8; corner ++) {
 			if (cubedata & (1 << corner)) {
-				points.emplace_back(LookupTable::corner_coords[corner] + pos_in_chunk, glm::vec2(0.0f), 0);
+				points.emplace_back(LookupTable::corner_coords[corner] + pos_in_chunk);
 			}
 		}
 
 		// for this configuration, get list of indices corresponding to 'activated' edges
 		const int8_t *edgeIndices = LookupTable::triTable[cubedata];
 
-		Vertex triangle[3];
-		triangle[0].tex_coords = glm::vec2(0.0f);
-		triangle[1].tex_coords = glm::vec2(0.0f);
-		triangle[2].tex_coords = glm::vec2(0.0f);
-		triangle[0].material_id = 0;
-		triangle[1].material_id = 0;
-		triangle[2].material_id = 0;
-
+		Vertex vert;
 		// for every 3 edges we can make a triangle
 		for (int i = 0; i < 16; i += 3) {
 			// If edge index is -1, then no further vertices exist in this configuration
@@ -167,41 +161,16 @@ struct Chunk {
 				// triangle[1].coords = ((LookupTable::corner_coords[b0] + LookupTable::corner_coords[b1]) / 2.0f) + pos_in_chunk;
 				// triangle[2].coords = ((LookupTable::corner_coords[c0] + LookupTable::corner_coords[c1]) / 2.0f) + pos_in_chunk;
 
-			const int edgeIndexA = edgeIndices[i];
-			const int edgeIndexB = edgeIndices[i + 1];
-			const int edgeIndexC = edgeIndices[i + 2];
+			const GLint edgeIndexA = edgeIndices[i];
+			const GLint edgeIndexB = edgeIndices[i + 1];
+			const GLint edgeIndexC = edgeIndices[i + 2];
 
-			triangle[0].coords = LookupTable::finalCoords[edgeIndexA] + pos_in_chunk;
-			triangle[1].coords = LookupTable::finalCoords[edgeIndexB] + pos_in_chunk;
-			triangle[2].coords = LookupTable::finalCoords[edgeIndexC] + pos_in_chunk;
+			vert.edges = glm::ivec3(edgeIndexA, edgeIndexB, edgeIndexC);
+			vert.material_id = 0;
+			vert.local_pos = glm::ivec3(x, y, z);
 
-			// TODO got lazy, in the future invert the lookup table
-			verts.push_back(triangle[0]);
-			verts.push_back(triangle[1]);
-			verts.push_back(triangle[2]);
+			verts.push_back(vert);
 		}
-
-		// // LookupTable::triTable[cubedata][...] returns indices of the triangle for this cube configuration
-		// Vertex triangle[3];
-		// triangle[0].tex_coords = glm::vec2(0.0f);
-		// triangle[1].tex_coords = glm::vec2(0.0f);
-		// triangle[2].tex_coords = glm::vec2(0.0f);
-		// triangle[0].material_id = 0;
-		// triangle[1].material_id = 0;
-		// triangle[2].material_id = 0;
-		// for (int i = 0; LookupTable::triTable[cubedata][i] != -1; i += 3) {
-		// 	triangle[0].coords = LookupTable::corner_coords[LookupTable::triTable[cubedata][i]];
-		// 	triangle[1].coords = LookupTable::corner_coords[LookupTable::triTable[cubedata][i + 1]];
-		// 	triangle[2].coords = LookupTable::corner_coords[LookupTable::triTable[cubedata][i + 2]];
-        // 	verts.push_back(triangle[0]);
-		// 	verts.push_back(triangle[1]);
-		// 	verts.push_back(triangle[2]);
-
-		// 	printf("pushed %f %f %f (%d)\n", triangle[0].coords.x, triangle[0].coords.y, triangle[0].coords.z, LookupTable::triTable[cubedata][i]);
-		// 	printf("pushed %f %f %f (%d)\n", triangle[1].coords.x, triangle[1].coords.y, triangle[1].coords.z, LookupTable::triTable[cubedata][i + 1]);
-		// 	printf("pushed %f %f %f (%d)\n", triangle[2].coords.x, triangle[2].coords.y, triangle[2].coords.z, LookupTable::triTable[cubedata][i + 2]);
-		// }
-
 	}
 
 	void rebuildVerts() {

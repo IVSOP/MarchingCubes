@@ -27,7 +27,7 @@ public:
 
 	GLuint VAO, VAO_axis;
 	GLuint indirectBuffer;
-	GLuint VBO, vertexBuffer_axis;
+	GLuint VBO_base, VBO, vertexBuffer_axis;
 
 	Shader basicShader, axisShader;
 	GLuint lightingFBO = 0, lightingFBODepthBuffer = 0;
@@ -49,7 +49,7 @@ public:
 	
 
 	GLfloat gamma = 2.2f, exposure = 1.0f, bloomThreshold = 1.0f, bloomOffset = 1.0f, explodeCoeff = 0.0f;
-	int bloomBlurPasses = 5;
+	int bloomBlurPasses = 0; //5;
 	bool showAxis = true;
 	bool wireframe = false;
 	bool limitFPS = false;
@@ -58,7 +58,7 @@ public:
 
 	std::unique_ptr<TextureArray> textureArray = nullptr; // pointer since it starts as null and gets initialized later. unique_ptr so it always gets deleted
 
-	void draw(const VertContainer<Vertex> &verts, const VertContainer<Vertex> &points, const glm::mat4 &projection, Camera &camera, GLFWwindow * window, GLfloat deltaTime); // const
+	void draw(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const glm::mat4 &projection, Camera &camera, GLFWwindow * window, GLfloat deltaTime); // const
 
 	void loadTextures();
 	void resizeViewport(GLsizei viewport_width, GLsizei viewport_height);
@@ -68,7 +68,7 @@ public:
 
 private:
 	void prepareFrame(Camera &camera, GLfloat deltatime);
-	void drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Vertex> &points, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera); // camera is for debugging
+	void drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera); // camera is for debugging
 	void drawAxis(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 	void bloomBlur(int passes);
 	void merge();

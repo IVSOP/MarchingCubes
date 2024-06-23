@@ -4,11 +4,18 @@
 
 // check if inside a sphere
 bool contained_in(const glm::vec3 &coords) {
-	constexpr glm::vec3 center(0.0f);
-	constexpr GLfloat radius = 8.0f;
-	if ((coords.x - center.x) * (coords.x - center.x) + (coords.y - center.y) * (coords.y - center.y) + (coords.z - center.z) * (coords.z - center.z) <= radius * radius ) {
+	constexpr glm::vec3 center1(0.0f);
+	constexpr GLfloat radius1 = 8.0f;
+	if ((coords.x - center1.x) * (coords.x - center1.x) + (coords.y - center1.y) * (coords.y - center1.y) + (coords.z - center1.z) * (coords.z - center1.z) <= radius1 * radius1 ) {
 		return true;
 	}
+
+	// constexpr glm::vec3 center2(16.0f, 8.0f, 16.0f);
+	// constexpr GLfloat radius2 = 10.5f;
+	// if ((coords.x - center2.x) * (coords.x - center2.x) + (coords.y - center2.y) * (coords.y - center2.y) + (coords.z - center2.z) * (coords.z - center2.z) <= radius2 * radius2 ) {
+	// 	return true;
+	// }
+
 	return false;
 }
 
@@ -40,7 +47,7 @@ Client::Client()
 	for (GLuint y = 0; y < CHUNK_SIZE; y ++) {
 		for (GLuint z = 0; z < CHUNK_SIZE; z ++) {
 			for (GLuint x = 0; x < CHUNK_SIZE; x ++) {
-				Voxel voxel = Voxel(sphere_getValue(x, y, z), 0);
+				Voxel voxel = Voxel(sphere_getValue(x, y, z), 0); // REMAKE THIS to add spheres to world and not just to the chunk
 				// if (x == 5) voxel.material_id = 1;
 				chunk.insertVoxelAt(glm::uvec3(x, y, z), voxel);
 			}

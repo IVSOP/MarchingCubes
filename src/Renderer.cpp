@@ -102,7 +102,7 @@ void Renderer::drawAxis(const glm::mat4 &model, const glm::mat4 &view, const glm
 
 Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
 : viewport_width(viewport_width), viewport_height(viewport_height), VAO(0), VBO(0),
-  basicShader("shaders/basic.vert", "shaders/basic.frag"),
+  basicShader("shaders/instanced.vert", "shaders/instanced.frag"),
   axisShader("shaders/axis.vert", "shaders/axis.frag"),
   blurShader("shaders/blur.vert", "shaders/blur.frag"),
   hdrBbloomMergeShader("shaders/hdrBloomMerge.vert", "shaders/hdrBloomMerge.frag"),
@@ -114,25 +114,38 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
 
 	//////////////////////////// LOADING VBOS ////////////////////////////////
 
+	GLCall(glGenBuffers(1, &this->VBO_base));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO_base));
+	{
+		GLuint vertex_id_layout = 0;
+		GLCall(glEnableVertexAttribArray(vertex_id_layout));
+		GLCall(glVertexAttribIPointer(vertex_id_layout, 1, GL_INT, sizeof(GLint), (const void *)0));
+		GLCall(glVertexAttribDivisor(vertex_id_layout, 0)); // repeat every instance
+
+		GLint ids[] = {
+			0, 1, 2
+		};
+
+		GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ids), ids, GL_STATIC_DRAW));
+	}
+
 	GLCall(glGenBuffers(1, &this->VBO));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO));
 	{
-		GLuint vertex_position_layout = 0;
-		GLCall(glEnableVertexAttribArray(vertex_position_layout));					// size appart				// offset
-		GLCall(glVertexAttribPointer(vertex_position_layout, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void *)offsetof(Vertex, coords)));
-		// GLCall(glVertexAttribDivisor(vertex_position_layout, 1));
+		GLuint local_pos_layout = 1;
+		GLCall(glEnableVertexAttribArray(local_pos_layout));
+		GLCall(glVertexAttribIPointer(local_pos_layout, 3, GL_INT, sizeof(Vertex), (const void *)offsetof(Vertex, local_pos)));
+		GLCall(glVertexAttribDivisor(local_pos_layout, 1)); // advance every instance
 
-		GLuint vertex_texcoord_layout = 1;
-		GLCall(glEnableVertexAttribArray(vertex_texcoord_layout));					// size appart				// offset
-		GLCall(glVertexAttribPointer(vertex_texcoord_layout, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void *)offsetof(Vertex, tex_coords)));
-		// GLCall(glVertexAttribDivisor(vertex_texcoord_layout, 1));
+		GLuint edge_ids_layout = 2;
+		GLCall(glEnableVertexAttribArray(edge_ids_layout));
+		GLCall(glVertexAttribIPointer(edge_ids_layout, 3, GL_INT, sizeof(Vertex), (const void *)offsetof(Vertex, edges)));
+		GLCall(glVertexAttribDivisor(edge_ids_layout, 1)); // advance every instance
 
-		GLuint vertex_materialID_layout = 2;
-		GLCall(glEnableVertexAttribArray(vertex_materialID_layout));
-		GLCall(glVertexAttribIPointer(vertex_materialID_layout, 1, GL_INT, sizeof(Vertex), (const void *)offsetof(Vertex, material_id)));
-		// GLCall(glVertexAttribDivisor(vertex_materialID_layout, 1));
-
-		// GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(baseVertices), baseVertices, GL_STATIC_DRAW));
+		GLuint material_id_layout = 3;
+		GLCall(glEnableVertexAttribArray(material_id_layout));
+		GLCall(glVertexAttribIPointer(material_id_layout, 1, GL_INT, sizeof(Vertex), (const void *)offsetof(Vertex, material_id)));
+		GLCall(glVertexAttribDivisor(material_id_layout, 1)); // advance every instance
 	}
 
 	//////////////////////////// LOADING VAO FOR AXIS ////////////////////////////
@@ -251,6 +264,7 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
 
 Renderer::~Renderer() {
 	GLCall(glDeleteBuffers(1, &VBO));
+	GLCall(glDeleteBuffers(1, &VBO_base));
 	GLCall(glDeleteBuffers(1, &materialBuffer));
 	GLCall(glDeleteBuffers(1, &vertexBuffer_axis));
 	GLCall(glDeleteBuffers(1, &vertexBuffer_viewport));
@@ -309,7 +323,7 @@ void Renderer::prepareFrame(Camera &camera, GLfloat deltaTime) {
 	ImGui::Checkbox("Wireframe", &wireframe);
 }
 
-void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Vertex> &points, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera) {
+void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera) {
 	constexpr glm::mat4 model = glm::mat4(1.0f);
 	// const glm::mat4 MVP = projection * view * model;
 
@@ -326,9 +340,8 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 		// glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 
 		GLCall(glBindVertexArray(this->VAO));
-		GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO));
 
-		// load vertices
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO));
 		GLCall(glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(Vertex), verts.data(), GL_STATIC_DRAW));
 
 
@@ -458,11 +471,13 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 
 		// basicShader.validate();
 
-		// GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 6, quads.size()));
+		GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 3, verts.size()));
+
 		// GLCall(glMultiDrawArraysIndirect(GL_TRIANGLES, (void *)0, indirect.size(), 0));
-		GLCall(glDrawArrays(GL_TRIANGLES, 0, verts.size()));
+		// GLCall(glDrawArrays(GL_TRIANGLES, 0, verts.size()));
 
 		// draw points
+		// NEED TO USE OTHER SHADER
 		// pointshader.use();
 		// pointshader.setMat4("u_Model", model);
 		// pointshader.setMat4("u_View", view);
@@ -572,7 +587,7 @@ void Renderer::endFrame(GLFWwindow * window) {
     glfwSwapBuffers(window);
 }
 
-void Renderer::draw(const VertContainer<Vertex> &verts, const VertContainer<Vertex> &points, const glm::mat4 &projection, Camera &camera, GLFWwindow * window, GLfloat deltaTime) {
+void Renderer::draw(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const glm::mat4 &projection, Camera &camera, GLFWwindow * window, GLfloat deltaTime) {
 	prepareFrame(camera, deltaTime);
 	const glm::mat4 view = camera.GetViewMatrix();
 	drawLighting(verts, points, projection, view, camera);
