@@ -132,20 +132,10 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
 	GLCall(glGenBuffers(1, &this->VBO));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO));
 	{
-		GLuint local_pos_layout = 1;
-		GLCall(glEnableVertexAttribArray(local_pos_layout));
-		GLCall(glVertexAttribIPointer(local_pos_layout, 3, GL_INT, sizeof(Vertex), (const void *)offsetof(Vertex, local_pos)));
-		GLCall(glVertexAttribDivisor(local_pos_layout, 1)); // advance every instance
-
-		GLuint edge_ids_layout = 2;
-		GLCall(glEnableVertexAttribArray(edge_ids_layout));
-		GLCall(glVertexAttribIPointer(edge_ids_layout, 3, GL_INT, sizeof(Vertex), (const void *)offsetof(Vertex, edges)));
-		GLCall(glVertexAttribDivisor(edge_ids_layout, 1)); // advance every instance
-
-		GLuint material_id_layout = 3;
-		GLCall(glEnableVertexAttribArray(material_id_layout));
-		GLCall(glVertexAttribIPointer(material_id_layout, 1, GL_INT, sizeof(Vertex), (const void *)offsetof(Vertex, material_id)));
-		GLCall(glVertexAttribDivisor(material_id_layout, 1)); // advance every instance
+		GLuint data_layout = 1;
+		GLCall(glEnableVertexAttribArray(data_layout));
+		GLCall(glVertexAttribIPointer(data_layout, 1, GL_INT, sizeof(Vertex), (const void *)offsetof(Vertex, data)));
+		GLCall(glVertexAttribDivisor(data_layout, 1)); // advance every instance
 	}
 
 	//////////////////////////// LOADING VAO FOR AXIS ////////////////////////////

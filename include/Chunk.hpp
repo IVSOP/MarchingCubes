@@ -165,9 +165,8 @@ struct Chunk {
 			const GLint edgeIndexB = edgeIndices[i + 1];
 			const GLint edgeIndexC = edgeIndices[i + 2];
 
-			vert.edges = glm::ivec3(edgeIndexA, edgeIndexB, edgeIndexC);
-			vert.material_id = 0;
-			vert.local_pos = glm::ivec3(x, y, z);
+			// TODO messy conversions
+			vert = Vertex(glm::uvec3(x, y, z), glm::uvec3(edgeIndexA, edgeIndexB, edgeIndexC), 0);
 
 			verts.push_back(vert);
 		}
