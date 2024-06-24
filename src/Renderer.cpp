@@ -104,6 +104,7 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
 : viewport_width(viewport_width), viewport_height(viewport_height), VAO(0), VBO(0),
   mainShader("shaders/lighting.vert", "shaders/lighting.frag"),
   axisShader("shaders/axis.vert", "shaders/axis.frag"),
+  normalShader("shaders/normals.vert", "shaders/normals.frag", "shaders/normals.gs"),
   blurShader("shaders/blur.vert", "shaders/blur.frag"),
   hdrBbloomMergeShader("shaders/hdrBloomMerge.vert", "shaders/hdrBloomMerge.frag"),
   pointshader("shaders/points.vert", "shaders/points.frag")
@@ -310,6 +311,7 @@ void Renderer::prepareFrame(Camera &camera, GLfloat deltaTime) {
 	// texOffsetCoeff = static_cast<GLfloat>(rand()) / static_cast<GLfloat>(RAND_MAX) * 10.0f;
 	ImGui::SliderFloat("bloomOffset", &bloomOffset, 0.0f, 10.0f, "bloomOffset = %.3f");
 	ImGui::Checkbox("Show axis", &showAxis);
+	ImGui::Checkbox("Show normals", &showNormals);
 	ImGui::Checkbox("Wireframe", &wireframe);
 }
 
@@ -476,12 +478,34 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 		// GLCall(glDrawArrays(GL_POINTS, 0, points.size()));
 
 		if (showAxis) {
-			drawAxis(glm::mat4(1.0f), view, projection);
+			drawAxis(model, view, projection);
+		}
+
+		if (showNormals) {
+			drawNormals(verts, model, view, projection);
 		}
 
 		if (wireframe) {
 			GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 		}
+}
+
+void Renderer::drawNormals(const VertContainer<Vertex> &verts, const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection) {
+	GLCall(glBindVertexArray(this->VAO));
+
+	// GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO));
+	// GLCall(glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(Vertex), verts.data(), GL_STATIC_DRAW));
+
+	normalShader.use();
+	normalShader.setMat4("u_Model", model);
+	normalShader.setMat4("u_View", view);
+	normalShader.setMat4("u_Projection", projection);
+	normalShader.setFloat("u_BloomThreshold", bloomThreshold);
+	normalShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * model))));
+
+	// normalShader.validate();
+
+	GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 3, verts.size()));
 }
 
 void Renderer::bloomBlur(int passes) {

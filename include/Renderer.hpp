@@ -29,7 +29,7 @@ public:
 	GLuint indirectBuffer;
 	GLuint VBO_base, VBO, vertexBuffer_axis;
 
-	Shader mainShader, axisShader;
+	Shader mainShader, axisShader, normalShader;
 	GLuint lightingFBO = 0, lightingFBODepthBuffer = 0;
 	GLuint lightingTexture = 0; // color atttachment 0, scene renders into this
 	GLuint brightTexture = 0; // color atttachment 1, extraction of brightly lit areas
@@ -51,6 +51,7 @@ public:
 	GLfloat gamma = 2.2f, exposure = 1.0f, bloomThreshold = 1.0f, bloomOffset = 1.0f, explodeCoeff = 0.0f;
 	int bloomBlurPasses = 0; //5;
 	bool showAxis = true;
+	bool showNormals = false;
 	bool wireframe = false;
 	bool limitFPS = false;
 	double fps = 60.0f;
@@ -70,6 +71,7 @@ private:
 	void prepareFrame(Camera &camera, GLfloat deltatime);
 	void drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera); // camera is for debugging
 	void drawAxis(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
+	void drawNormals(const VertContainer<Vertex> &verts, const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 	void bloomBlur(int passes);
 	void merge();
 	void endFrame(GLFWwindow * window);
