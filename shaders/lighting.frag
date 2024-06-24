@@ -78,7 +78,6 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, M
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, Material material);
 
 void main() {
-	// get material from material array
 	Material material;
 	material.diffuse = texelFetch(u_MaterialTBO, 0 + (fs_in.v_MaterialID * VEC4_IN_MATERIAL)).xyz;
 	material.ambient.x = texelFetch(u_MaterialTBO, 0 + (fs_in.v_MaterialID * VEC4_IN_MATERIAL)).w;
@@ -89,17 +88,14 @@ void main() {
 	material.shininess = texelFetch(u_MaterialTBO, 3 + (fs_in.v_MaterialID * VEC4_IN_MATERIAL)).x;
 	material.texture_id = trunc( texelFetch(u_MaterialTBO, 3 + (fs_in.v_MaterialID * VEC4_IN_MATERIAL)).y );
 
-
-
-
 	// get texture from texture array
 	vec4 res_color = vec4(0.0, 0.0, 0.0, 1.0);
 
 	// normal and viewDir
 	vec3 viewDir = normalize(-fs_in.v_FragPos); // the viewer is always at (0,0,0) in view-space, so viewDir = (0,0,0) - FragPosition <=> viewDir = -FragPosition
+	// TODO remove this normalize????
 	vec3 normal = normalize(fs_in.v_Normal);
 
-	
 	// apply pointlights
 	PointLight pointLight;
 	for (int i = 0; i < u_NumPointLights; i++) {
@@ -143,15 +139,12 @@ void main() {
 		res_color.rgb += CalcSpotLight(spotLight, normal, fs_in.v_FragPos, viewDir, material);
 	}
 
-
-
 	// add emissive
 	res_color.rgb += material.emissive.rgb;
 
 	// apply texture at the end, merge colors
 	color = res_color * texture(u_TextureArraySlot, vec3(fs_in.v_TexCoord.xy, material.texture_id));
 
-	// extract bright colors into the separate color attachment
 	float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722)); // common approximation of luminance based on human perception of color (or so I'm told)
     if(brightness > u_BloomThreshold) {
         brightColor = vec4(color.rgb, 1.0);
@@ -159,7 +152,6 @@ void main() {
         brightColor = vec4(0.0, 0.0, 0.0, 1.0);
 	}
 }
-
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, Material material)
 {
@@ -237,3 +229,4 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, Mat
 			+ (light.diffuse * diff * material.diffuse.xyz)
 			+ (light.specular * spec * material.specular.xyz)) * attenuation * intensity;
 }
+

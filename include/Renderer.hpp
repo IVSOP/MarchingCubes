@@ -29,7 +29,7 @@ public:
 	GLuint indirectBuffer;
 	GLuint VBO_base, VBO, vertexBuffer_axis;
 
-	Shader basicShader, axisShader;
+	Shader mainShader, axisShader;
 	GLuint lightingFBO = 0, lightingFBODepthBuffer = 0;
 	GLuint lightingTexture = 0; // color atttachment 0, scene renders into this
 	GLuint brightTexture = 0; // color atttachment 1, extraction of brightly lit areas

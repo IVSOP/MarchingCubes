@@ -16,6 +16,7 @@ struct LookupTable {
 	// for each of the 256 cube configuration cases, array with the indices of the vertex
 	static const int8_t triTable[256][16];
 	static const glm::vec3 finalCoords[12];
+	static void getNormals();
 };
 
 // typedef struct {

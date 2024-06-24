@@ -348,3 +348,45 @@ const glm::vec3 LookupTable::finalCoords[12] = {
 // 5 1.000000 1.000000 0.500000
 // 6 0.500000 1.000000 1.000000
 // 7 0.000000 1.000000 0.500000
+
+#include <cstdio>
+
+void LookupTable::getNormals() {
+	printf("const vec3 normal_lookup_array[12][12][12] = vec3[12][12][12](\n");
+	for (int a = 0; a < 12; a++) {
+		printf("    vec3[12][12](\n");
+		for (int b = 0; b < 12; b++) {
+			printf("        vec3[12](\n");
+			for (int c = 0; c < 12; c++) {
+				glm::vec3 coords_a = LookupTable::finalCoords[a];
+				glm::vec3 coords_b = LookupTable::finalCoords[b];
+				glm::vec3 coords_c = LookupTable::finalCoords[c];
+
+				glm::vec3 vec_a = glm::normalize(coords_a - coords_b);
+				glm::vec3 vec_b = glm::normalize(coords_c - coords_b);
+
+				glm::vec3 normal = glm::normalize(glm::cross(vec_a, vec_b));
+				if (a == b || a == c || b == c) {
+					normal = glm::vec3(0.0f);
+				}
+
+				if (c == 11) {
+					printf("            vec3(%f, %f, %f)\n", normal.x, normal.y, normal.z);
+				} else {
+					printf("            vec3(%f, %f, %f),\n", normal.x, normal.y, normal.z);
+				}
+			}
+			if (b == 11) {
+				printf("        )\n");
+			} else {
+				printf("        ),\n");
+			}
+		}
+		if (a == 11) {
+			printf("    )\n");
+		} else {
+			printf("    ),\n");
+		}
+	}
+	printf(")\n");
+}
