@@ -390,7 +390,7 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 
 		PointLight pointLights[MAX_LIGHTS];
 		pointLights[0] = {
-			.position = glm::vec3(0.0f, 0.0f, 0.0f),
+			.position = glm::vec3(30.0f, 15.0f, 30.0f),
 			.constant = 1.0f,
 			.linear = 0.09f,
 			.quadratic = 0.032f,

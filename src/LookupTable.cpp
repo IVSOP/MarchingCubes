@@ -365,7 +365,7 @@ void LookupTable::getNormals() {
 				glm::vec3 vec_a = glm::normalize(coords_a - coords_b);
 				glm::vec3 vec_b = glm::normalize(coords_c - coords_b);
 
-				glm::vec3 normal = glm::normalize(glm::cross(vec_a, vec_b));
+				glm::vec3 normal = glm::normalize(glm::cross(vec_b, vec_a));
 				if (a == b || a == c || b == c) {
 					normal = glm::vec3(0.0f);
 				}
