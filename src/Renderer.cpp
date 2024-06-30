@@ -198,6 +198,12 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
 	GLCall(glBindTexture(GL_TEXTURE_BUFFER, materialTBO));
 	GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, materialBuffer)); // bind the buffer to the texture
 
+	GLCall(glGenBuffers(1, &chunkInfoBuffer));
+	GLCall(glBindBuffer(GL_TEXTURE_BUFFER, chunkInfoBuffer));
+	GLCall(glGenTextures(1, &chunkInfoTBO));
+	GLCall(glBindTexture(GL_TEXTURE_BUFFER, chunkInfoTBO));
+	GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, chunkInfoBuffer)); // bind the buffer to the texture
+
 	GLCall(glGenBuffers(1, &pointLightBuffer));
 	GLCall(glBindBuffer(GL_TEXTURE_BUFFER, pointLightBuffer));
 	GLCall(glGenTextures(1, &pointLightTBO));
@@ -315,7 +321,7 @@ void Renderer::prepareFrame(Camera &camera, GLfloat deltaTime) {
 	ImGui::Checkbox("Wireframe", &wireframe);
 }
 
-void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera) {
+void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera) {
 	constexpr glm::mat4 model = glm::mat4(1.0f);
 	// const glm::mat4 MVP = projection * view * model;
 
@@ -462,10 +468,19 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 
 		// mainShader.validate();
 
-		GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 3, verts.size()));
+		// info for indirect call
+		GLCall(glBindBuffer(GL_TEXTURE_BUFFER, chunkInfoBuffer));
+		GLCall(glBufferData(GL_TEXTURE_BUFFER, chunkInfo.size() * sizeof(ChunkInfo), chunkInfo.data(), GL_STATIC_DRAW));
+		GLCall(glActiveTexture(GL_TEXTURE0 + CHUNKINFO_TEXTURE_BUFFER_SLOT));
+		GLCall(glBindTexture(GL_TEXTURE_BUFFER, chunkInfoTBO));
+		mainShader.setInt("u_ChunkInfoTBO", CHUNKINFO_TEXTURE_BUFFER_SLOT);
 
-		// GLCall(glMultiDrawArraysIndirect(GL_TRIANGLES, (void *)0, indirect.size(), 0));
-		// GLCall(glDrawArrays(GL_TRIANGLES, 0, verts.size()));
+		GLCall(glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer));
+		GLCall(glBufferData(GL_DRAW_INDIRECT_BUFFER, indirect.size() * sizeof(IndirectData), indirect.data(), GL_DYNAMIC_DRAW));
+
+
+		// GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 3, verts.size()));
+		GLCall(glMultiDrawArraysIndirect(GL_TRIANGLES, (void *)0, indirect.size(), 0));
 
 		// draw points
 		// NEED TO USE OTHER SHADER
@@ -600,10 +615,10 @@ void Renderer::endFrame(GLFWwindow * window) {
     glfwSwapBuffers(window);
 }
 
-void Renderer::draw(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const glm::mat4 &projection, Camera &camera, GLFWwindow * window, GLfloat deltaTime) {
+void Renderer::draw(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, Camera &camera, GLFWwindow * window, GLfloat deltaTime) {
 	prepareFrame(camera, deltaTime);
 	const glm::mat4 view = camera.GetViewMatrix();
-	drawLighting(verts, points, projection, view, camera);
+	drawLighting(verts, points, indirect, chunkInfo, projection, view, camera);
 	bloomBlur(this->bloomBlurPasses);
 	merge();
 

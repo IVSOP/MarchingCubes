@@ -8,6 +8,8 @@
 void World::buildData(const glm::vec3 &playerPosition) {
 	verts.clear();
 	debug_points.clear();
+	indirect.clear();
+	info.clear();
 
 	GLuint start_index = 0, end_index = 0;
 
@@ -16,9 +18,15 @@ void World::buildData(const glm::vec3 &playerPosition) {
 			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
 
 				const glm::vec3 coords = getChunkCoordsFloat(x, y, z);
+	
 
-				(void)chunks[x][y][z].addVertsTo(verts);
+				end_index += chunks[x][y][z].addVertsTo(verts);
 				(void)chunks[x][y][z].addPointsTo(debug_points);
+
+				indirect.emplace_back(start_index, end_index - start_index);
+				info.emplace_back(coords);
+
+				start_index = end_index;
 			}
 		}
 	}
@@ -176,4 +184,39 @@ SelectedBlockInfo World::getSelectedBlock(const glm::vec3 &position, const glm::
 	}
 	// nothing found within range
 	return SelectedBlockInfo(-1, 0, 0, true, {});
+}
+
+void World::addSphere(const glm::vec3 &center, GLfloat radius) {
+	// TODO this is currently implemented in the worst way possible
+
+	GLubyte value = 0;
+	
+	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
+		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
+			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
+				const glm::vec3 offset = getChunkCoordsFloat(x, y, z);
+
+				for (GLuint cx = 0; cx < CHUNK_SIZE; cx++) {
+					for (GLuint cy = 0; cy < CHUNK_SIZE; cy++) {
+						for (GLuint cz = 0; cz < CHUNK_SIZE; cz++) {
+
+							for (GLubyte corner = 0; corner < 8; corner++) {
+								const glm::vec3 &final_position = LookupTable::corner_coords[corner] + glm::vec3(static_cast<GLfloat>(cx), static_cast<GLfloat>(cy), static_cast<GLfloat>(cz)) + offset;
+
+								if ((final_position.x - center.x) * (final_position.x - center.x) + (final_position.y - center.y) * (final_position.y - center.y) + (final_position.z - center.z) * (final_position.z - center.z) <= radius * radius ) {
+									value |= 1 << corner;
+								}
+							}
+
+							if (value != 0x00) {
+								chunks[x][y][z].insertVoxelAt(glm::uvec3(cx, cy, cz), Voxel(value, 0));
+							}
+
+							value = 0;
+						}
+					}
+				}
+			}
+		}
+	}
 }

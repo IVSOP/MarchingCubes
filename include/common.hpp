@@ -116,10 +116,10 @@ struct IndirectData {
 
 
 	IndirectData()
-	: count(6), first(0) {}
+	: count(3), first(0) {}
 
 	IndirectData(GLuint baseInstance, GLuint instanceCount)
-	: count(6), instanceCount(instanceCount), first(0), baseInstance(baseInstance) {}
+	: count(3), instanceCount(instanceCount), first(0), baseInstance(baseInstance) {}
 
 	~IndirectData() = default;
 };

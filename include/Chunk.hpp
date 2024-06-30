@@ -33,6 +33,14 @@ struct Voxel {
 	constexpr Voxel(uint8_t data, GLbyte material_id) : data(data), material_id(material_id) {}
 };
 
+struct ChunkInfo {
+	glm::vec3 position;
+	GLfloat padding = 0.0f;
+	
+	ChunkInfo() : position(0.0f) {}
+	ChunkInfo(const glm::vec3 &position) : position(position) {};
+};
+
 struct Chunk {
 	// 3D array, [y][z][x] (height, depth, width). this can easily be moved around to test what gets better cache performance
 	Voxel voxels[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];

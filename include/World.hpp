@@ -14,6 +14,8 @@ struct World {
 
 	VertContainer<Vertex> verts; // so I dont have to constantly alloc and free
 	VertContainer<Point> debug_points;
+	std::vector<IndirectData> indirect;
+	std::vector<ChunkInfo> info;
 
 	constexpr Chunk &get(const glm::uvec3 &position) {
 		return chunks[position.x][position.y][position.z];
@@ -25,6 +27,14 @@ struct World {
 
 	VertContainer<Point> &getPoints() {
 		return debug_points;
+	}
+
+	std::vector<IndirectData> &getIndirect() {
+		return indirect;
+	}
+
+	std::vector<ChunkInfo> &getInfo() {
+		return info;
 	}
 
 	void buildData(const glm::vec3 &playerPosition);
@@ -40,7 +50,7 @@ struct World {
 	}
 
 	World()
-	: verts(1 << 10), debug_points(1 << 10) // why tf is 2e10 == 20000000000?????????????
+	: verts(1 << 10), debug_points(1 << 10), indirect(1 << 10), info(1 << 10) // why tf is 2e10 == 20000000000?????????????
 	{
 	}
 
@@ -162,6 +172,8 @@ struct World {
 			}
 		}
 	}
+
+	void addSphere(const glm::vec3 &center, GLfloat radius);
 };
 
 

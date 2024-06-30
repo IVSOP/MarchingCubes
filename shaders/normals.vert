@@ -8,7 +8,6 @@ layout (location = 1) in int aData;
 
 uniform mat4 u_Model;
 uniform mat4 u_View;
-uniform mat4 u_Projection;
 
 const vec3 lookup_array[] = vec3[12](
 	vec3(0.5, 0.0, 0.0),
@@ -2068,20 +2067,8 @@ const vec3 normal_lookup_array[12][12][12] = vec3[12][12][12](
     )
 );
 
-const vec2 uv_lookup[3] = vec2[3](
-	vec2(0.0f, 0.0f),
-	vec2(1.0f, 0.0f),
-	vec2(0.5f, 1.0f)
-);
-
-uniform samplerBuffer u_ChunkInfoTBO;
-#define VEC4_IN_CHUNKINFO 1
-
 out VS_OUT {
-	vec2 v_TexCoord;
-	flat int v_MaterialID; // flat since it is always the same between all vertices. int because reasons, should be an uint
-	flat vec3 v_Normal;    // in view space
-	vec3 v_FragPos;        // in view space
+	vec3 v_Normal;
 } vs_out;
 
 uniform mat3 u_NormalMatrix; // since it is constant every single vertex
@@ -2098,17 +2085,9 @@ void main()
 
 	const uvec3 edges = uvec3(edge_a, edge_b, edge_c);
 
-	const uint materialID  =  aData & 0x0000001F;
+	vec3 position = lookup_array[edges[aVertID]] + vec3(local_pos_x, local_pos_y, local_pos_z);
 
-	int chunkID = gl_DrawID;
-	vec3 chunk_position = texelFetch(u_ChunkInfoTBO, chunkID * VEC4_IN_CHUNKINFO).xyz;
-	vec3 position = lookup_array[edges[aVertID]] + vec3(local_pos_x, local_pos_y, local_pos_z) + chunk_position;
-
-	vec4 viewspace_position = u_View * u_Model * vec4(position, 1.0);
-	vs_out.v_FragPos = vec3(viewspace_position);
 	vs_out.v_Normal = u_NormalMatrix * normal_lookup_array[edge_a][edge_b][edge_c];
-	vs_out.v_MaterialID = int(materialID);
-	vs_out.v_TexCoord = uv_lookup[aVertID];
 
-	gl_Position = u_Projection * viewspace_position;
+	gl_Position = u_View * u_Model * vec4(position, 1.0);
 }

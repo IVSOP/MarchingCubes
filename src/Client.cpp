@@ -3,34 +3,35 @@
 #include "LookupTable.hpp"
 
 // check if inside a sphere
-bool contained_in(const glm::vec3 &coords) {
-	constexpr glm::vec3 center1(0.0f);
-	constexpr GLfloat radius1 = 8.0f;
-	if ((coords.x - center1.x) * (coords.x - center1.x) + (coords.y - center1.y) * (coords.y - center1.y) + (coords.z - center1.z) * (coords.z - center1.z) <= radius1 * radius1 ) {
-		return true;
-	}
+// bool contained_in(const glm::vec3 &coords) {
+// 	constexpr glm::vec3 center1(0.0f);
+// 	constexpr GLfloat radius1 = 8.0f;
+// 	if ((coords.x - center1.x) * (coords.x - center1.x) + (coords.y - center1.y) * (coords.y - center1.y) + (coords.z - center1.z) * (coords.z - center1.z) <= radius1 * radius1 ) {
+// 		return true;
+// 	}
 
-	constexpr glm::vec3 center2(16.0f, 8.0f, 16.0f);
-	constexpr GLfloat radius2 = 10.5f;
-	if ((coords.x - center2.x) * (coords.x - center2.x) + (coords.y - center2.y) * (coords.y - center2.y) + (coords.z - center2.z) * (coords.z - center2.z) <= radius2 * radius2 ) {
-		return true;
-	}
+// 	constexpr glm::vec3 center2(16.0f, 8.0f, 16.0f);
+// 	constexpr GLfloat radius2 = 10.5f;
+// 	if ((coords.x - center2.x) * (coords.x - center2.x) + (coords.y - center2.y) * (coords.y - center2.y) + (coords.z - center2.z) * (coords.z - center2.z) <= radius2 * radius2 ) {
+// 		return true;
+// 	}
 
-	return false;
-}
+// 	return false;
+// }
 
-GLubyte sphere_getValue(GLuint x, GLuint y, GLuint z) {
-	GLubyte value = 0;
-	glm::vec3 coords;
-	for (GLubyte corner = 0; corner < 8; corner++) {
-		const glm::vec3 &pos = LookupTable::corner_coords[corner];
-		coords = pos + glm::vec3(static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z));
-		if (contained_in(coords)) {
-			value |= 1 << corner;
-		}
-	}
-	return value;
-}
+// GLubyte sphere_getValue(GLuint x, GLuint y, GLuint z) {
+// 	GLubyte value = 0;
+// 	glm::vec3 coords;
+// // for every corner, check if it belongs inside the sphere and set it to 1 if so
+// 	for (GLubyte corner = 0; corner < 8; corner++) {
+// 		const glm::vec3 &pos = LookupTable::corner_coords[corner];
+// 		coords = pos + glm::vec3(static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z));
+// 		if (contained_in(coords)) {
+// 			value |= 1 << corner;
+// 		}
+// 	}
+// 	return value;
+// }
 
 Client::Client()
 : windowManager(std::make_unique<WindowManager>(1920, 1080, this)),
@@ -43,29 +44,36 @@ Client::Client()
 	resizeViewport(1920, 1080); // these too
 
 
-	Chunk chunk;
-	for (GLuint y = 0; y < CHUNK_SIZE; y ++) {
-		for (GLuint z = 0; z < CHUNK_SIZE; z ++) {
-			for (GLuint x = 0; x < CHUNK_SIZE; x ++) {
-				Voxel voxel = Voxel(sphere_getValue(x, y, z), 0); // REMAKE THIS to add spheres to world and not just to the chunk
-				// if (x == 5) voxel.material_id = 1;
-				chunk.insertVoxelAt(glm::uvec3(x, y, z), voxel);
-			}
-		}
-	}
+	// Chunk chunk;
+	// for (GLuint y = 0; y < CHUNK_SIZE; y ++) {
+	// 	for (GLuint z = 0; z < CHUNK_SIZE; z ++) {
+	// 		for (GLuint x = 0; x < CHUNK_SIZE; x ++) {
+	// 			Voxel voxel = Voxel(sphere_getValue(x, y, z), 0); // REMAKE THIS to add spheres to world and not just to the chunk
+	// 			// if (x == 5) voxel.material_id = 1;
+	// 			chunk.insertVoxelAt(glm::uvec3(x, y, z), voxel);
+	// 		}
+	// 	}
+	// }
 
 
-	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
-		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
-			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
-				// world.get()->copyChunkTo(chunk, glm::uvec3(x, 0, z));
-				// world.get()->copyChunkTo(chunk, glm::uvec3(x, 15, z));
-				// world.get()->copyChunkTo(chunk1, glm::uvec3(x, y, z));
-				world.get()->copyChunkTo(chunk, glm::uvec3(x + 1, y, z + 1));
-				return;
-			}
-		}
-	}
+	// for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
+	// 	for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
+	// 		for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
+	// 			// world.get()->copyChunkTo(chunk, glm::uvec3(x, 0, z));
+	// 			// world.get()->copyChunkTo(chunk, glm::uvec3(x, 15, z));
+	// 			// world.get()->copyChunkTo(chunk1, glm::uvec3(x, y, z));
+	// 			world.get()->copyChunkTo(chunk, glm::uvec3(x + 1, y, z + 1));
+	// 			return;
+	// 		}
+	// 	}
+	// }
+
+	constexpr glm::vec3 center1(0.0f);
+	constexpr GLfloat radius1 = 8.0f;
+	constexpr glm::vec3 center2(16.0f, 8.0f, 16.0f);
+	constexpr GLfloat radius2 = 10.5f;
+	world.get()->addSphere(center1, radius1);
+	world.get()->addSphere(center2, radius2);
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {
@@ -115,6 +123,8 @@ void Client::mainloop() {
 		renderer.get()->draw(
 			world.get()->getVerts(),
 			world.get()->getPoints(),
+			world.get()->getIndirect(),
+			world.get()->getInfo(),
 			windowManager.get()->projection,
 			*camera, // ??????????????????????????????????? why
 			windowManager.get()->window, deltaTime);
