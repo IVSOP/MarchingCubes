@@ -1,5 +1,11 @@
 #include "World.hpp"
 
+// #define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+// #define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image_resize2.h"
+
 #include <zlib.h>
 
 // also this can probably be optimized but for now I will leave it to compiler magic
@@ -219,4 +225,45 @@ void World::addSphere(const glm::vec3 &center, GLfloat radius) {
 			}
 		}
 	}
+}
+
+// TODO not optimized
+void World::loadHeightMap(const std::string &path) {
+	stbi_set_flip_vertically_on_load(true);
+	constexpr int expected_width = WORLD_SIZE_X * CHUNK_SIZE;
+	constexpr int expected_height = WORLD_SIZE_Z * CHUNK_SIZE;
+
+	int width, height, BPP;
+	unsigned char *buffer =	stbi_load(path.c_str(), &width, &height, &BPP, 1);
+
+	if (!buffer) {
+		fprintf(stderr, "Error loading image in %s\n", __func__);
+		exit(EXIT_FAILURE);
+	}
+
+	if (width != expected_width || height != expected_height) {
+		fprintf(stderr, "%s: %sWARNING%s image dimensions for %s: Expected %d %d got %d %d. The image will be automatically resized.\n", __PRETTY_FUNCTION__, YELLOW, RESET, path.c_str(), expected_width, expected_height, width, height);
+		unsigned char * resized_buffer = (unsigned char*) malloc(expected_width * expected_height * 1); 
+		stbir_resize_uint8_linear(buffer, width, height, 0, resized_buffer, expected_width, expected_height, 0, STBIR_1CHANNEL);
+
+		height = expected_height;
+		width = expected_width;
+
+		// to simplify just pretend the buffer is the resized image
+		free(buffer);
+		buffer = resized_buffer;
+	}
+
+	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
+		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
+			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
+				Chunk &chunk = chunks[x][y][z];
+
+				// chunk needs to know where it is
+				chunk.generate(getChunkCoords(x, y, z), buffer, width);
+			}
+		}
+	}
+
+	free(buffer);
 }

@@ -193,6 +193,44 @@ struct Chunk {
 			}
 		}
 	}
+
+	// TODO types and casts are awful here
+	void generate(const glm::ivec3 &chunk_pos, unsigned char *data, int width) {
+		GLubyte value = 0;
+		glm::ivec3 pos;
+		unsigned char height;
+
+		// change to int???
+		for (GLuint y = 0; y < CHUNK_SIZE; y++) {
+			for (GLuint z = 0; z < CHUNK_SIZE; z++) {
+				for (GLuint x = 0; x < CHUNK_SIZE; x++) {
+
+					pos = chunk_pos + glm::ivec3(x, y, z);
+
+					for (GLubyte corner = 0; corner < 8; corner++) {
+
+
+														// avoid this conversion, precompute this
+						const glm::ivec3 final_position = glm::ivec3(LookupTable::corner_coords[corner]) + pos;
+						
+						height = data[final_position.z * width + final_position.x];
+
+						if (final_position.y <= static_cast<GLint>(height)) {
+							value |= 1 << corner;
+						}
+					}
+
+					// not needed??
+					if (value != 0x00) {
+						// could do it faster
+						insertVoxelAt(glm::uvec3(x, y, z), Voxel(value, 0));
+					}
+
+					value = 0;
+				}
+			}
+		}
+	}
 };
 
 static_assert(sizeof(Chunk::opaqueMask) == sizeof(uint32_t) * CHUNK_SIZE * CHUNK_SIZE, "ERROR: opaqueMask has unexpected size");

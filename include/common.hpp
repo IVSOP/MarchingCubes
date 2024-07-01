@@ -14,9 +14,9 @@
 
 #include "GLErrors.hpp"
 
-#define WORLD_SIZE_X 4
-#define WORLD_SIZE_Y 4
-#define WORLD_SIZE_Z 4
+#define WORLD_SIZE_X 8
+#define WORLD_SIZE_Y 128
+#define WORLD_SIZE_Z 8
 
 #define WORLD_SIZE_X_FLOAT static_cast<GLfloat>(WORLD_SIZE_X)
 #define WORLD_SIZE_Y_FLOAT static_cast<GLfloat>(WORLD_SIZE_Y)

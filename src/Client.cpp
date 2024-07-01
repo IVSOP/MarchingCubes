@@ -68,12 +68,14 @@ Client::Client()
 	// 	}
 	// }
 
-	constexpr glm::vec3 center1(0.0f);
-	constexpr GLfloat radius1 = 8.0f;
-	constexpr glm::vec3 center2(16.0f, 8.0f, 16.0f);
-	constexpr GLfloat radius2 = 10.5f;
-	world.get()->addSphere(center1, radius1);
-	world.get()->addSphere(center2, radius2);
+	// constexpr glm::vec3 center1(0.0f);
+	// constexpr GLfloat radius1 = 8.0f;
+	// constexpr glm::vec3 center2(16.0f, 8.0f, 16.0f);
+	// constexpr GLfloat radius2 = 10.5f;
+	// world.get()->addSphere(center1, radius1);
+	// world.get()->addSphere(center2, radius2);
+
+	world.get()->loadHeightMap("textures/iceland_heightmap.png");
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {
