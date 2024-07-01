@@ -233,6 +233,11 @@ void World::loadHeightMap(const std::string &path) {
 	constexpr int expected_width = WORLD_SIZE_X * CHUNK_SIZE;
 	constexpr int expected_height = WORLD_SIZE_Z * CHUNK_SIZE;
 
+	// offset that places world on the positive quadrants
+	constexpr glm::ivec3 offset = glm::ivec3(((WORLD_SIZE_X / 2) * CHUNK_SIZE),
+											 ((WORLD_SIZE_Y / 2) * CHUNK_SIZE),
+											 ((WORLD_SIZE_Z / 2) * CHUNK_SIZE));
+
 	int width, height, BPP;
 	unsigned char *buffer =	stbi_load(path.c_str(), &width, &height, &BPP, 1);
 
@@ -260,7 +265,7 @@ void World::loadHeightMap(const std::string &path) {
 				Chunk &chunk = chunks[x][y][z];
 
 				// chunk needs to know where it is
-				chunk.generate(getChunkCoords(x, y, z), buffer, width);
+				chunk.generate(getChunkCoords(x, y, z), buffer, width, offset);
 			}
 		}
 	}

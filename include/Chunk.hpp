@@ -195,7 +195,9 @@ struct Chunk {
 	}
 
 	// TODO types and casts are awful here
-	void generate(const glm::ivec3 &chunk_pos, unsigned char *data, int width) {
+	// data should already be offset itself
+																		// offset that places world on the positive quadrants
+	void generate(const glm::ivec3 &chunk_pos, unsigned char *data, int width, const glm::ivec3 &offset) {
 		GLubyte value = 0;
 		glm::ivec3 pos;
 		unsigned char height;
@@ -211,7 +213,7 @@ struct Chunk {
 
 
 														// avoid this conversion, precompute this
-						const glm::ivec3 final_position = glm::ivec3(LookupTable::corner_coords[corner]) + pos;
+						const glm::ivec3 final_position = glm::ivec3(LookupTable::corner_coords[corner]) + pos + offset;
 						
 						height = data[final_position.z * width + final_position.x];
 

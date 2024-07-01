@@ -75,7 +75,8 @@ Client::Client()
 	// world.get()->addSphere(center1, radius1);
 	// world.get()->addSphere(center2, radius2);
 
-	world.get()->loadHeightMap("textures/iceland_heightmap.png");
+	// world.get()->loadHeightMap("textures/iceland_heightmap.png");
+	world.get()->loadHeightMap("textures/terreno.jpg");
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {
