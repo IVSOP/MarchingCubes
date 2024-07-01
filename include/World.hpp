@@ -164,17 +164,29 @@ struct World {
 
 	// problem: breaking works, but voxels at the edges are left as 0xFF, meaning nothing is shown from them
 	// wtf do I do
+	// make sure when breaking a voxel like this, the half of the next voxel also breaks?
+	// have predetermined radius sizes that work?
+	// predetermined sphere shapes?
+	// TODO test it my 'optimizations' actually work
 	void breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius) {
 		const glm::vec3 real_center_float = glm::vec3(getWorldCoords(selectedInfo.chunkID, selectedInfo.position));
 		const GLfloat radius_squared = radius * radius;
 
+		// idk what to call this
+		// biggest distance of a line inside a cube (diagonal)
+		// if cube fits in smaller sphere where we do radius -= magic, then we know all 8 corners are inside, and can set it to 0
+		// sqrt cant be constexpr so ill precumpute it
+		// sqrt(2 * x^2 + x^2), x = 1, sqrt(3)
+		constexpr GLfloat magic = 1.73205080757f;
+		const GLfloat small_radius_squared = (radius - magic) * (radius - magic);
+
 		// box that sphere is contained in
 		GLint min_x = glm::clamp(static_cast<GLint>(real_center_float.x - radius), MIN_X, MAX_X),
-		max_x = glm::clamp(static_cast<GLint>(real_center_float.x + radius), MIN_X, MAX_X),
-		min_y = glm::clamp(static_cast<GLint>(real_center_float.y - radius), MIN_Y, MAX_Y),
-		max_y = glm::clamp(static_cast<GLint>(real_center_float.y + radius), MIN_Y, MAX_Y),
-		min_z = glm::clamp(static_cast<GLint>(real_center_float.z - radius), MIN_Z, MAX_Z),
-		max_z = glm::clamp(static_cast<GLint>(real_center_float.z + radius), MIN_Z, MAX_Z);
+			  max_x = glm::clamp(static_cast<GLint>(real_center_float.x + radius), MIN_X, MAX_X),
+			  min_y = glm::clamp(static_cast<GLint>(real_center_float.y - radius), MIN_Y, MAX_Y),
+			  max_y = glm::clamp(static_cast<GLint>(real_center_float.y + radius), MIN_Y, MAX_Y),
+			  min_z = glm::clamp(static_cast<GLint>(real_center_float.z - radius), MIN_Z, MAX_Z),
+			  max_z = glm::clamp(static_cast<GLint>(real_center_float.z + radius), MIN_Z, MAX_Z);
 
 		GLfloat dist_squared;
 
@@ -187,22 +199,23 @@ struct World {
 
 					const glm::vec3 pos = glm::vec3(x, y, z);
 
-					// if (dist_squared <= radius_squared) {
-					// 	breakVoxel(glm::ivec3(vec));
-					// }
-					for (GLubyte corner = 0; corner < 8; corner++) {
-						const glm::vec3 final_pos = LookupTable::corner_coords[corner] + pos;
-						dist_squared = glm::distance2(real_center_float, final_pos);
+					if (glm::distance2(real_center_float, pos) <= small_radius_squared) {
+						breakVoxel(glm::ivec3(pos));
+					} else {
+						for (GLubyte corner = 0; corner < 8; corner++) {
+							const glm::vec3 final_pos = LookupTable::corner_coords[corner] + pos;
+							dist_squared = glm::distance2(real_center_float, final_pos);
 
-						// corner is inside breaking sphere
-						if (dist_squared <= radius_squared) {
-							mask.clearBit(corner);
+							// corner is inside breaking sphere
+							if (dist_squared <= radius_squared) {
+								mask.clearBit(corner);
+							}
 						}
+
+						maskVoxelValue(glm::ivec3(pos), mask);
+
+						mask.setAllTrue();
 					}
-
-					maskVoxelValue(glm::ivec3(pos), mask);
-
-					mask.setAllTrue();
 				}
 			}
 		}

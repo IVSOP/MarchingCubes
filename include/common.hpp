@@ -15,7 +15,7 @@
 #include "GLErrors.hpp"
 
 #define WORLD_SIZE_X 16
-#define WORLD_SIZE_Y 16
+#define WORLD_SIZE_Y 4
 #define WORLD_SIZE_Z 16
 
 #define WORLD_SIZE_X_FLOAT static_cast<GLfloat>(WORLD_SIZE_X)
@@ -23,8 +23,8 @@
 #define WORLD_SIZE_Z_FLOAT static_cast<GLfloat>(WORLD_SIZE_Z)
 
 #define MAX_X ((CHUNK_SIZE * (WORLD_SIZE_X / 2)) - 1)
-#define MAX_Y ((CHUNK_SIZE * (WORLD_SIZE_X / 2)) - 1)
-#define MAX_Z ((CHUNK_SIZE * (WORLD_SIZE_X / 2)) - 1)
+#define MAX_Y ((CHUNK_SIZE * (WORLD_SIZE_Y / 2)) - 1)
+#define MAX_Z ((CHUNK_SIZE * (WORLD_SIZE_Z / 2)) - 1)
 
 #define MIN_X ((-MAX_X) - 1)
 #define MIN_Y ((-MAX_Y) - 1)
