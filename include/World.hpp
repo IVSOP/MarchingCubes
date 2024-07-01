@@ -146,6 +146,24 @@ struct World {
 		chunk.breakVoxelAt(blockInfo.position);
 	}
 
+	void setVoxelValue(const glm::ivec3 position, const Bitmap<8> &value) {
+		// got lazy, this will automatically get chunk and position inside it
+		const SelectedBlockInfo blockInfo = getBlockInfo(position);
+
+		Chunk &chunk = getChunkByID(blockInfo.chunkID);
+		chunk.setVoxelValue(blockInfo.position, value);
+	}
+
+	void maskVoxelValue(const glm::ivec3 position, const Bitmap<8> &mask) {
+		// got lazy, this will automatically get chunk and position inside it
+		const SelectedBlockInfo blockInfo = getBlockInfo(position);
+
+		Chunk &chunk = getChunkByID(blockInfo.chunkID);
+		chunk.maskVoxelValue(blockInfo.position, mask);
+	}
+
+	// problem: breaking works, but voxels at the edges are left as 0xFF, meaning nothing is shown from them
+	// wtf do I do
 	void breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius) {
 		const glm::vec3 real_center_float = glm::vec3(getWorldCoords(selectedInfo.chunkID, selectedInfo.position));
 		const GLfloat radius_squared = radius * radius;
@@ -159,15 +177,32 @@ struct World {
 		max_z = glm::clamp(static_cast<GLint>(real_center_float.z + radius), MIN_Z, MAX_Z);
 
 		GLfloat dist_squared;
+
+		Bitmap<8> mask;
+		mask.setAllTrue();
+
 		for (GLint x = min_x; x <= max_x; x++) {
 			for (GLint y = min_y; y <= max_y; y++) {
 				for (GLint z = min_z; z <= max_z; z++) {
-					const glm::vec3 vec = glm::vec3(x, y, z);
-					dist_squared = glm::distance2(real_center_float, vec);
 
-					if (dist_squared <= radius_squared) {
-						breakVoxel(glm::ivec3(vec));
+					const glm::vec3 pos = glm::vec3(x, y, z);
+
+					// if (dist_squared <= radius_squared) {
+					// 	breakVoxel(glm::ivec3(vec));
+					// }
+					for (GLubyte corner = 0; corner < 8; corner++) {
+						const glm::vec3 final_pos = LookupTable::corner_coords[corner] + pos;
+						dist_squared = glm::distance2(real_center_float, final_pos);
+
+						// corner is inside breaking sphere
+						if (dist_squared <= radius_squared) {
+							mask.clearBit(corner);
+						}
 					}
+
+					maskVoxelValue(glm::ivec3(pos), mask);
+
+					mask.setAllTrue();
 				}
 			}
 		}

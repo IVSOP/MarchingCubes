@@ -65,7 +65,8 @@ struct Chunk {
 	}
 
 	constexpr bool isEmptyAt(const glm::u8vec3 &pos) {
-		return ! opaqueMask[pos.y][pos.z][pos.x];
+		// return ! opaqueMask[pos.y][pos.z][pos.x];
+		return (voxels[pos.y][pos.z][pos.x].data.allFalse());
 	}
 
 	constexpr bool isEmptyAt(GLubyte x, GLubyte y, GLubyte z) {
@@ -79,7 +80,18 @@ struct Chunk {
 	}
 
 	constexpr void breakVoxelAt(const glm::u8vec3 &pos) {
-		opaqueMask[pos.y][pos.z].clearBit(pos.x);
+		// opaqueMask[pos.y][pos.z].clearBit(pos.x);
+		voxels[pos.y][pos.z][pos.x].data.clear();
+		vertsHaveChanged = true;
+	}
+
+	constexpr void setVoxelValue(const glm::u8vec3 &pos, const Bitmap<8> &value) {
+		voxels[pos.y][pos.z][pos.x].data = value;
+		vertsHaveChanged = true;
+	}
+
+	constexpr void maskVoxelValue(const glm::u8vec3 &pos, const Bitmap<8> &mask) {
+		voxels[pos.y][pos.z][pos.x].data &= mask;
 		vertsHaveChanged = true;
 	}
 

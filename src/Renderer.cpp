@@ -319,6 +319,8 @@ void Renderer::prepareFrame(Camera &camera, GLfloat deltaTime) {
 	ImGui::Checkbox("Show axis", &showAxis);
 	ImGui::Checkbox("Show normals", &showNormals);
 	ImGui::Checkbox("Wireframe", &wireframe);
+	ImGui::SliderFloat("break_radius", &break_radius, 1.0f, 100.0f, "break_radius = %.3f");
+	ImGui::SliderFloat("break_range", &break_range, 1.0f, 500.0f, "break_range = %.3f");
 }
 
 void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera) {

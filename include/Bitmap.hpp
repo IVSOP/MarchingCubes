@@ -326,6 +326,9 @@ struct Bitmap<8> {
 		return data == 0xFF;
 	}
 
+	constexpr bool allFalse() const {
+		return data == 0x00;
+	}
 
 	constexpr uint8_t trailing_ones() const {
 		return std::countr_one(data);

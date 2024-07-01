@@ -115,10 +115,12 @@ void Client::mainloop() {
 
         // printf("delta is %f (%f fps)\n", deltaTime, 1.0f / deltaTime);
 		Camera *camera = player.get()->getCamera();
-		// SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(camera->Position, camera->Front, renderer->break_range);
+		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(camera->Position, camera->Front, renderer->break_range);
         inputHandler.applyInputs(
 			world.get(),
-			camera, windowManager.get()->windowWidth,windowManager.get()->windowHeight, static_cast<GLfloat>(deltaTime));
+			selectedBlock,
+			renderer->break_radius,
+			camera, windowManager.get()->windowWidth, windowManager.get()->windowHeight, static_cast<GLfloat>(deltaTime));
 
         // std::unique_lock<std::mutex> lock = std::unique_lock<std::mutex>(mtx);
         // renderer.get()->draw(draw_quads, projection, *camera.get(), window, deltaTime);
