@@ -8,6 +8,8 @@
 
 #include <zlib.h>
 
+#include "Logs.hpp"
+
 // also this can probably be optimized but for now I will leave it to compiler magic
 // yes very ugly will clean this up later
 // make player position align to the chunk somehow???????/ doing == on floats is kind of bad
@@ -242,12 +244,14 @@ void World::loadHeightMap(const std::string &path) {
 	unsigned char *buffer =	stbi_load(path.c_str(), &width, &height, &BPP, 1);
 
 	if (!buffer) {
-		fprintf(stderr, "Error loading image in %s\n", __func__);
+		Log::log(LOG_TYPE::ERR, std::string(__func__), "Error loading image");
 		exit(EXIT_FAILURE);
 	}
 
 	if (width != expected_width || height != expected_height) {
-		fprintf(stderr, "%s: %sWARNING%s image dimensions for %s: Expected %d %d got %d %d. The image will be automatically resized.\n", __PRETTY_FUNCTION__, YELLOW, RESET, path.c_str(), expected_width, expected_height, width, height);
+		Log::log(LOG_TYPE::WARN, std::string(__PRETTY_FUNCTION__),
+			"image dimensions for " + std::string(path) + ": Expected " + std::to_string(expected_width) + " " + std::to_string(expected_height) + 
+			" got " + std::to_string(width) + " " + std::to_string(height) + ". The image will be automatically resized");
 		unsigned char * resized_buffer = (unsigned char*) malloc(expected_width * expected_height * 1); 
 		stbir_resize_uint8_linear(buffer, width, height, 0, resized_buffer, expected_width, expected_height, 0, STBIR_1CHANNEL);
 

@@ -24,23 +24,22 @@
 #define BOLDCYAN    "\033[1m\033[36m" 
 #define BOLDWHITE   "\033[1m\033[37m" 
 
-#define print_error(msg) printf("%s, %s, line %d:\n", __FILE__, __func__, __LINE__); perror(msg);
-
 #define ASSERT(x) if (!(x)) raise(SIGTRAP);
 
 // on mac and windows do nothing, skill issue
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    #define GLCall(f) GLClearError();\
+     #define GLCall(f) GLClearError();\
         f
 #else
+	// for now just make it clear errors and nothing else
 	#define GLCall(f) GLClearError();\
 		f;\
-		ASSERT(GLLogCall(#f, __FILE__, __LINE__))
+		// ASSERT(GLLogCall(#f, __FILE__, __LINE__))
 #endif
 
 void GLClearError();
 
-bool GLLogCall(const char *function, const char *file, int line);
+// bool GLLogCall(const char *function, const char *file, int line);
 
 void checkErrorInShader(GLuint shader);
 

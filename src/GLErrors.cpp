@@ -3,31 +3,20 @@
 #include <signal.h>
 #include <iostream>
 
+#include "Logs.hpp"
+
 void GLClearError() {
 	while (glGetError());
 }
 
-bool GLLogCall(const char *function, const char *file, int line) {
-	GLenum error;
-	while ((error = glGetError())) {
-		std::cout << "[OpenGL Error] (" << error << "): " << function <<
-			" " << file << ":" << line << std::endl;
-		return false;
-	}
-	return true;
-}
-
-// void MessageCallback( GLenum source,
-//                  GLenum type,
-//                  GLuint id,
-//                  GLenum severity,
-//                  GLsizei length,
-//                  const GLchar* message,
-//                  const void* userParam )
-// {
-//   fprintf( stderr, "GL CALLBACK: %s\ntype = 0x%x\nseverity = 0x%x\nmessage = %s\n",
-//            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-//             type, severity, message );
+// bool GLLogCall(const char *function, const char *file, int line) {
+// 	GLenum error;
+// 	while ((error = glGetError())) {
+// 		std::cout << "[OpenGL Error] (" << error << "): " << function <<
+// 			" " << file << ":" << line << std::endl;
+// 		return false;
+// 	}
+// 	return true;
 // }
 
 void checkErrorInShader(GLuint shader) {
@@ -50,49 +39,52 @@ void checkErrorInShader(GLuint shader) {
 
 void APIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
-    std::cout << "---------------------opengl-callback-start------------" << std::endl;
-    std::cout << "message: "<< message << std::endl;
-    std::cout << "type: ";
+	const std::string title = "opengl callback";
+    std::string log_message = "message: " + std::string(message) + "\ntype:";
     switch (type) {
     case GL_DEBUG_TYPE_ERROR:
-        std::cout << "ERROR";
+        log_message += "ERROR";
         break;
     case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-        std::cout << "DEPRECATED_BEHAVIOR";
+        log_message += "DEPRECATED_BEHAVIOR";
         break;
     case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-        std::cout << "UNDEFINED_BEHAVIOR";
+        log_message += "UNDEFINED_BEHAVIOR";
         break;
     case GL_DEBUG_TYPE_PORTABILITY:
-        std::cout << "PORTABILITY";
+        log_message += "PORTABILITY";
         break;
     case GL_DEBUG_TYPE_PERFORMANCE:
-        std::cout << "PERFORMANCE";
+        log_message += "PERFORMANCE";
         break;
     case GL_DEBUG_TYPE_OTHER:
-        std::cout << "OTHER";
+        log_message += "OTHER";
         break;
     }
-    std::cout << std::endl;
 
-    std::cout << "id: " << id << std::endl;
-    std::cout << "severity: ";
+	log_message += "\nid: " + std::to_string(id) + "\nseverity: ";
+	LOG_TYPE logtype = LOG_TYPE::INFO;
+
     switch (severity){
     case GL_DEBUG_SEVERITY_LOW:
-        std::cout << YELLOW << "LOW" << RESET;
+        log_message += "LOW";
+		logtype = LOG_TYPE::WARN;
         break;
     case GL_DEBUG_SEVERITY_MEDIUM:
-        std::cout << YELLOW << "MEDIUM" << RESET;
+        log_message += "MEDIUM";
+		logtype = LOG_TYPE::WARN;
         break;
     case GL_DEBUG_SEVERITY_HIGH:
-        std::cout << RED << "HIGH" << RESET;
+        log_message += "HIGH";
+		logtype = LOG_TYPE::ERR;
         break;
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
-		std::cout << GREEN << "NOTIFICATION" << RESET;
+		log_message += "NOTIFICATION";
+		logtype = LOG_TYPE::INFO;
 		break;
     }
-    std::cout << std::endl;
-    std::cout << "---------------------opengl-callback-end--------------" << std::endl;
+
+	Log::log(logtype, title, log_message);
 }
 
 // thse two are basically the same, will remake this
