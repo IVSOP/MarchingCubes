@@ -14,8 +14,15 @@ Client::Client()
 
 	resizeViewport(1920, 1080); // these too
 
-	// Looper looper = Looper<1>();
-	// looper.loop();
+	// Looper looper = Looper<4000>();
+	// auto func = [this]() {
+    //     printf("hello\n");
+    // };
+
+	// std::thread t([&]() { looper.loop(func); });
+	// t.detach();
+
+	// std::thread(looper.loop(func));
 
 
 	// Chunk chunk;
