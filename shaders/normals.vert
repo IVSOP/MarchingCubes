@@ -2071,6 +2071,9 @@ out VS_OUT {
 	vec3 v_Normal;
 } vs_out;
 
+uniform samplerBuffer u_ChunkInfoTBO;
+#define VEC4_IN_CHUNKINFO 1
+
 uniform mat3 u_NormalMatrix; // since it is constant every single vertex
 
 void main()
@@ -2085,7 +2088,9 @@ void main()
 
 	const uvec3 edges = uvec3(edge_a, edge_b, edge_c);
 
-	vec3 position = lookup_array[edges[aVertID]] + vec3(local_pos_x, local_pos_y, local_pos_z);
+	int chunkID = gl_DrawID;
+	vec3 chunk_position = texelFetch(u_ChunkInfoTBO, chunkID * VEC4_IN_CHUNKINFO).xyz;
+	vec3 position = lookup_array[edges[aVertID]] + vec3(local_pos_x, local_pos_y, local_pos_z) + chunk_position;
 
 	vs_out.v_Normal = u_NormalMatrix * normal_lookup_array[edge_a][edge_b][edge_c];
 

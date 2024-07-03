@@ -499,7 +499,7 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 		}
 
 		if (showNormals) {
-			drawNormals(verts, model, view, projection);
+			drawNormals(verts, indirect, model, view, projection);
 		}
 
 		if (wireframe) {
@@ -507,7 +507,7 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 		}
 }
 
-void Renderer::drawNormals(const VertContainer<Vertex> &verts, const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection) {
+void Renderer::drawNormals(const VertContainer<Vertex> &verts, const std::vector<IndirectData> &indirect, const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection) {
 	GLCall(glBindVertexArray(this->VAO));
 
 	// GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO));
@@ -519,10 +519,12 @@ void Renderer::drawNormals(const VertContainer<Vertex> &verts, const glm::mat4 &
 	normalShader.setMat4("u_Projection", projection);
 	normalShader.setFloat("u_BloomThreshold", bloomThreshold);
 	normalShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * model))));
+	normalShader.setInt("u_ChunkInfoTBO", CHUNKINFO_TEXTURE_BUFFER_SLOT);
 
 	// normalShader.validate();
 
-	GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 3, verts.size()));
+	GLCall(glMultiDrawArraysIndirect(GL_TRIANGLES, (void *)0, indirect.size(), 0));
+	// GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 3, verts.size()));
 }
 
 void Renderer::bloomBlur(int passes) {
