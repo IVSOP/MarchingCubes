@@ -162,11 +162,6 @@ struct World {
 		chunk.maskVoxelValue(blockInfo.position, mask);
 	}
 
-	// problem: breaking works, but voxels at the edges are left as 0xFF, meaning nothing is shown from them
-	// wtf do I do
-	// make sure when breaking a voxel like this, the half of the next voxel also breaks?
-	// have predetermined radius sizes that work?
-	// predetermined sphere shapes?
 	// TODO test it my 'optimizations' actually work
 	void breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius) {
 		const glm::vec3 real_center_float = glm::vec3(getWorldCoords(selectedInfo.chunkID, selectedInfo.position));
@@ -181,12 +176,13 @@ struct World {
 		const GLfloat small_radius_squared = (radius - magic) * (radius - magic);
 
 		// box that sphere is contained in
-		GLint min_x = glm::clamp(static_cast<GLint>(real_center_float.x - radius), MIN_X, MAX_X),
-			  max_x = glm::clamp(static_cast<GLint>(real_center_float.x + radius), MIN_X, MAX_X),
-			  min_y = glm::clamp(static_cast<GLint>(real_center_float.y - radius), MIN_Y, MAX_Y),
-			  max_y = glm::clamp(static_cast<GLint>(real_center_float.y + radius), MIN_Y, MAX_Y),
-			  min_z = glm::clamp(static_cast<GLint>(real_center_float.z - radius), MIN_Z, MAX_Z),
-			  max_z = glm::clamp(static_cast<GLint>(real_center_float.z + radius), MIN_Z, MAX_Z);
+		// +/-1 is needed to make sure shared corners are broken correctly
+		GLint min_x = glm::clamp(static_cast<GLint>(real_center_float.x - radius) - 1, MIN_X, MAX_X),
+			  max_x = glm::clamp(static_cast<GLint>(real_center_float.x + radius) + 1, MIN_X, MAX_X),
+			  min_y = glm::clamp(static_cast<GLint>(real_center_float.y - radius) - 1, MIN_Y, MAX_Y),
+			  max_y = glm::clamp(static_cast<GLint>(real_center_float.y + radius) + 1, MIN_Y, MAX_Y),
+			  min_z = glm::clamp(static_cast<GLint>(real_center_float.z - radius) - 1, MIN_Z, MAX_Z),
+			  max_z = glm::clamp(static_cast<GLint>(real_center_float.z + radius) + 1, MIN_Z, MAX_Z);
 
 		GLfloat dist_squared;
 
