@@ -122,17 +122,14 @@ void Client::mainloop() {
         currentFrameTime = glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;
 
-        // no need for sleep, vsync takes care of mantaining timings
-		// HOWEVER macbooks as per usual do not work properly
-		// so I made this bandaid fix
-		if (renderer.get()->limitFPS) {
-			const double fps_time = 1.0f / renderer.get()->fps;
-			if (deltaTime < fps_time) {
-				const double sleepTime = (fps_time - deltaTime) * 10E5; // multiply to get from seconds to microseconds, this is prob platform dependent and very bad
-				usleep(sleepTime);
-				deltaTime = fps_time;
-			}
-		}
+		// if (renderer.get()->limitFPS) {
+		// 	const double fps_time = 1.0f / renderer.get()->fps;
+		// 	if (deltaTime < fps_time) {
+		// 		const double sleepTime = (fps_time - deltaTime) * 10E5; // multiply to get from seconds to microseconds, this is prob platform dependent and very bad
+		// 		usleep(sleepTime);
+		// 		deltaTime = fps_time;
+		// 	}
+		// }
     }
 }
 

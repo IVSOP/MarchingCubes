@@ -4,3 +4,4 @@ private/
 imgui.ini
 .vscode/
 profiling/
+buildWin/

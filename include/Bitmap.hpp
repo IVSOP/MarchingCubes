@@ -195,18 +195,18 @@ struct Bitmap<32> {
 		data &= mask;
 	}
 
-	constexpr void print() const {
-		printf("%032b\n", data);
-	}
+	// constexpr void print() const {
+	// 	printf("%032b\n", data);
+	// }
 
-	constexpr void printInverted() const {
-		uint32_t reversed = 0;
-		for (GLuint i = 0; i < 32; i++) {
-			reversed <<= 1;
-			reversed |= ((data >> i) & 1);
-		}
-		printf("%032b\n", reversed);
-	}
+	// constexpr void printInverted() const {
+	// 	uint32_t reversed = 0;
+	// 	for (GLuint i = 0; i < 32; i++) {
+	// 		reversed <<= 1;
+	// 		reversed |= ((data >> i) & 1);
+	// 	}
+	// 	printf("%032b\n", reversed);
+	// }
 };
 
 template<>
@@ -362,18 +362,18 @@ struct Bitmap<8> {
 		data &= mask;
 	}
 
-	constexpr void print() const {
-		printf("%08b\n", data);
-	}
+	// constexpr void print() const {
+	// 	printf("%08b\n", data);
+	// }
 
-	constexpr void printInverted() const {
-		uint8_t reversed = 0;
-		for (GLuint i = 0; i < 8; i++) {
-			reversed <<= 1;
-			reversed |= ((data >> i) & 1);
-		}
-		printf("%08b\n", reversed);
-	}
+	// constexpr void printInverted() const {
+	// 	uint8_t reversed = 0;
+	// 	for (GLuint i = 0; i < 8; i++) {
+	// 		reversed <<= 1;
+	// 		reversed |= ((data >> i) & 1);
+	// 	}
+	// 	printf("%08b\n", reversed);
+	// }
 };
 
 

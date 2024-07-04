@@ -6,8 +6,6 @@
 // #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize2.h"
 
-#include <zlib.h>
-
 #include "Logs.hpp"
 
 // also this can probably be optimized but for now I will leave it to compiler magic
