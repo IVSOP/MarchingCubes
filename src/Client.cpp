@@ -133,18 +133,14 @@ void Client::mainloop() {
 			Physics &phys = phys_pos_view.get<Physics>(entity);
 
 			if (world->checkBasicCollision(phys_pos_view.get<Position>(entity).pos)) {
-				phys.accel.y = 0.0f;
 				phys.vel.y = 0.0f;
+				phys.slowDown(2.0f, static_cast<GLfloat>(deltaTime));
 			} else {
-				// gravity
-				phys.accel += glm::vec3(0.0f, -9.8f, 0.0f) * static_cast<GLfloat>(deltaTime);
+				phys.addGravity();
 			}
 
 
-			phys.applyAccel(deltaTime);
-
-			// DANGEROUS
-			phys_pos_view.get<Position>(entity).pos += phys.vel;
+			phys.applyToPosition(phys_pos_view.get<Position>(entity).pos, static_cast<GLfloat>(deltaTime));
 		}
 
         currentFrameTime = glfwGetTime();

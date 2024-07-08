@@ -65,17 +65,35 @@ struct Movement {
 
 struct Physics {
 	glm::vec3 vel;
-	glm::vec3 accel;
+	glm::vec3 force;
+	GLfloat mass = 1.0f;
 
 	Physics()
-		: vel(0.0f), accel(0.0f) {}
+		: vel(0.0f), force(0.0f) {}
 
-	Physics(const glm::vec3 &vel, const glm::vec3 &accel)
-		: vel(vel), accel(accel) {}
+	Physics(const glm::vec3 &vel, const glm::vec3 &force)
+		: vel(vel), force(force) {}
 
-	void applyAccel(GLfloat deltatime) {
-		vel += accel * deltatime;
-		accel = glm::vec3(0.0f);
+	constexpr void addGravity() {
+		force += mass * glm::vec3(0.0f, -9.8f, 0.0f);
+	}
+
+	constexpr void applyToPosition(glm::vec3 &position, GLfloat deltatime) {
+		vel += (force / mass) * deltatime;
+		position += vel * deltatime;
+		// position += deltatime * (vel + deltatime * accel * 0.5f);
+
+		force = glm::vec3(0.0f);
+	}
+
+	// constexpr void applyFriction(GLfloat coeff) {
+		// got lazy, needed to calculate x and z force components etc
+		// force -= coeff * glm::vec3();
+	// }
+
+	constexpr void slowDown(GLfloat coeff, GLfloat deltatime) {
+		vel -= (vel * coeff) * deltatime;
+		// force -= (force * coeff) * deltatime;
 	}
 };
 
