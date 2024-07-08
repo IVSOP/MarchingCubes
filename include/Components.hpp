@@ -63,4 +63,20 @@ struct Movement {
 		: speed(speed), speedup(speedup) {}
 };
 
+struct Physics {
+	glm::vec3 vel;
+	glm::vec3 accel;
+
+	Physics()
+		: vel(0.0f), accel(0.0f) {}
+
+	Physics(const glm::vec3 &vel, const glm::vec3 &accel)
+		: vel(vel), accel(accel) {}
+
+	void applyAccel(GLfloat deltatime) {
+		vel += accel * deltatime;
+		accel = glm::vec3(0.0f);
+	}
+};
+
 #endif

@@ -128,6 +128,25 @@ void Client::mainloop() {
 			mov);
         // lock.unlock();
 
+		auto phys_pos_view = world->entt_registry.group<Position, Physics>();
+		for (auto entity : phys_pos_view) {
+			Physics &phys = phys_pos_view.get<Physics>(entity);
+
+			if (world->checkBasicCollision(phys_pos_view.get<Position>(entity).pos)) {
+				phys.accel.y = 0.0f;
+				phys.vel.y = 0.0f;
+			} else {
+				// gravity
+				phys.accel += glm::vec3(0.0f, -9.8f, 0.0f) * static_cast<GLfloat>(deltaTime);
+			}
+
+
+			phys.applyAccel(deltaTime);
+
+			// DANGEROUS
+			phys_pos_view.get<Position>(entity).pos += phys.vel;
+		}
+
         currentFrameTime = glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;
 
@@ -139,6 +158,7 @@ void Client::mainloop() {
 		// 		deltaTime = fps_time;
 		// 	}
 		// }
+
     }
 }
 

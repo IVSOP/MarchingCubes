@@ -8,6 +8,7 @@ Player::Player(entt::registry &registry, const Position &position, const glm::ve
 	registry.emplace<Position>(player_entity, position);
 	registry.emplace<Direction>(player_entity, Direction::lookat(position.pos, glm::vec3(0.0f, 1.0f, 0.0f), lookatPoint));
 	registry.emplace<Movement>(player_entity, 10.0f, false);
+	registry.emplace<Physics>(player_entity);
 }
 
 void Player::move(Camera_Movement direction, float deltaTime) {
@@ -16,6 +17,8 @@ void Player::move(Camera_Movement direction, float deltaTime) {
 	const Direction &dir = registry.get<Direction>(player_entity);
 
 	const Movement &mov = registry.get<Movement>(player_entity);
+
+	Physics &phys = registry.get<Physics>(player_entity);
 
 
 	float velocity;
@@ -28,34 +31,34 @@ void Player::move(Camera_Movement direction, float deltaTime) {
 	switch(direction) {
 		case(FORWARD):
 			// normalize this too?????
-			pos.pos += dir.front * velocity;
+			phys.accel += dir.front * velocity;
 			break;
 		case(BACKWARD):
 			// normalize this too?????
-			pos.pos -= dir.front * velocity;
+			phys.accel -= dir.front * velocity;
 			break;
 
 		case(FRONT):
 			// normalize needed since it would get different speeds for different Y values
 			// contas manhosas sao para em vez de ir para a frente manter-se no mesmo plano (ex minecraft voar ao carregar no W nunca sobe nem desce)
-			pos.pos += glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup)) * velocity;
+			phys.accel += glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup)) * velocity;
 			break;
 		case(BACK):
 			// normalize needed since it would get different speeds for different Y values
 			// contas manhosas sao para em vez de ir para a frente manter-se no mesmo plano (ex minecraft voar ao carregar no W nunca sobe nem desce)
-			pos.pos -= glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup)) * velocity;
+			phys.accel -= glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup)) * velocity;
 			break;
 		case(LEFT):
-			pos.pos -= dir.right * velocity;
+			phys.accel -= dir.right * velocity;
 			break;
 		case(RIGHT):
-			pos.pos += dir.right * velocity;
+			phys.accel += dir.right * velocity;
 			break;
 		case(UP):
-			pos.pos += glm::normalize(dir.up * dir.worldup) * velocity;
+			phys.accel += glm::normalize(dir.up * dir.worldup) * velocity;
 			break;
 		case(DOWN):
-			pos.pos -= glm::normalize(dir.up * dir.worldup) * velocity;
+			phys.accel -= glm::normalize(dir.up * dir.worldup) * velocity;
 			break;
 	}
 }

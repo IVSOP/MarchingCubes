@@ -274,3 +274,13 @@ void World::loadHeightMap(const std::string &path) {
 
 	free(buffer);
 }
+
+bool World::checkBasicCollision(const glm::vec3 &pos) {
+	const glm::ivec3 coords = glm::ivec3(pos - glm::vec3(0.0f, 1.0f, 0.0f));
+
+	if (getVoxel(coords).data != 0x00) {
+		return true;
+	}
+
+	return false;
+}

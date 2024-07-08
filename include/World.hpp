@@ -224,6 +224,8 @@ struct World {
 	void addSphere(const glm::vec3 &center, GLfloat radius);
 
 	void loadHeightMap(const std::string &path);
+
+	bool checkBasicCollision(const glm::vec3 &pos);
 };
 
 
