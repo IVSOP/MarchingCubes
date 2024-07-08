@@ -17,8 +17,8 @@ class WindowManager;
 class Client {
 public:
 	std::unique_ptr<WindowManager> windowManager = nullptr;
-	std::unique_ptr<Player> player = nullptr;
 	std::unique_ptr<World> world = nullptr;
+	std::unique_ptr<Player> player = nullptr;
 	std::unique_ptr<Renderer> renderer = nullptr;
 	InputHandler inputHandler;
 

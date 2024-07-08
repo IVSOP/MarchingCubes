@@ -137,4 +137,15 @@ template<typename T> struct custom_array {
 	~custom_array() = default;
 };
 
+enum Camera_Movement {
+    FORWARD,
+	FRONT, // paralel to the ground
+    BACKWARD,
+	BACK, // paralel to the ground
+    LEFT, // paralel to the ground (they are like this by default)
+    RIGHT, // paralel to the ground (they are like this by default)
+	UP, // paralel to the ground
+	DOWN // paralel to the ground
+};
+
 #endif

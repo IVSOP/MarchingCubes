@@ -6,8 +6,8 @@
 
 Client::Client()
 : windowManager(std::make_unique<WindowManager>(1920, 1080, this)),
-  player(std::make_unique<Player>(glm::vec3(64, 16, 64), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0))),
   world(std::make_unique<World>()),
+  player(std::make_unique<Player>(world->entt_registry, Position(glm::vec3(64, 16, 64)), glm::vec3(0, 0, -1))),
   renderer(std::make_unique<Renderer>(1920, 1080)), // get these from window manager???
   inputHandler(glfw_handleMouseMov_callback, glfw_handleMouseKey_callback) // funcs from window manager
 {
@@ -98,25 +98,34 @@ void Client::mainloop() {
 		lastFrameTime = glfwGetTime();
 
         // printf("delta is %f (%f fps)\n", deltaTime, 1.0f / deltaTime);
-		Camera *camera = player.get()->getCamera();
-		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(camera->Position, camera->Front, renderer->break_range);
+		// TODO sometimes I use this data, other times I call functions from Player which gets them again, what a mess
+		Position  &pos = player->getPos();
+		Direction &dir = player->getDir();
+		Movement  &mov = player->getMov();
+
+		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(pos.pos, dir.front, renderer->break_range);
         inputHandler.applyInputs(
 			world.get(),
 			selectedBlock,
 			renderer->break_radius,
-			camera, windowManager.get()->windowWidth, windowManager.get()->windowHeight, static_cast<GLfloat>(deltaTime));
+			player.get(), windowManager.get()->windowWidth, windowManager.get()->windowHeight, static_cast<GLfloat>(deltaTime));
 
         // std::unique_lock<std::mutex> lock = std::unique_lock<std::mutex>(mtx);
         // renderer.get()->draw(draw_quads, projection, *camera.get(), window, deltaTime);
-    	world.get()->buildData(camera->Position);
+    	world.get()->buildData();
+
+		glm::mat4 view = player->getViewMatrix();
 		renderer.get()->draw(
+			view,
 			world.get()->getVerts(),
 			world.get()->getPoints(),
 			world.get()->getIndirect(),
 			world.get()->getInfo(),
 			windowManager.get()->projection,
-			*camera, // ??????????????????????????????????? why
-			windowManager.get()->window, deltaTime);
+			windowManager.get()->window, deltaTime,
+			pos,
+			dir,
+			mov);
         // lock.unlock();
 
         currentFrameTime = glfwGetTime();

@@ -7,6 +7,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp> // distance2
 
+#include <entt.hpp>
+
 // #include "zlib/zlib.h"
 
 struct World {
@@ -16,6 +18,8 @@ struct World {
 	VertContainer<Point> debug_points;
 	std::vector<IndirectData> indirect;
 	std::vector<ChunkInfo> info;
+	entt::registry entt_registry;
+
 
 	constexpr Chunk &get(const glm::uvec3 &position) {
 		return chunks[position.x][position.y][position.z];
@@ -37,7 +41,7 @@ struct World {
 		return info;
 	}
 
-	void buildData(const glm::vec3 &playerPosition);
+	void buildData();
 
 	constexpr GLuint getChunkID(GLuint x, GLuint y, GLuint z) {
 		return (&chunks[x][y][z] - &chunks[0][0][0]);

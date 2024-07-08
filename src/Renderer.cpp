@@ -296,7 +296,7 @@ void Renderer::loadTextures() {
 	tex->setTextureArrayToSlot(TEX_ARRAY_SLOT);
 }
 
-void Renderer::prepareFrame(Camera &camera, GLfloat deltaTime) {
+void Renderer::prepareFrame(Position &pos, Direction &dir, Movement &mov, GLfloat deltaTime) {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -304,11 +304,11 @@ void Renderer::prepareFrame(Camera &camera, GLfloat deltaTime) {
 	ImGui::Begin("Debug");
 	// ImGui::ShowDemoWindow();
 	ImGui::Text("FPS: %lf", 1.0f / deltaTime);
-	ImGui::Text("Facing x:%f y:%f z:%f", camera.Front.x, camera.Front.y, camera.Front.z);
-	ImGui::InputFloat3("Position", glm::value_ptr(camera.Position));
-	ImGui::SliderFloat("##Camera_speed", &camera.MovementSpeed, 0.0f, 1000.0f, "Camera speed = %.3f");
+	ImGui::Text("Facing x:%f y:%f z:%f", dir.front.x, dir.front.y, dir.front.z);
+	ImGui::InputFloat3("Position", glm::value_ptr(pos.pos));
+	ImGui::SliderFloat("##Camera_speed", &mov.speed, 0.0f, 1000.0f, "Camera speed = %.3f");
 	ImGui::SameLine();
-	ImGui::InputFloat("Camera speed", &camera.MovementSpeed, 1.0f, 10.0f);
+	ImGui::InputFloat("Camera speed", &mov.speed, 1.0f, 10.0f);
 	ImGui::SliderFloat("gamma", &gamma, 0.0f, 10.0f, "gamma = %.3f");
 	ImGui::SliderFloat("exposure", &exposure, 0.0f, 10.0f, "exposure = %.3f");
 	ImGui::InputInt("bloomPasses", &bloomBlurPasses, 1, 1); if (bloomBlurPasses < 0) bloomBlurPasses = 0;
@@ -323,7 +323,7 @@ void Renderer::prepareFrame(Camera &camera, GLfloat deltaTime) {
 	ImGui::SliderFloat("break_range", &break_range, 1.0f, 500.0f, "break_range = %.3f");
 }
 
-void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera) {
+void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view) {
 	constexpr glm::mat4 model = glm::mat4(1.0f);
 	// const glm::mat4 MVP = projection * view * model;
 
@@ -439,9 +439,9 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 
 		SpotLight spotLights[MAX_LIGHTS];
 		spotLights[0] = {
-			.position = camera.Position,
+			// .position = camera.Position,
 			// .position = glm::vec3(0.0f, 1.0f, 3.0f),
-			.direction = camera.Front,
+			// .direction = camera.Front,
 			// .direction = glm::vec3(0.0f, -0.25f, -0.97f),
 			.cutOff = glm::cos(glm::radians(12.5f)),
 			.outerCutOff = glm::cos(glm::radians(17.5f)),
@@ -619,10 +619,9 @@ void Renderer::endFrame(GLFWwindow * window) {
     glfwSwapBuffers(window);
 }
 
-void Renderer::draw(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, Camera &camera, GLFWwindow * window, GLfloat deltaTime) {
-	prepareFrame(camera, deltaTime);
-	const glm::mat4 view = camera.GetViewMatrix();
-	drawLighting(verts, points, indirect, chunkInfo, projection, view, camera);
+void Renderer::draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov) {
+	prepareFrame(pos, dir, mov, deltaTime);
+	drawLighting(verts, points, indirect, chunkInfo, projection, view);
 	bloomBlur(this->bloomBlurPasses);
 	merge();
 

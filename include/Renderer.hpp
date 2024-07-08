@@ -3,10 +3,10 @@
 
 #include "common.hpp"
 #include "Chunk.hpp"
-#include "Camera.hpp"
 #include "Shader.hpp"
 #include "TextureArray.hpp"
 #include <memory>
+#include "Components.hpp"
 
 #include <vector>
 
@@ -62,7 +62,7 @@ public:
 
 	std::unique_ptr<TextureArray> textureArray = nullptr; // pointer since it starts as null and gets initialized later. unique_ptr so it always gets deleted
 
-	void draw(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, Camera &camera, GLFWwindow * window, GLfloat deltaTime); // const
+	void draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov); // const
 
 	void loadTextures();
 	void resizeViewport(GLsizei viewport_width, GLsizei viewport_height);
@@ -71,8 +71,8 @@ public:
 	void checkFrameBuffer();
 
 private:
-	void prepareFrame(Camera &camera, GLfloat deltatime);
-	void drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view, const Camera &camera); // camera is for debugging
+	void prepareFrame(Position &pos, Direction &dir, Movement &mov, GLfloat deltatime);
+	void drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view); // camera is for debugging
 	void drawAxis(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 	void drawNormals(const VertContainer<Vertex> &verts, const std::vector<IndirectData> &indirect, const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 	void bloomBlur(int passes);

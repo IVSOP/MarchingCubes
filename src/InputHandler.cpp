@@ -75,33 +75,33 @@ std::vector<KeyInfo> InputHandler::getKeysPressedOrHeld() const {
 // 	return glm::vec2(curX - lastX, curY - lastY);
 // }
 
-void InputHandler::applyInputs(World *world, const SelectedBlockInfo &selectedInfo, GLfloat break_radius, Camera *camera, int windowWidth, int windowHeight, GLfloat deltatime) {
+void InputHandler::applyInputs(World *world, const SelectedBlockInfo &selectedInfo, GLfloat break_radius, Player *player, int windowWidth, int windowHeight, GLfloat deltatime) {
 	// muito mal feito, tbm nao tive paciencia mas funcemina
 
 	const KeyInfo *keys = keyInfo.get();
 
 	if ((&keys[GLFW_KEY_W])->last_action != GLFW_RELEASE) {
-		camera->ProcessKeyboard(FRONT, deltatime);
+		player->move(FRONT, deltatime);
 	}
 	if ((&keys[GLFW_KEY_S])->last_action != GLFW_RELEASE) {
-		camera->ProcessKeyboard(BACK, deltatime);
+		player->move(BACK, deltatime);
 	}
 	if ((&keys[GLFW_KEY_A])->last_action != GLFW_RELEASE) {
-		camera->ProcessKeyboard(LEFT, deltatime);
+		player->move(LEFT, deltatime);
 	}
 	if ((&keys[GLFW_KEY_D])->last_action != GLFW_RELEASE) {
-		camera->ProcessKeyboard(RIGHT, deltatime);
+		player->move(RIGHT, deltatime);
 	}
 	if ((&keys[GLFW_KEY_SPACE])->last_action != GLFW_RELEASE) {
-		camera->ProcessKeyboard(UP, deltatime);
+		player->move(UP, deltatime);
 	}
 	if ((&keys[GLFW_KEY_LEFT_ALT])->last_action != GLFW_RELEASE) {
-		camera->ProcessKeyboard(DOWN, deltatime);
+		player->move(DOWN, deltatime);
 	}
 	if ((&keys[GLFW_KEY_LEFT_SHIFT])->last_action != GLFW_RELEASE) {
-		camera->SpeedUp(true);
+		player->speedUp(true);
 	} else {
-		camera->SpeedUp(false);
+		player->speedUp(false);
 	}
 	if ((&keys[GLFW_MOUSE_BUTTON_LEFT])->last_action != GLFW_RELEASE) {
 		if (! selectedInfo.isEmpty()) {
@@ -126,6 +126,6 @@ void InputHandler::applyInputs(World *world, const SelectedBlockInfo &selectedIn
 		lastY = curY;
 
 		// printf("Camera moving mouse from %f %f to %f %f\n", lastX, lastY, curX, curY);
-		camera->ProcessMouseMovement(xoffset, yoffset);
+		player->look(xoffset, yoffset);
 	}
 }

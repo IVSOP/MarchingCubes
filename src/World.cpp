@@ -11,7 +11,7 @@
 // also this can probably be optimized but for now I will leave it to compiler magic
 // yes very ugly will clean this up later
 // make player position align to the chunk somehow???????/ doing == on floats is kind of bad
-void World::buildData(const glm::vec3 &playerPosition) {
+void World::buildData() {
 	verts.clear();
 	debug_points.clear();
 	indirect.clear();

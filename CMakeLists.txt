@@ -69,7 +69,7 @@ include_directories(external/imgui/backends)
 include_directories(external/stb)
 
 add_subdirectory(external/entt)
-include_directories(external/entt)
+include_directories(external/entt/single_include/entt)
 
 add_executable(MarchingCubes
 		src/main.cpp
@@ -98,7 +98,6 @@ add_executable(MarchingCubes
 
 target_include_directories(MarchingCubes
 		PUBLIC include/
-		PUBLIC include/windows
 )
 
 if (LINUX_TO_WINDOWS)
