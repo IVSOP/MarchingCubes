@@ -59,8 +59,8 @@ Client::Client()
 	// world.get()->loadHeightMap("textures/iceland_heightmap.png");
 	// world.get()->loadHeightMap("textures/terreno.jpg");
 	// world.get()->loadHeightMap("textures/Ridge Through Terrain Height Map.png");
-	// world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
-	world.get()->loadHeightMap("textures/Height Map.png");
+	world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
+	// world.get()->loadHeightMap("textures/Height Map.png");
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {

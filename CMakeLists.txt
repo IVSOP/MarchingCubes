@@ -68,6 +68,9 @@ include_directories(external/imgui/backends)
 
 include_directories(external/stb)
 
+add_subdirectory(external/entt)
+include_directories(external/entt)
+
 add_executable(MarchingCubes
 		src/main.cpp
 		src/common.cpp
@@ -104,6 +107,7 @@ if (LINUX_TO_WINDOWS)
 		${OPENGL_LIBRARIES}
 		glew32
 		OpenGL::GL
+		EnTT::EnTT
 	)
 
 else (LINUX_TO_WINDOWS)
@@ -115,6 +119,7 @@ else (LINUX_TO_WINDOWS)
 			${OPENGL_LIBRARIES} 
 			${TOOLKITS_FOLDER}/glut/glut32.lib 
 			${TOOLKITS_FOLDER}/glew/glew32.lib
+			EnTT::EnTT
 		)
 
 
@@ -123,6 +128,7 @@ else (LINUX_TO_WINDOWS)
 				glfw
 				GLEW::GLEW
 				OpenGL::GL
+				EnTT::EnTT
 		)
 
 	endif (WIN32)
