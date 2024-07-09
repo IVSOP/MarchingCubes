@@ -3,6 +3,7 @@
 #include "LookupTable.hpp"
 #include "Looper.hpp"
 
+#include <Jolt/Jolt.h>
 
 Client::Client()
 : windowManager(std::make_unique<WindowManager>(1920, 1080, this)),

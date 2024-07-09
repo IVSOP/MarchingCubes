@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.22.1)
 project(MarchingCubes)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
@@ -71,6 +73,10 @@ include_directories(external/stb)
 add_subdirectory(external/entt)
 include_directories(external/entt/single_include/entt)
 
+add_subdirectory(external/JoltPhysics/Build)
+include_directories(external/JoltPhysics/Jolt)
+include(Jolt_Cmake.txt)
+
 add_executable(MarchingCubes
 		src/main.cpp
 		src/common.cpp
@@ -107,6 +113,7 @@ if (LINUX_TO_WINDOWS)
 		glew32
 		OpenGL::GL
 		EnTT::EnTT
+		Jolt
 	)
 
 else (LINUX_TO_WINDOWS)
@@ -119,6 +126,7 @@ else (LINUX_TO_WINDOWS)
 			${TOOLKITS_FOLDER}/glut/glut32.lib 
 			${TOOLKITS_FOLDER}/glew/glew32.lib
 			EnTT::EnTT
+			Jolt
 		)
 
 
@@ -128,6 +136,7 @@ else (LINUX_TO_WINDOWS)
 				GLEW::GLEW
 				OpenGL::GL
 				EnTT::EnTT
+				Jolt
 		)
 
 	endif (WIN32)
