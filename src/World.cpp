@@ -38,44 +38,44 @@ void World::buildData() {
 	}
 }
 
-SelectedBlockInfo World::getBlockInfo(const glm::ivec3 &position) {
-	SelectedBlockInfo ret;
+// SelectedBlockInfo World::getBlockInfo(const glm::ivec3 &position) {
+// 	SelectedBlockInfo ret;
 
-	// had weird innacuracies when values were not floats, like -7.15 + 8 == 0 but actualy was -7 + 8 == 1
+// 	// had weird innacuracies when values were not floats, like -7.15 + 8 == 0 but actualy was -7 + 8 == 1
 
-	Chunk *chunk = &chunks // this gets ID of the chunk
-		[static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f))]
-		[static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f))]
-		[static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f))];
+// 	Chunk *chunk = &chunks // this gets ID of the chunk
+// 		[static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f))]
+// 		[static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f))]
+// 		[static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f))];
 
-	ret.chunkID = chunk - &chunks[0][0][0];
+// 	ret.chunkID = chunk - &chunks[0][0][0];
 
-	// this gets position inside of the chunk
-	glm::u8vec3 pos;
-	if (position.x < 0) {
-		pos.x = (32 - (abs(position.x) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative valeus 2) starts at -1 not 0. the last % feels bad, is only for when == 32 to prevent resulting in 32. have to redo this math
-	} else {
-		pos.x = position.x % CHUNK_SIZE;
-	}
+// 	// this gets position inside of the chunk
+// 	glm::u8vec3 pos;
+// 	if (position.x < 0) {
+// 		pos.x = (CHUNK_SIZE - (abs(position.x) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative values 2) starts at -1 not 0. the last % feels bad, is only for when == CHUNK_SIZE to prevent resulting in CHUNK_SIZE. have to redo this math
+// 	} else {
+// 		pos.x = position.x % CHUNK_SIZE;
+// 	}
 	
-	if (position.y < 0) {
-		pos.y = (32 - (abs(position.y) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative valeus 2) starts at -1 not 0. the last % feels bad, is only for when == 32 to prevent resulting in 32. have to redo this math
-	} else {
-		pos.y = position.y % CHUNK_SIZE;
-	}
+// 	if (position.y < 0) {
+// 		pos.y = (CHUNK_SIZE - (abs(position.y) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative values 2) starts at -1 not 0. the last % feels bad, is only for when == CHUNK_SIZE to prevent resulting in CHUNK_SIZE. have to redo this math
+// 	} else {
+// 		pos.y = position.y % CHUNK_SIZE;
+// 	}
 	
-	if (position.z < 0) {
-		pos.z = (32 - (abs(position.z) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative valeus 2) starts at -1 not 0. the last % feels bad, is only for when == 32 to prevent resulting in 32. have to redo this math
-	} else {
-		pos.z = position.z % CHUNK_SIZE;
-	}
+// 	if (position.z < 0) {
+// 		pos.z = (CHUNK_SIZE - (abs(position.z) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative values 2) starts at -1 not 0. the last % feels bad, is only for when == CHUNK_SIZE to prevent resulting in CHUNK_SIZE. have to redo this math
+// 	} else {
+// 		pos.z = position.z % CHUNK_SIZE;
+// 	}
 
-	ret.position = pos;
-	ret.materialID = chunk->getVoxelAt(pos).material_id;
-	ret._isEmpty = chunk->isEmptyAt(pos);
+// 	ret.position = pos;
+// 	ret.materialID = chunk->getVoxelAt(pos).material_id;
+// 	ret._isEmpty = chunk->isEmptyAt(pos);
 
-	return ret;
-}
+// 	return ret;
+// }
 
 SelectedBlockInfo World::getSelectedBlock(const glm::vec3 &position, const glm::vec3 &lookPosition, GLfloat radius) {
 	radius *= 2.0f; // to act as range
@@ -192,40 +192,40 @@ SelectedBlockInfo World::getSelectedBlock(const glm::vec3 &position, const glm::
 	return SelectedBlockInfo(-1, 0, 0, true, {});
 }
 
-void World::addSphere(const glm::vec3 &center, GLfloat radius) {
-	// TODO this is currently implemented in the worst way possible
+// void World::addSphere(const glm::vec3 &center, GLfloat radius) {
+// 	// TODO this is currently implemented in the worst way possible
 
-	GLubyte value = 0;
+// 	GLubyte value = 0;
 	
-	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
-		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
-			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
-				const glm::vec3 offset = getChunkCoordsFloat(x, y, z);
+// 	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
+// 		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
+// 			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
+// 				const glm::vec3 offset = getChunkCoordsFloat(x, y, z);
 
-				for (GLuint cx = 0; cx < CHUNK_SIZE; cx++) {
-					for (GLuint cy = 0; cy < CHUNK_SIZE; cy++) {
-						for (GLuint cz = 0; cz < CHUNK_SIZE; cz++) {
+// 				for (GLuint cx = 0; cx < CHUNK_SIZE; cx++) {
+// 					for (GLuint cy = 0; cy < CHUNK_SIZE; cy++) {
+// 						for (GLuint cz = 0; cz < CHUNK_SIZE; cz++) {
 
-							for (GLubyte corner = 0; corner < 8; corner++) {
-								const glm::vec3 &final_position = LookupTable::corner_coords[corner] + glm::vec3(static_cast<GLfloat>(cx), static_cast<GLfloat>(cy), static_cast<GLfloat>(cz)) + offset;
+// 							for (GLubyte corner = 0; corner < 8; corner++) {
+// 								const glm::vec3 &final_position = LookupTable::corner_coords[corner] + glm::vec3(static_cast<GLfloat>(cx), static_cast<GLfloat>(cy), static_cast<GLfloat>(cz)) + offset;
 
-								if ((final_position.x - center.x) * (final_position.x - center.x) + (final_position.y - center.y) * (final_position.y - center.y) + (final_position.z - center.z) * (final_position.z - center.z) <= radius * radius ) {
-									value |= 1 << corner;
-								}
-							}
+// 								if ((final_position.x - center.x) * (final_position.x - center.x) + (final_position.y - center.y) * (final_position.y - center.y) + (final_position.z - center.z) * (final_position.z - center.z) <= radius * radius ) {
+// 									value |= 1 << corner;
+// 								}
+// 							}
 
-							if (value != 0x00) {
-								chunks[x][y][z].insertVoxelAt(glm::uvec3(cx, cy, cz), Voxel(value, 0));
-							}
+// 							if (value != 0x00) {
+// 								chunks[x][y][z].insertVoxelAt(glm::uvec3(cx, cy, cz), Voxel(value, 0));
+// 							}
 
-							value = 0;
-						}
-					}
-				}
-			}
-		}
-	}
-}
+// 							value = 0;
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// }
 
 // TODO not optimized
 void World::loadHeightMap(const std::string &path) {
@@ -273,14 +273,4 @@ void World::loadHeightMap(const std::string &path) {
 	}
 
 	free(buffer);
-}
-
-bool World::checkBasicCollision(const glm::vec3 &pos) {
-	const glm::ivec3 coords = glm::ivec3(pos - glm::vec3(0.0f, 1.0f, 0.0f));
-
-	if (getVoxel(coords).data != 0x00) {
-		return true;
-	}
-
-	return false;
 }

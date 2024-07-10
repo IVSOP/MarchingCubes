@@ -66,46 +66,46 @@ struct World {
 	// I have no idea if this math is correct
 	// basically / chunk size to get a chunk ID
 	// then add world size / 2 due to the offset that makes chunks[half][half][half] contain (0, 0, 0)
-	const Voxel &getVoxel(const glm::ivec3 &position) {
+	// const Voxel &getVoxel(const glm::ivec3 &position) {
 
-		// had weird innacuracies when values were not floats, like -7.15 + 8 == 0 but actualy was -7 + 8 == 1
+	// 	// had weird innacuracies when values were not floats, like -7.15 + 8 == 0 but actualy was -7 + 8 == 1
 
-		Chunk & chunk = chunks // this gets ID of the chunk
-			[static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f))]
-			[static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f))]
-			[static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f))];
+	// 	Chunk & chunk = chunks // this gets ID of the chunk
+	// 		[static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f))]
+	// 		[static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f))]
+	// 		[static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f))];
 
 
-		// this gets position inside of the chunk
-		glm::uvec3 pos;
-		if (position.x < 0) {
-			pos.x = (32 - (abs(position.x) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative valeus 2) starts at -1 not 0. the last % feels bad, is only for when == 32 to prevent resulting in 32. have to redo this math
-		} else {
-			pos.x = position.x % CHUNK_SIZE;
-		}
+	// 	// this gets position inside of the chunk
+	// 	glm::uvec3 pos;
+	// 	if (position.x < 0) {
+	// 		pos.x = (32 - (abs(position.x) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative valeus 2) starts at -1 not 0. the last % feels bad, is only for when == 32 to prevent resulting in 32. have to redo this math
+	// 	} else {
+	// 		pos.x = position.x % CHUNK_SIZE;
+	// 	}
 		
-		if (position.y < 0) {
-			pos.y = (32 - (abs(position.y) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative valeus 2) starts at -1 not 0. the last % feels bad, is only for when == 32 to prevent resulting in 32. have to redo this math
-		} else {
-			pos.y = position.y % CHUNK_SIZE;
-		}
+	// 	if (position.y < 0) {
+	// 		pos.y = (32 - (abs(position.y) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative valeus 2) starts at -1 not 0. the last % feels bad, is only for when == 32 to prevent resulting in 32. have to redo this math
+	// 	} else {
+	// 		pos.y = position.y % CHUNK_SIZE;
+	// 	}
 		
-		if (position.z < 0) {
-			pos.z = (32 - (abs(position.z) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative valeus 2) starts at -1 not 0. the last % feels bad, is only for when == 32 to prevent resulting in 32. have to redo this math
-		} else {
-			pos.z = position.z % CHUNK_SIZE;
-		}
-		// printf("%d %d %d mapped to voxel position: %u %u %u material: %d chunk[%u][%u][%u] (%lu)\n",
-		// 	position.x, position.y, position.z,
-		// 	pos.x, pos.y, pos.z,
-		// 	chunk.getVoxelAt(pos).material_id,
-		// 	static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)),
-		// 	static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)),
-		// 	static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)),
-		// 	&chunks[static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f))][static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f))][static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f))] - &chunks[0][0][0]);
+	// 	if (position.z < 0) {
+	// 		pos.z = (32 - (abs(position.z) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative valeus 2) starts at -1 not 0. the last % feels bad, is only for when == 32 to prevent resulting in 32. have to redo this math
+	// 	} else {
+	// 		pos.z = position.z % CHUNK_SIZE;
+	// 	}
+	// 	// printf("%d %d %d mapped to voxel position: %u %u %u material: %d chunk[%u][%u][%u] (%lu)\n",
+	// 	// 	position.x, position.y, position.z,
+	// 	// 	pos.x, pos.y, pos.z,
+	// 	// 	chunk.getVoxelAt(pos).material_id,
+	// 	// 	static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)),
+	// 	// 	static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)),
+	// 	// 	static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)),
+	// 	// 	&chunks[static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f))][static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f))][static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f))] - &chunks[0][0][0]);
 
-		return chunk.getVoxelAt(pos);
-	}
+	// 	return chunk.getVoxelAt(pos);
+	// }
 
 	SelectedBlockInfo getBlockInfo(const glm::ivec3 &position);
 
@@ -136,96 +136,94 @@ struct World {
 		return cursed_ptr[chunkID];
 	}
 
-	// SelectedBlockInfo is what the caller will have, and it contains all the information needed to do this
-	void breakVoxel(const SelectedBlockInfo &selectedInfo) {
-		Chunk &chunk = getChunkByID(selectedInfo.chunkID);
-		chunk.breakVoxelAt(selectedInfo.position);
-	}
+	// // SelectedBlockInfo is what the caller will have, and it contains all the information needed to do this
+	// void breakVoxel(const SelectedBlockInfo &selectedInfo) {
+	// 	Chunk &chunk = getChunkByID(selectedInfo.chunkID);
+	// 	chunk.breakVoxelAt(selectedInfo.position);
+	// }
 
-	void breakVoxel(const glm::ivec3 position) {
-		// got lazy, this will automatically get chunk and position inside it
-		const SelectedBlockInfo blockInfo = getBlockInfo(position);
+	// void breakVoxel(const glm::ivec3 position) {
+	// 	// got lazy, this will automatically get chunk and position inside it
+	// 	const SelectedBlockInfo blockInfo = getBlockInfo(position);
 
-		Chunk &chunk = getChunkByID(blockInfo.chunkID);
-		chunk.breakVoxelAt(blockInfo.position);
-	}
+	// 	Chunk &chunk = getChunkByID(blockInfo.chunkID);
+	// 	chunk.breakVoxelAt(blockInfo.position);
+	// }
 
-	void setVoxelValue(const glm::ivec3 position, const Bitmap<8> &value) {
-		// got lazy, this will automatically get chunk and position inside it
-		const SelectedBlockInfo blockInfo = getBlockInfo(position);
+	// void setVoxelValue(const glm::ivec3 position, const Bitmap<8> &value) {
+	// 	// got lazy, this will automatically get chunk and position inside it
+	// 	const SelectedBlockInfo blockInfo = getBlockInfo(position);
 
-		Chunk &chunk = getChunkByID(blockInfo.chunkID);
-		chunk.setVoxelValue(blockInfo.position, value);
-	}
+	// 	Chunk &chunk = getChunkByID(blockInfo.chunkID);
+	// 	chunk.setVoxelValue(blockInfo.position, value);
+	// }
 
-	void maskVoxelValue(const glm::ivec3 position, const Bitmap<8> &mask) {
-		// got lazy, this will automatically get chunk and position inside it
-		const SelectedBlockInfo blockInfo = getBlockInfo(position);
+	// void maskVoxelValue(const glm::ivec3 position, const Bitmap<8> &mask) {
+	// 	// got lazy, this will automatically get chunk and position inside it
+	// 	const SelectedBlockInfo blockInfo = getBlockInfo(position);
 
-		Chunk &chunk = getChunkByID(blockInfo.chunkID);
-		chunk.maskVoxelValue(blockInfo.position, mask);
-	}
+	// 	Chunk &chunk = getChunkByID(blockInfo.chunkID);
+	// 	chunk.maskVoxelValue(blockInfo.position, mask);
+	// }
 
-	// TODO test it my 'optimizations' actually work
-	void breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius) {
-		const glm::vec3 real_center_float = glm::vec3(getWorldCoords(selectedInfo.chunkID, selectedInfo.position));
-		const GLfloat radius_squared = radius * radius;
+	// // TODO test it my 'optimizations' actually work
+	// void breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius) {
+	// 	const glm::vec3 real_center_float = glm::vec3(getWorldCoords(selectedInfo.chunkID, selectedInfo.position));
+	// 	const GLfloat radius_squared = radius * radius;
 
-		// idk what to call this
-		// biggest distance of a line inside a cube (diagonal)
-		// if cube fits in smaller sphere where we do radius -= magic, then we know all 8 corners are inside, and can set it to 0
-		// sqrt cant be constexpr so ill precumpute it
-		// sqrt(2 * x^2 + x^2), x = 1, sqrt(3)
-		constexpr GLfloat magic = 1.73205080757f;
-		const GLfloat small_radius_squared = (radius - magic) * (radius - magic);
+	// 	// idk what to call this
+	// 	// biggest distance of a line inside a cube (diagonal)
+	// 	// if cube fits in smaller sphere where we do radius -= magic, then we know all 8 corners are inside, and can set it to 0
+	// 	// sqrt cant be constexpr so ill precumpute it
+	// 	// sqrt(2 * x^2 + x^2), x = 1, sqrt(3)
+	// 	constexpr GLfloat magic = 1.73205080757f;
+	// 	const GLfloat small_radius_squared = (radius - magic) * (radius - magic);
 
-		// box that sphere is contained in
-		// +/-1 is needed to make sure shared corners are broken correctly
-		GLint min_x = glm::clamp(static_cast<GLint>(real_center_float.x - radius) - 1, MIN_X, MAX_X),
-			  max_x = glm::clamp(static_cast<GLint>(real_center_float.x + radius) + 1, MIN_X, MAX_X),
-			  min_y = glm::clamp(static_cast<GLint>(real_center_float.y - radius) - 1, MIN_Y, MAX_Y),
-			  max_y = glm::clamp(static_cast<GLint>(real_center_float.y + radius) + 1, MIN_Y, MAX_Y),
-			  min_z = glm::clamp(static_cast<GLint>(real_center_float.z - radius) - 1, MIN_Z, MAX_Z),
-			  max_z = glm::clamp(static_cast<GLint>(real_center_float.z + radius) + 1, MIN_Z, MAX_Z);
+	// 	// box that sphere is contained in
+	// 	// +/-1 is needed to make sure shared corners are broken correctly
+	// 	GLint min_x = glm::clamp(static_cast<GLint>(real_center_float.x - radius) - 1, MIN_X, MAX_X),
+	// 		  max_x = glm::clamp(static_cast<GLint>(real_center_float.x + radius) + 1, MIN_X, MAX_X),
+	// 		  min_y = glm::clamp(static_cast<GLint>(real_center_float.y - radius) - 1, MIN_Y, MAX_Y),
+	// 		  max_y = glm::clamp(static_cast<GLint>(real_center_float.y + radius) + 1, MIN_Y, MAX_Y),
+	// 		  min_z = glm::clamp(static_cast<GLint>(real_center_float.z - radius) - 1, MIN_Z, MAX_Z),
+	// 		  max_z = glm::clamp(static_cast<GLint>(real_center_float.z + radius) + 1, MIN_Z, MAX_Z);
 
-		GLfloat dist_squared;
+	// 	GLfloat dist_squared;
 
-		Bitmap<8> mask;
-		mask.setAllTrue();
+	// 	Bitmap<8> mask;
+	// 	mask.setAllTrue();
 
-		for (GLint x = min_x; x <= max_x; x++) {
-			for (GLint y = min_y; y <= max_y; y++) {
-				for (GLint z = min_z; z <= max_z; z++) {
+	// 	for (GLint x = min_x; x <= max_x; x++) {
+	// 		for (GLint y = min_y; y <= max_y; y++) {
+	// 			for (GLint z = min_z; z <= max_z; z++) {
 
-					const glm::vec3 pos = glm::vec3(x, y, z);
+	// 				const glm::vec3 pos = glm::vec3(x, y, z);
 
-					if (glm::distance2(real_center_float, pos) <= small_radius_squared) {
-						breakVoxel(glm::ivec3(pos));
-					} else {
-						for (GLubyte corner = 0; corner < 8; corner++) {
-							const glm::vec3 final_pos = LookupTable::corner_coords[corner] + pos;
-							dist_squared = glm::distance2(real_center_float, final_pos);
+	// 				if (glm::distance2(real_center_float, pos) <= small_radius_squared) {
+	// 					breakVoxel(glm::ivec3(pos));
+	// 				} else {
+	// 					for (GLubyte corner = 0; corner < 8; corner++) {
+	// 						const glm::vec3 final_pos = LookupTable::corner_coords[corner] + pos;
+	// 						dist_squared = glm::distance2(real_center_float, final_pos);
 
-							// corner is inside breaking sphere
-							if (dist_squared <= radius_squared) {
-								mask.clearBit(corner);
-							}
-						}
+	// 						// corner is inside breaking sphere
+	// 						if (dist_squared <= radius_squared) {
+	// 							mask.clearBit(corner);
+	// 						}
+	// 					}
 
-						maskVoxelValue(glm::ivec3(pos), mask);
+	// 					maskVoxelValue(glm::ivec3(pos), mask);
 
-						mask.setAllTrue();
-					}
-				}
-			}
-		}
-	}
+	// 					mask.setAllTrue();
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 
-	void addSphere(const glm::vec3 &center, GLfloat radius);
+	// void addSphere(const glm::vec3 &center, GLfloat radius);
 
 	void loadHeightMap(const std::string &path);
-
-	bool checkBasicCollision(const glm::vec3 &pos);
 };
 
 

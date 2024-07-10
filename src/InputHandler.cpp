@@ -106,10 +106,10 @@ void InputHandler::applyInputs(World *world, const SelectedBlockInfo &selectedIn
 	if ((&keys[GLFW_MOUSE_BUTTON_LEFT])->last_action != GLFW_RELEASE) {
 		if (! selectedInfo.isEmpty()) {
 			if ((&keys[GLFW_MOUSE_BUTTON_LEFT])->last_mods == GLFW_MOD_SHIFT) {
-				world->breakVoxelSphere(selectedInfo, break_radius);
+				// world->breakVoxelSphere(selectedInfo, break_radius);
 			} else {
 				// world->breakVoxel(selectedInfo);
-				world->breakVoxelSphere(selectedInfo, 1.0f);
+				// world->breakVoxelSphere(selectedInfo, 1.0f);
 			}
 		}
 	}

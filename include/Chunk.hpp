@@ -3,10 +3,10 @@
 
 #include <chrono>
 
-#define CHUNK_SIZE 32
-#define CHUNK_SIZE_FLOAT static_cast<GLfloat>(CHUNK_SIZE)
+#define CHUNK_SIZE 31
+#define CHUNK_SIZE_CORNERS (CHUNK_SIZE + 1)
 
-static_assert(CHUNK_SIZE == 32, "Chunk size needs to be 32 due to hardcoded values in greedy meshing");
+#define CHUNK_SIZE_FLOAT static_cast<GLfloat>(CHUNK_SIZE)
 
 #include <vector>
 #include "VertContainer.hpp"
@@ -43,57 +43,71 @@ struct ChunkInfo {
 
 struct Chunk {
 	// 3D array, [y][z][x] (height, depth, width). this can easily be moved around to test what gets better cache performance
-	Voxel voxels[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+	Bitmap<32> corners[CHUNK_SIZE_CORNERS][CHUNK_SIZE_CORNERS];
+	GLbyte materials[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+
 	bool vertsHaveChanged = true;
 	// [i] corresponds to normal == i
 	std::vector<Vertex> verts; // I suspect that most chunks will have empty space so I use a vector. idk how bad this is, memory will be extremely sparse. maybe using a fixed size array here will be better, need to test
 	std::vector<Point> debug_points;
 
-	// tells what positions are filled by an opaque block or not
-	// used as [y][z] to get the bitmask
-	// 1 == is filled
-	std::array<std::array<Bitmap<CHUNK_SIZE>, CHUNK_SIZE>, CHUNK_SIZE> opaqueMask;
+	Bitmap<8> getDataAt(const glm::u8vec3 &pos) const {
+		Bitmap<8> data = 0; // = 0 not needed???
 
-	Voxel &getVoxelAt(const glm::u8vec3 &pos) {
-		return voxels[pos.y][pos.z][pos.x];
+		// TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! this is what this should look like:
+		// data = static_cast<uint8_t>( (corners[pos.y][pos.z].data >> pos.x)         & 0x00000003)       |
+		// 	   static_cast<uint8_t>(((corners[pos.y][pos.z + 1].data >> pos.x)     & 0x00000003) << 2) |
+		// 	   static_cast<uint8_t>(((corners[pos.y + 1][pos.z].data >> pos.x)     & 0x00000003) << 4) |
+		// 	   static_cast<uint8_t>(((corners[pos.y + 1][pos.z + 1].data >> pos.x) & 0x00000003) << 6);
+
+		// but the place where I got my marching cubes data has a weird order for the vertices of the cube
+		// for now this is fast enough but in the future I need to change it
+		data = static_cast<uint8_t>( (corners[pos.y][pos.z].data >> pos.x)               & 0x00000003)       | // 0,1
+			   static_cast<uint8_t>(((corners[pos.y][pos.z + 1].data >> (pos.x + 1))     & 0x00000001) << 2) | // 2
+			   static_cast<uint8_t>(((corners[pos.y][pos.z + 1].data >> pos.x)           & 0x00000001) << 3) | // 3
+			   static_cast<uint8_t>(((corners[pos.y + 1][pos.z].data >> pos.x)           & 0x00000003) << 4) | // 4, 5
+			   static_cast<uint8_t>(((corners[pos.y + 1][pos.z + 1].data >> (pos.x + 1)) & 0x00000001) << 6) | // 6
+			   static_cast<uint8_t>(((corners[pos.y + 1][pos.z + 1].data >> pos.x)       & 0x00000001) << 7);  // 7
+
+		return data;
+
 	}
 
-	constexpr void insertVoxelAt(const glm::u8vec3 &pos, const Voxel &voxel) {
-		voxels[pos.y][pos.z][pos.x] = voxel;
-		opaqueMask[pos.y][pos.z].setBit(pos.x);
-		vertsHaveChanged = true;
+	Voxel getVoxelAt(const glm::u8vec3 &pos) const {
+		return Voxel(getDataAt(pos).data, materials[pos.y][pos.z][pos.x]);
 	}
 
-	constexpr bool isEmptyAt(const glm::u8vec3 &pos) {
-		// return ! opaqueMask[pos.y][pos.z][pos.x];
-		return (voxels[pos.y][pos.z][pos.x].data.allFalse());
-	}
+	// constexpr void insertVoxelAt(const glm::u8vec3 &pos, const Voxel &voxel) {
+	// 	voxels[pos.y][pos.z][pos.x] = voxel;
+	// 	vertsHaveChanged = true;
+	// }
 
-	constexpr bool isEmptyAt(GLubyte x, GLubyte y, GLubyte z) {
-		// printf("%d %d %d is %d\n", x, y, z, opaqueMask[y][z][x]);
-		return ! opaqueMask[y][z][x];
-	}
+	// constexpr bool isEmptyAt(const glm::u8vec3 &pos) {
+	// 	return (voxels[pos.y][pos.z][pos.x].data.allFalse());
+	// }
 
-	constexpr void breakVoxelAt(GLubyte x, GLubyte y, GLubyte z) {
-		opaqueMask[y][z].clearBit(x);
-		vertsHaveChanged = true;
-	}
+	// constexpr void breakVoxelAt(GLubyte x, GLubyte y, GLubyte z) {
+	// 	vertsHaveChanged = true;
+	// }
 
-	constexpr void breakVoxelAt(const glm::u8vec3 &pos) {
-		// opaqueMask[pos.y][pos.z].clearBit(pos.x);
-		voxels[pos.y][pos.z][pos.x].data.clear();
-		vertsHaveChanged = true;
-	}
+	// constexpr void breakVoxelAt(const glm::u8vec3 &pos) {
+	// 	voxels[pos.y][pos.z][pos.x].data.clear();
+	// 	vertsHaveChanged = true;
+	// }
 
-	constexpr void setVoxelValue(const glm::u8vec3 &pos, const Bitmap<8> &value) {
-		voxels[pos.y][pos.z][pos.x].data = value;
-		vertsHaveChanged = true;
-	}
+	// constexpr void setVoxelValue(const glm::u8vec3 &pos, const Bitmap<8> &value) {
+	// 	voxels[pos.y][pos.z][pos.x].data = value;
+	// 	vertsHaveChanged = true;
+	// }
 
-	constexpr void maskVoxelValue(const glm::u8vec3 &pos, const Bitmap<8> &mask) {
-		voxels[pos.y][pos.z][pos.x].data &= mask;
-		vertsHaveChanged = true;
-	}
+	// constexpr void maskVoxelValue(const glm::u8vec3 &pos, const Bitmap<8> &mask) {
+	// 	voxels[pos.y][pos.z][pos.x].data &= mask;
+	// 	vertsHaveChanged = true;
+	// }
+
+	// constexpr bool voxelAt(GLuint x, GLuint y, GLuint z) {
+	// 	return ! isEmptyAt(x, y, z);
+	// }
 
 	std::vector<Vertex> getVerts(GLuint normal) {
 		if (vertsHaveChanged) {
@@ -119,22 +133,20 @@ struct Chunk {
 		return debug_points.size();
 	}
 
-	constexpr bool voxelAt(GLuint x, GLuint y, GLuint z) {
-		return ! isEmptyAt(x, y, z);
-	}
-
-	GLbyte get_material(const int axis, const int a, const int b, const int c) {
-		if (axis == 0)
-			return voxels[c][a][b].material_id;
-		else if (axis == 2)
-			return voxels[b][c][a].material_id;
-		else
-			return voxels[a][b][c].material_id;
-	}
-
 	void generateVoxelTriangles(std::vector<Vertex> &verts, std::vector<Point> &points, GLuint x, GLuint y, GLuint z) const {
+		
+		// for (GLuint y = 0; y < CHUNK_SIZE; y++) {
+		// 	for (GLuint z = 0; z < CHUNK_SIZE; z++) {
+		// 		if (corners[y][z].data != 0xFFFFFFFF && corners[y][z].data != 0x00000000) {
+		// 			corners[y][z].print();
+		// 		}
+		// 	}
+		// }
+
 		// Bitmap<8> cubedata = voxels[y][z][x].data;
-		uint8_t cubedata = voxels[y][z][x].data.data; // cursed but whatever, will change in the future
+		const glm::u8vec3 pos = glm::u8vec3(x, y, z);
+		uint8_t cubedata = getDataAt(pos).data;
+
 
 		// if it is completely inside or outside, nothing gets drawn
 		// idk if this makes anything faster, but it helps when using debug points
@@ -142,12 +154,12 @@ struct Chunk {
 			return;
 		}
 
-		const glm::vec3 pos_in_chunk = glm::vec3(static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z));
-		for (GLubyte corner = 0; corner < 8; corner ++) {
-			if (cubedata & (1 << corner)) {
-				points.emplace_back(LookupTable::corner_coords[corner] + pos_in_chunk);
-			}
-		}
+		// const glm::vec3 pos_in_chunk = glm::vec3(static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z));
+		// for (GLubyte corner = 0; corner < 8; corner ++) {
+		// 	if (cubedata & (1 << corner)) {
+		// 		points.emplace_back(LookupTable::corner_coords[corner] + pos_in_chunk);
+		// 	}
+		// }
 
 		// for this configuration, get list of indices corresponding to 'activated' edges
 		const int8_t *edgeIndices = LookupTable::triTable[cubedata];
@@ -210,43 +222,36 @@ struct Chunk {
 	// data should already be offset itself
 																		// offset that places world on the positive quadrants
 	void generate(const glm::ivec3 &chunk_pos, unsigned char *data, int width, const glm::ivec3 &offset) {
-		GLubyte value = 0;
 		glm::ivec3 pos;
 		unsigned char height;
 
 		// change to int???
-		for (GLuint y = 0; y < CHUNK_SIZE; y++) {
-			for (GLuint z = 0; z < CHUNK_SIZE; z++) {
-				for (GLuint x = 0; x < CHUNK_SIZE; x++) {
+		for (GLuint y = 0; y < CHUNK_SIZE_CORNERS; y++) {
+			for (GLuint z = 0; z < CHUNK_SIZE_CORNERS; z++) {
+				corners[y][z].clear();
+				for (GLuint x = 0; x < CHUNK_SIZE_CORNERS; x++) {
 
-					pos = chunk_pos + glm::ivec3(x, y, z);
+					pos = chunk_pos + glm::ivec3(x, y, z) + offset; // pos of the corner + offset
 
-					for (GLubyte corner = 0; corner < 8; corner++) {
-
-
-														// avoid this conversion, precompute this
-						const glm::ivec3 final_position = glm::ivec3(LookupTable::corner_coords[corner]) + pos + offset;
-						
-						height = data[final_position.z * width + final_position.x];
-
-						if (final_position.y <= static_cast<GLint>(height)) {
-							value |= 1 << corner;
-						}
+					height = data[pos.z * width + pos.x];
+					// if height of voxel <= height of heightmap
+					if (pos.y <= static_cast<GLint>(height)) {
+						corners[y][z].setBit(x);
 					}
-
-					// not needed??
-					if (value != 0x00) {
-						// could do it faster
-						insertVoxelAt(glm::uvec3(x, y, z), Voxel(value, 0));
-					}
-
-					value = 0;
 				}
 			}
 		}
+
+		for (GLuint y = 0; y < CHUNK_SIZE; y++) {
+			for (GLuint z = 0; z < CHUNK_SIZE; z++) {
+				for (GLuint x = 0; x < CHUNK_SIZE; x++) {
+					materials[y][z][x] = 0;
+				}
+			}
+		}
+
 	}
 };
 
-static_assert(sizeof(Chunk::opaqueMask) == sizeof(uint32_t) * CHUNK_SIZE * CHUNK_SIZE, "ERROR: opaqueMask has unexpected size");
 
 #endif

@@ -104,7 +104,7 @@ void Client::mainloop() {
 		Direction &dir = player->getDir();
 		Movement  &mov = player->getMov();
 
-		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(pos.pos, dir.front, renderer->break_range);
+		SelectedBlockInfo selectedBlock; // = world.get()->getSelectedBlock(pos.pos, dir.front, renderer->break_range);
         inputHandler.applyInputs(
 			world.get(),
 			selectedBlock,
@@ -133,12 +133,12 @@ void Client::mainloop() {
 		for (auto entity : phys_pos_view) {
 			Physics &phys = phys_pos_view.get<Physics>(entity);
 
-			if (world->checkBasicCollision(phys_pos_view.get<Position>(entity).pos)) {
-				phys.vel.y = 0.0f;
-				phys.slowDown(2.0f, static_cast<GLfloat>(deltaTime));
-			} else {
-				phys.addGravity();
-			}
+			// if (world->checkBasicCollision(phys_pos_view.get<Position>(entity).pos)) {
+			// 	phys.vel.y = 0.0f;
+			// 	phys.slowDown(2.0f, static_cast<GLfloat>(deltaTime));
+			// } else {
+			// 	phys.addGravity();
+			// }
 
 
 			phys.applyToPosition(phys_pos_view.get<Position>(entity).pos, static_cast<GLfloat>(deltaTime));

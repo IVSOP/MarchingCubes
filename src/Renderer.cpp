@@ -296,7 +296,7 @@ void Renderer::loadTextures() {
 	tex->setTextureArrayToSlot(TEX_ARRAY_SLOT);
 }
 
-void Renderer::prepareFrame(Position &pos, Direction &dir, Movement &mov, GLfloat deltaTime) {
+void Renderer::prepareFrame(GLuint num_verts, Position &pos, Direction &dir, Movement &mov, GLfloat deltaTime) {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -305,6 +305,7 @@ void Renderer::prepareFrame(Position &pos, Direction &dir, Movement &mov, GLfloa
 	// ImGui::ShowDemoWindow();
 	ImGui::Text("FPS: %lf", 1.0f / deltaTime);
 	ImGui::Text("Facing x:%f y:%f z:%f", dir.front.x, dir.front.y, dir.front.z);
+	ImGui::Text("%u vertices", num_verts);
 	ImGui::InputFloat3("Position", glm::value_ptr(pos.pos));
 	ImGui::SliderFloat("##Camera_speed", &mov.speed, 0.0f, 1000.0f, "Camera speed = %.3f");
 	ImGui::SameLine();
@@ -620,7 +621,7 @@ void Renderer::endFrame(GLFWwindow * window) {
 }
 
 void Renderer::draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov) {
-	prepareFrame(pos, dir, mov, deltaTime);
+	prepareFrame(verts.size() * 3, pos, dir, mov, deltaTime);
 	drawLighting(verts, points, indirect, chunkInfo, projection, view);
 	bloomBlur(this->bloomBlurPasses);
 	merge();
