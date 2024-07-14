@@ -75,7 +75,7 @@ include_directories(external/entt/single_include/entt)
 
 add_subdirectory(external/JoltPhysics/Build)
 include_directories(external/JoltPhysics/Jolt)
-include(Jolt_Cmake.txt)
+include(Jolt_Cmake.cmake)
 
 add_executable(MarchingCubes
 		src/main.cpp
@@ -92,6 +92,7 @@ add_executable(MarchingCubes
 		src/Material.cpp
 		src/LookupTable.cpp
 		src/Logs.cpp
+		src/Phys.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp

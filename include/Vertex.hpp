@@ -37,6 +37,26 @@ struct Vertex {
 			 | ((edges.x << 13) & 0x0001E000) | ((edges.y << 9) & 0x00001E00) | ((edges.z << 5) & 0x000001E0)
 			 | (material_id & 0x0000001F);
 	}
+
+	glm::u8vec3 getLocalPos() const {
+		glm::u8vec3 res;
+
+		res.x = (data >> 27) & 0x0000001F;
+		res.y = (data >> 22) & 0x0000001F;
+		res.z = (data >> 17) & 0x0000001F;
+
+		return res;
+	}
+
+	glm::u8vec3 getEdges() const {
+		glm::u8vec3 res;
+
+		res.x = (data >> 13) & 0x0000000F;
+		res.y = (data >> 9)  & 0x0000000F;
+		res.z = (data >> 5)  & 0x0000000F;
+
+		return res;
+	}
 };
 
 struct AxisVertex { // to draw the axis

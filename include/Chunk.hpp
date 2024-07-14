@@ -1,6 +1,5 @@
 #ifndef CHUNK_H
 #define CHUNK_H
-
 #include <chrono>
 
 #define CHUNK_SIZE 31
@@ -15,6 +14,16 @@
 #include "Vertex.hpp"
 
 #include "LookupTable.hpp"
+
+#include <Jolt/Jolt.h>
+#include <Jolt/RegisterTypes.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/CylinderShape.h>
+#include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
+
 
 // normal {
 // 	0 - y (bottom)
@@ -250,6 +259,29 @@ struct Chunk {
 			}
 		}
 
+	}
+
+	void addPhysTerrain(JPH::TriangleList &triangles, const glm::ivec3 &offset) const {
+		glm::u8vec3 pos, edges;
+		glm::vec3 final_pos, g1, g2, g3;
+		JPH::Float3 v1, v2, v3; // what a mess
+
+		for (GLuint i = 0; i < verts.size(); i++) {
+			pos = verts[i].getLocalPos();
+			edges = verts[i].getEdges();
+
+			final_pos = glm::vec3(pos + edges);
+
+			g1 = final_pos + LookupTable::finalCoords[edges[0]];
+			g2 = final_pos + LookupTable::finalCoords[edges[1]];
+			g3 = final_pos + LookupTable::finalCoords[edges[2]];
+
+			v1.x = g1.x; v1.y = g1.y; v1.z = g1.z;
+			v2.x = g2.x; v2.y = g2.y; v2.z = g2.z;
+			v3.x = g3.x; v3.y = g3.y; v3.z = g3.z;
+
+			triangles.push_back(JPH::Triangle(v1, v2, v3));
+		}
 	}
 };
 

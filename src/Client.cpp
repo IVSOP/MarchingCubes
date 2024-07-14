@@ -3,8 +3,6 @@
 #include "LookupTable.hpp"
 #include "Looper.hpp"
 
-#include <Jolt/Jolt.h>
-
 Client::Client()
 : windowManager(std::make_unique<WindowManager>(1920, 1080, this)),
   world(std::make_unique<World>()),
@@ -62,6 +60,10 @@ Client::Client()
 	// world.get()->loadHeightMap("textures/Ridge Through Terrain Height Map.png");
 	world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
 	// world.get()->loadHeightMap("textures/Height Map.png");
+
+	Phys::setup_phys();
+	world->buildData();
+	Phys::loadTerrain(world->getPhysTerrain());
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {

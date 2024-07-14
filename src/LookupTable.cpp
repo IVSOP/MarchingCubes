@@ -3,6 +3,7 @@
 // https://paulbourke.net/geometry/polygonise/polygonise1.gif
 // https://github.com/SebLague/Terraforming/blob/main/Assets/Marching%20Cubes/Scripts/Compute/Includes/MarchTables.compute
 
+// coords of a corner
 const glm::vec3 LookupTable::corner_coords[8] = {
 	glm::vec3(0.0f, 0.0f, 0.0f),
 	glm::vec3(1.0f, 0.0f, 0.0f),
@@ -18,6 +19,7 @@ const glm::vec3 LookupTable::corner_coords[8] = {
 const uint8_t LookupTable::cornerIndexAFromEdge[12] = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3};
 const uint8_t LookupTable::cornerIndexBFromEdge[12] = {1, 2, 3, 0, 5, 6, 7, 4, 4, 5, 6, 7};
 
+// what active edges edges a certain value has
 const uint16_t LookupTable::edgeTable[256] = {
 	0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 	0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
@@ -53,6 +55,7 @@ const uint16_t LookupTable::edgeTable[256] = {
 	0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x000
 };
 
+// make triangles from the edges
 const int8_t LookupTable::triTable[256][16] = {
 	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
     { 0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
@@ -312,6 +315,7 @@ const int8_t LookupTable::triTable[256][16] = {
     {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }
 };
 
+// coords of the vertex in the middle of the edge
 const glm::vec3 LookupTable::finalCoords[12] = {
 	// cornerA - cornerB, defining a certain edge
 	// result is point in the middle of both corners

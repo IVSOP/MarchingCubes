@@ -9,6 +9,30 @@ Player::Player(entt::registry &registry, const Position &position, const glm::ve
 	registry.emplace<Direction>(player_entity, Direction::lookat(position.pos, glm::vec3(0.0f, 1.0f, 0.0f), lookatPoint));
 	registry.emplace<Movement>(player_entity, 10.0f, false);
 	registry.emplace<Physics>(player_entity);
+
+	// // make the shape a capsule
+	// standingShape = JPH::RotatedTranslatedShapeSettings(JPH::Vec3(0, 0.5f * playerHeight + playerRadius, 0), JPH::Quat::sIdentity(), new JPH::CapsuleShape(0.5f * playerHeight, playerRadius)).Create().Get();
+
+	// // Create Character
+	// {
+	// 	JPH::CharacterSettings settings;
+	// 	settings.mLayer = Layers::MOVING;
+	// 	settings.mShape = standingShape;
+	// 	settings.mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(), -playerRadius); // Accept contacts that touch the lower sphere of the capsule
+	// 	physCharacter = new JPH::Character(&settings, JPH::Vec3(position.pos.x, position.pos.y, position.pos.z), JPH::Quat::sIdentity(), 0, Phys::physics_system.get());
+	// 	physCharacter->AddToPhysicsSystem();
+	// }
+
+	// // Create CharacterVirtual
+	// {
+	// 	JPH::CharacterVirtualSettings settings;
+	// 	settings.mShape = standingShape;
+	// 	settings.mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(), -playerRadius); // Accept contacts that touch the lower sphere of the capsule
+	// 	// why is this position different??????
+	// 	physCharacterVirtual = new JPH::CharacterVirtual(&settings, JPH::Vec3(position.pos.x - 2.0f, position.pos.y, position.pos.z), JPH::Quat::sIdentity(), 0, Phys::physics_system.get());
+	// 	physCharacterVirtual->SetCharacterVsCharacterCollision(&characterVsCharacterCollision);
+	// 	characterVsCharacterCollision.Add(physCharacterVirtual);
+	// }
 }
 
 void Player::move(Camera_Movement direction, float deltaTime) {

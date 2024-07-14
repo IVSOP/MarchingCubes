@@ -195,9 +195,9 @@ struct Bitmap<32> {
 		data &= mask;
 	}
 
-	constexpr void print() const {
-		printf("%032b\n", data);
-	}
+	// constexpr void print() const {
+	// 	printf("%032b\n", data);
+	// }
 
 	// constexpr void printInverted() const {
 	// 	uint32_t reversed = 0;
@@ -362,9 +362,9 @@ struct Bitmap<8> {
 		data &= mask;
 	}
 
-	constexpr void print() const {
-		printf("%08b\n", data);
-	}
+	// constexpr void print() const {
+	// 	printf("%08b\n", data);
+	// }
 
 	// constexpr void printInverted() const {
 	// 	uint8_t reversed = 0;

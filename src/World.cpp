@@ -38,7 +38,7 @@ void World::buildData() {
 	}
 }
 
-// SelectedBlockInfo World::getBlockInfo(const glm::ivec3 &position) {
+SelectedBlockInfo World::getBlockInfo(const glm::ivec3 &position) { return SelectedBlockInfo(); }
 // 	SelectedBlockInfo ret;
 
 // 	// had weird innacuracies when values were not floats, like -7.15 + 8 == 0 but actualy was -7 + 8 == 1
@@ -273,4 +273,25 @@ void World::loadHeightMap(const std::string &path) {
 	}
 
 	free(buffer);
+}
+
+JPH::TriangleList World::getPhysTerrain() const {
+	// Create regular grid of triangles
+	JPH::TriangleList triangles;
+
+	// for (GLuint i = 0; i < verts.size(); i++) {
+	// 	triangles.push_back(JPH::Triangle(...));
+	// }
+
+	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
+		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
+			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
+				const Chunk &chunk = chunks[x][y][z];
+
+				chunk.addPhysTerrain(triangles, getChunkCoords(x, y, z));
+			}
+		}
+	}
+
+	return triangles;
 }

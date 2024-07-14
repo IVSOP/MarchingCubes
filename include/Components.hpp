@@ -2,6 +2,7 @@
 #define COMPONENTS_HPP
 
 #include "common.hpp"
+#include "Phys.hpp"
 
 struct Position {
 	glm::vec3 pos;

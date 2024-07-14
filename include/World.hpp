@@ -8,6 +8,7 @@
 #include <glm/gtx/norm.hpp> // distance2
 
 #include <entt.hpp>
+#include "Phys.hpp"
 
 // #include "zlib/zlib.h"
 
@@ -166,7 +167,6 @@ struct World {
 	// 	chunk.maskVoxelValue(blockInfo.position, mask);
 	// }
 
-	// // TODO test it my 'optimizations' actually work
 	// void breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius) {
 	// 	const glm::vec3 real_center_float = glm::vec3(getWorldCoords(selectedInfo.chunkID, selectedInfo.position));
 	// 	const GLfloat radius_squared = radius * radius;
@@ -224,6 +224,8 @@ struct World {
 	// void addSphere(const glm::vec3 &center, GLfloat radius);
 
 	void loadHeightMap(const std::string &path);
+
+	JPH::TriangleList getPhysTerrain() const;
 };
 
 

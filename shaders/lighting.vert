@@ -2093,8 +2093,8 @@ void main()
 	const uint local_pos_z = (aData >> 17) & 0x0000001F;
 
 	const uint edge_a = (aData >> 13) & 0x0000000F;
-	const uint edge_b = (aData >> 9) & 0x0000000F;
-	const uint edge_c = (aData >> 5) & 0x0000000F;
+	const uint edge_b = (aData >> 9)  & 0x0000000F;
+	const uint edge_c = (aData >> 5)  & 0x0000000F;
 
 	const uvec3 edges = uvec3(edge_a, edge_b, edge_c);
 
