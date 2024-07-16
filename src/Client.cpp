@@ -94,9 +94,9 @@ Client::Client()
 	flat_terrain.push_back(a);
 	flat_terrain.push_back(b);
 
-	// Phys::loadTerrain(world->getPhysTerrain());
+	Phys::loadTerrain(world->getPhysTerrain());
 
-	Phys::loadTerrain(flat_terrain);
+	// Phys::loadTerrain(flat_terrain);
 
 
 	player->setupPhys(PLAYER_POS);

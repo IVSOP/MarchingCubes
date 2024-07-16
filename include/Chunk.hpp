@@ -270,7 +270,7 @@ struct Chunk {
 			pos = verts[i].getLocalPos();
 			edges = verts[i].getEdges();
 
-			final_pos = glm::vec3(pos + edges);
+			final_pos = glm::vec3(offset + glm::ivec3(pos));
 
 			g1 = final_pos + LookupTable::finalCoords[edges[0]];
 			g2 = final_pos + LookupTable::finalCoords[edges[1]];

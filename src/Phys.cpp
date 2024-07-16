@@ -93,14 +93,14 @@ BodyInterface &Phys::getBodyInterface() { return Phys::phys_system->GetBodyInter
 void Phys::loadTerrain(const TriangleList &triangles) {
 	BodyInterface &bodyInterface = getBodyInterface();
 
-	// JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
-	// meshShapeSettings.SetEmbedded();
-	// JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get();
+	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
+	meshShapeSettings.SetEmbedded();
+	JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get(); // this vs JPH::MeshShapeSettings* ?????
 
 	JPH::Vec3 terrainPosition = JPH::Vec3::sZero();
 	JPH::Quat terrainRotation = JPH::Quat::sIdentity();
 
-	JPH::BodyCreationSettings bodySettings(new JPH::MeshShapeSettings(triangles), terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
+	JPH::BodyCreationSettings bodySettings(meshShape, terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
 
 	// could also receive indices instead of triangles
 	Body *terrain = bodyInterface.CreateBody(bodySettings);
@@ -112,6 +112,11 @@ void Phys::loadTerrain(const TriangleList &triangles) {
 
 	bodyInterface.AddBody(terrain->GetID(), EActivation::DontActivate);
 	// TODO delete body
+
+
+	// Vec3 a = meshShape->GetCenterOfMass();
+	// printf("%f %f %f\n", a.GetX(), a.GetY(), a.GetZ());
+	// exit(1);
 }
 
 // when there should be a collision, I get a segfault

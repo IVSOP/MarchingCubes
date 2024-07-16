@@ -293,5 +293,9 @@ JPH::TriangleList World::getPhysTerrain() const {
 		}
 	}
 
+	// for (GLuint i = 0; i < triangles.size(); i++) {
+	// 	printf("%f %f %f\n", triangles[i].GetCentroid().GetX(), triangles[i].GetCentroid().GetY(), triangles[i].GetCentroid().GetZ());
+	// }
+
 	return triangles;
 }

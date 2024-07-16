@@ -17,12 +17,14 @@ void Player::setupPhys(const Position &position) {
 
 	// Create Character
 	{
-		JPH::Ref<JPH::CharacterSettings> settings = new JPH::CharacterSettings();; // TODO also see this ref, seems bad
+		JPH::Ref<JPH::CharacterSettings> settings = new JPH::CharacterSettings(); // TODO also see this ref, seems bad
 		settings->mMaxSlopeAngle = JPH::DegreesToRadians(45.0f);
 		settings->mLayer = Layers::MOVING;
 		settings->mShape = standingShape;
+		settings->mUp = JPH::Vec3(0.0f, 1.0f, 0.0f); // TODO do not hardcode this
 		settings->mFriction = 0.5f;
 		settings->mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(), -playerRadius); // Accept contacts that touch the lower sphere of the capsule
+		// TODO the player direction here is wrong, but fine on the camera. player needs to have direction from jolt and not entt
 		physCharacter = new JPH::Character(settings, JPH::Vec3(position.pos.x, position.pos.y, position.pos.z), JPH::Quat::sIdentity(), 0, Phys::getPhysSystem());
 		physCharacter->AddToPhysicsSystem(JPH::EActivation::Activate);
 	}
@@ -173,7 +175,8 @@ glm::mat4 Player::getViewMatrix() {
 	const Direction &dir = registry.get<Direction>(player_entity);
 
 	JPH::Vec3 pos_jph = physCharacter->GetPosition();
-	const glm::vec3 pos(pos_jph.GetX(), pos_jph.GetY(), pos_jph.GetZ());
+	// add the height otherwise camera is on the floor
+	const glm::vec3 pos(pos_jph.GetX(), pos_jph.GetY() + this->playerHeight, pos_jph.GetZ());
 
 	return glm::lookAt(pos, pos + dir.front, dir.worldup);
 }
