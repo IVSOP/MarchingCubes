@@ -5,23 +5,27 @@ Player::Player(entt::registry &registry, const Position &position, const glm::ve
 	: registry(registry), player_entity(registry.create())
 {
 	// register the needed components
-	registry.emplace<Position>(player_entity, position);
+	// registry.emplace<Position>(player_entity, position); // in physics
 	registry.emplace<Direction>(player_entity, Direction::lookat(position.pos, glm::vec3(0.0f, 1.0f, 0.0f), lookatPoint));
 	registry.emplace<Movement>(player_entity, 10.0f, false);
-	registry.emplace<Physics>(player_entity);
+	// registry.emplace<Physics>(player_entity);
+}
 
-	// // make the shape a capsule
-	// standingShape = JPH::RotatedTranslatedShapeSettings(JPH::Vec3(0, 0.5f * playerHeight + playerRadius, 0), JPH::Quat::sIdentity(), new JPH::CapsuleShape(0.5f * playerHeight, playerRadius)).Create().Get();
+void Player::setupPhys(const Position &position) {
+	// make the shape a capsule
+	standingShape = JPH::RotatedTranslatedShapeSettings(JPH::Vec3(0, 0.5f * playerHeight + playerRadius, 0), JPH::Quat::sIdentity(), new JPH::CapsuleShape(0.5f * playerHeight, playerRadius)).Create().Get();
 
-	// // Create Character
-	// {
-	// 	JPH::CharacterSettings settings;
-	// 	settings.mLayer = Layers::MOVING;
-	// 	settings.mShape = standingShape;
-	// 	settings.mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(), -playerRadius); // Accept contacts that touch the lower sphere of the capsule
-	// 	physCharacter = new JPH::Character(&settings, JPH::Vec3(position.pos.x, position.pos.y, position.pos.z), JPH::Quat::sIdentity(), 0, Phys::physics_system.get());
-	// 	physCharacter->AddToPhysicsSystem();
-	// }
+	// Create Character
+	{
+		JPH::Ref<JPH::CharacterSettings> settings = new JPH::CharacterSettings();; // TODO also see this ref, seems bad
+		settings->mMaxSlopeAngle = JPH::DegreesToRadians(45.0f);
+		settings->mLayer = Layers::MOVING;
+		settings->mShape = standingShape;
+		settings->mFriction = 0.5f;
+		settings->mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(), -playerRadius); // Accept contacts that touch the lower sphere of the capsule
+		physCharacter = new JPH::Character(settings, JPH::Vec3(position.pos.x, position.pos.y, position.pos.z), JPH::Quat::sIdentity(), 0, Phys::getPhysSystem());
+		physCharacter->AddToPhysicsSystem(JPH::EActivation::Activate);
+	}
 
 	// // Create CharacterVirtual
 	// {
@@ -29,62 +33,109 @@ Player::Player(entt::registry &registry, const Position &position, const glm::ve
 	// 	settings.mShape = standingShape;
 	// 	settings.mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(), -playerRadius); // Accept contacts that touch the lower sphere of the capsule
 	// 	// why is this position different??????
-	// 	physCharacterVirtual = new JPH::CharacterVirtual(&settings, JPH::Vec3(position.pos.x - 2.0f, position.pos.y, position.pos.z), JPH::Quat::sIdentity(), 0, Phys::physics_system.get());
+	// 	physCharacterVirtual = new JPH::CharacterVirtual(&settings, JPH::Vec3(position.pos.x - 2.0f, position.pos.y, position.pos.z), JPH::Quat::sIdentity(), 0, Phys::getPhysSystem());
 	// 	physCharacterVirtual->SetCharacterVsCharacterCollision(&characterVsCharacterCollision);
 	// 	characterVsCharacterCollision.Add(physCharacterVirtual);
 	// }
 }
 
+
+		// // Update velocity and apply gravity
+		// Vec3 velocity;
+		// if (mAnimatedCharacterVirtual->GetGroundState() == CharacterVirtual::EGroundState::OnGround)
+		// 	velocity = Vec3::sZero();
+		// else
+		// 	velocity = mAnimatedCharacterVirtual->GetLinearVelocity() * mAnimatedCharacter->GetUp() + mPhysicsSystem->GetGravity() * inParams.mDeltaTime;
+		// velocity += Sin(mTime) * cCharacterVelocity;
+		// mAnimatedCharacterVirtual->SetLinearVelocity(velocity);
+
+		// // Move character
+		// CharacterVirtual::ExtendedUpdateSettings update_settings;
+		// mAnimatedCharacterVirtual->ExtendedUpdate(inParams.mDeltaTime,
+		// 	mPhysicsSystem->GetGravity(),
+		// 	update_settings,
+		// 	mPhysicsSystem->GetDefaultBroadPhaseLayerFilter(Layers::MOVING),
+		// 	mPhysicsSystem->GetDefaultLayerFilter(Layers::MOVING),
+		// 	{ },
+		// 	{ },
+		// 	*mTempAllocator);
+
 void Player::move(Camera_Movement direction, float deltaTime) {
 	// Position &pos = registry.get<Position>(player_entity);
 
+	// gives the front vector
 	const Direction &dir = registry.get<Direction>(player_entity);
 
+	// movement speed
 	const Movement &mov = registry.get<Movement>(player_entity);
 
+	// idk
 	Physics &phys = registry.get<Physics>(player_entity);
 
 
-	float velocity; // depends on deltatime
+	// JPH::Vec3 velocity;
+	// // if on ground, do nothing
+	// if (physCharacter->GetGroundState() == JPH::Character::EGroundState::OnGround) {
+	// 	velocity = JPH::Vec3::sZero();
+	// } else {
+	// 	// use up from character or from the camera
+	// 	velocity = mAnimatedCharacterVirtual->GetLinearVelocity() * physCharacter->GetUp() + Phys::getPhysSystem()->GetGravity() * deltaTime;
+	// }
+
+	// TODO fix this mess
+	JPH::Vec3 current_velocity = physCharacter->GetLinearVelocity();
+
+	float speed; // depends on deltatime
 	if (mov.speedup) {
-		velocity = 10 * mov.speed * deltaTime;
+		speed = 10 * mov.speed * deltaTime;
 	} else {
-		velocity = mov.speed * deltaTime;
+		speed = mov.speed * deltaTime;
 	}
 
+	glm::vec3 mov_dir;
 	switch(direction) {
 		case(FORWARD):
 			// normalize this too?????
-			phys.vel += dir.front * velocity;
+			mov_dir = dir.front;
 			break;
 		case(BACKWARD):
 			// normalize this too?????
-			phys.vel -= dir.front * velocity;
+			mov_dir = dir.front;
 			break;
 
 		case(FRONT):
 			// normalize needed since it would get different speeds for different Y values
 			// contas manhosas sao para em vez de ir para a frente manter-se no mesmo plano (ex minecraft voar ao carregar no W nunca sobe nem desce)
-			phys.vel += glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup)) * velocity;
+			mov_dir = glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup));
 			break;
 		case(BACK):
 			// normalize needed since it would get different speeds for different Y values
 			// contas manhosas sao para em vez de ir para a frente manter-se no mesmo plano (ex minecraft voar ao carregar no W nunca sobe nem desce)
-			phys.vel -= glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup)) * velocity;
+			mov_dir = glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup));
 			break;
 		case(LEFT):
-			phys.vel -= dir.right * velocity;
+			mov_dir = dir.right;
 			break;
 		case(RIGHT):
-			phys.vel += dir.right * velocity;
+			mov_dir = dir.right;
 			break;
 		case(UP):
-			phys.vel += glm::normalize(dir.up * dir.worldup) * velocity;
+			mov_dir = glm::normalize(dir.up * dir.worldup);
 			break;
 		case(DOWN):
-			phys.vel -= glm::normalize(dir.up * dir.worldup) * velocity;
+			mov_dir = glm::normalize(dir.up * dir.worldup);
 			break;
 	}
+
+	JPH::Vec3 desired_velocity = JPH::Vec3(mov_dir.x, mov_dir.y, mov_dir.z) * speed;
+
+	if (!desired_velocity.IsNearZero() || !physCharacter->IsSupported()) {
+		desired_velocity.SetY(current_velocity.GetY());
+	}
+	const JPH::Vec3 new_velocity = current_velocity; // 0.75f * current_velocity + 0.25f * desired_velocity;
+
+	// Update the velocity
+	physCharacter->SetLinearVelocity(new_velocity);
 }
 
 void Player::look(float xoffset, float yoffset) {
@@ -118,14 +169,20 @@ void Player::speedUp(bool speedup) {
 }
 
 glm::mat4 Player::getViewMatrix() {
-	const Position &pos = registry.get<Position>(player_entity);
+	// const Position &pos = registry.get<Position>(player_entity);
 	const Direction &dir = registry.get<Direction>(player_entity);
 
-	return glm::lookAt(pos.pos, pos.pos + dir.front, dir.worldup);
+	JPH::Vec3 pos_jph = physCharacter->GetPosition();
+	const glm::vec3 pos(pos_jph.GetX(), pos_jph.GetY(), pos_jph.GetZ());
+
+	return glm::lookAt(pos, pos + dir.front, dir.worldup);
 }
 
-Position  &Player::getPos() {
-	return registry.get<Position>(player_entity);
+Position Player::getPos() {
+	// return registry.get<Position>(player_entity);
+	JPH::Vec3 pos_jph = physCharacter->GetPosition();
+	const glm::vec3 res = glm::vec3(pos_jph.GetX(), pos_jph.GetY(), pos_jph.GetZ());
+	return Position(res);
 }
 
 Direction &Player::getDir() {

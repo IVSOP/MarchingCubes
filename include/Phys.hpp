@@ -150,14 +150,20 @@ public:
 };
 
 class Phys {
+private:
+	static std::unique_ptr<JPH::PhysicsSystem> phys_system;
+	static std::unique_ptr<JPH::TempAllocatorImpl> temp_allocator;
+	static std::unique_ptr<JPH::JobSystem> job_system;
 public:
-	static JPH::PhysicsSystem phys_system;
-
 	static void setup_phys();
 
 	static JPH::BodyInterface &getBodyInterface();
 
 	static void loadTerrain(const JPH::TriangleList &triangles);
+
+	static JPH::PhysicsSystem *getPhysSystem();
+	static JPH::TempAllocatorImpl *getTempAllocator();
+	static JPH::JobSystem *getJobSystem();
 };
 
 

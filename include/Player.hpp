@@ -16,9 +16,9 @@ public:
 	entt::entity player_entity;
 
 	// phys info
-	// TODO the description of these references does not sound good
+	// TODO the description of these references does not sound good, seems like a shared_ptr, change to something else
 	JPH::Ref<JPH::Character> physCharacter;
-	JPH::Ref<JPH::CharacterVirtual>	physCharacterVirtual;
+	// JPH::Ref<JPH::CharacterVirtual>	physCharacterVirtual;
 	JPH::RefConst<JPH::Shape> standingShape; // shape player when he is standing
 	// Player input
 	JPH::Vec3 mControlInput = JPH::Vec3::sZero();
@@ -37,12 +37,14 @@ public:
 	Player(entt::registry &registry, const Position &position, const glm::vec3 &lookat);
 	~Player() = default;
 
+	void setupPhys(const Position &position);
+
 	void move(Camera_Movement type, float deltaTime);
 	void look(float xoffset, float yoffset);
 	glm::mat4 getViewMatrix();
 	void speedUp(bool speedup);
 
-	Position  &getPos();
+	Position  getPos(); // not a reference for complicated reasons
 	Direction &getDir();
 	Movement  &getMov();
 

@@ -1,37 +1,41 @@
 #include "Phys.hpp"
 
-JPH::PhysicsSystem Phys::phys_system;
+using namespace JPH;
+
+std::unique_ptr<PhysicsSystem> Phys::phys_system = nullptr;
+std::unique_ptr<JPH::TempAllocatorImpl> Phys::temp_allocator = nullptr;
+std::unique_ptr<JPH::JobSystem> Phys::job_system = nullptr;
 
 void Phys::setup_phys() {
 	// Register allocation hook. In this example we'll just let Jolt use malloc / free but you can override these if you want (see Memory.h).
 	// This needs to be done before any other Jolt function is called.
-	JPH::RegisterDefaultAllocator();
+	RegisterDefaultAllocator();
 
 	// Install trace and assert callbacks
-	JPH::Trace = TraceImpl;
-	JPH::JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
+	Trace = TraceImpl;
+	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
 
 	// Create a factory, this class is responsible for creating instances of classes based on their name or hash and is mainly used for deserialization of saved data.
 	// It is not directly used in this example but still required.
 	// what the fuck is going on here
-	Factory::sInstance = new JPH::Factory();
+	Factory::sInstance = new Factory();
 
 	// Register all physics types with the factory and install their collision handlers with the CollisionDispatch class.
 	// If you have your own custom shape types you probably need to register their handlers with the CollisionDispatch before calling this function.
 	// If you implement your own default material (PhysicsMaterial::sDefault) make sure to initialize it before this function or else this function will create one for you.
-	JPH::RegisterTypes();
+	RegisterTypes();
 
 	// We need a temp allocator for temporary allocations during the physics update. We're
 	// pre-allocating 10 MB to avoid having to do allocations during the physics update.
 	// B.t.w. 10 MB is way too much for this example but it is a typical value you can use.
 	// If you don't want to pre-allocate you can also use TempAllocatorMalloc to fall back to
 	// malloc / free.
-	JPH::TempAllocatorImpl temp_allocator(10 * 1024 * 1024);
+	Phys::temp_allocator = std::make_unique<TempAllocatorImpl>(10 * 1024 * 1024);
 
 	// We need a job system that will execute physics jobs on multiple threads. Typically
 	// you would implement the JobSystem interface yourself and let Jolt Physics run on top
 	// of your own job scheduler. JobSystemThreadPool is an example implementation.
-	JPH::JobSystemThreadPool job_system(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, std::thread::hardware_concurrency() - 1);
+	Phys::job_system = std::make_unique<JobSystemThreadPool>(cMaxPhysicsJobs, cMaxPhysicsBarriers, std::thread::hardware_concurrency() - 1);
 
 	// This is the max amount of rigid bodies that you can add to the physics system. If you try to add more you'll get an error.
 	// Note: This value is low because this is a simple test. For a real project use something in the order of 65536.
@@ -53,20 +57,19 @@ void Phys::setup_phys() {
 
 	// Create mapping table from object layer to broadphase layer
 	// Note: As this is an interface, PhysicsSystem will take a reference to this so this instance needs to stay alive!
-	BPLayerInterfaceImpl broad_phase_layer_interface;
+	BPLayerInterfaceImpl *broad_phase_layer_interface = new BPLayerInterfaceImpl(); // TODO free this
 
 	// Create class that filters object vs broadphase layers
 	// Note: As this is an interface, PhysicsSystem will take a reference to this so this instance needs to stay alive!
-	ObjectVsBroadPhaseLayerFilterImpl object_vs_broadphase_layer_filter;
+	ObjectVsBroadPhaseLayerFilterImpl *object_vs_broadphase_layer_filter = new ObjectVsBroadPhaseLayerFilterImpl(); // TODO delete this
 
 	// Create class that filters object vs object layers
 	// Note: As this is an interface, PhysicsSystem will take a reference to this so this instance needs to stay alive!
 	ObjectLayerPairFilterImpl object_vs_object_layer_filter;
 
 	// Now we can create the actual physics system.
-	// TODO could be on the stack
-	// physics_system = std::make_unique<JPH::PhysicsSystem>();
-	phys_system.Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broad_phase_layer_interface, object_vs_broadphase_layer_filter, object_vs_object_layer_filter);
+	Phys::phys_system = std::make_unique<PhysicsSystem>();
+	Phys::phys_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *broad_phase_layer_interface, *object_vs_broadphase_layer_filter, object_vs_object_layer_filter);
 
 		// // A body activation listener gets notified when bodies activate and go to sleep
 		// // Note that this is called from a job so whatever you do here needs to be thread safe.
@@ -82,16 +85,37 @@ void Phys::setup_phys() {
 
 	// The main way to interact with the bodies in the physics system is through the body interface. There is a locking and a non-locking
 	// variant of this. We're going to use the locking version (even though we're not planning to access bodies from multiple threads)
-	// JPH::BodyInterface body_interface = physics_system->GetBodyInterface();
+	// BodyInterface body_interface = physics_system->GetBodyInterface();
 }
 
-JPH::BodyInterface &Phys::getBodyInterface() { return Phys::phys_system.GetBodyInterface(); }
+BodyInterface &Phys::getBodyInterface() { return Phys::phys_system->GetBodyInterface(); }
 
-void Phys::loadTerrain(const JPH::TriangleList &triangles) {
-	JPH::BodyInterface &bodyInterface = getBodyInterface();
+void Phys::loadTerrain(const TriangleList &triangles) {
+	BodyInterface &bodyInterface = getBodyInterface();
 
-	JPH::Body &terrain = *(bodyInterface.CreateBody(JPH::BodyCreationSettings(new JPH::MeshShapeSettings(triangles), JPH::RVec3::sZero(), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::NON_MOVING)));
-	bodyInterface.AddBody(terrain.GetID(), JPH::EActivation::DontActivate);
+	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
+	JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get();
 
-	
+	JPH::Vec3 terrainPosition(0, 0, 0);
+	JPH::Quat terrainRotation = JPH::Quat::sIdentity();
+
+	JPH::BodyCreationSettings bodySettings(meshShape, terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
+
+	// could also receive indices instead of triangles
+	Body *terrain = bodyInterface.CreateBody(bodySettings);
+	bodyInterface.AddBody(terrain->GetID(), EActivation::DontActivate);
+
+	// delete body...
+}
+
+PhysicsSystem *Phys::getPhysSystem() {
+	return Phys::phys_system.get();
+}
+
+TempAllocatorImpl *Phys::getTempAllocator() {
+	return Phys::temp_allocator.get();
+}
+
+JobSystem *Phys::getJobSystem() {
+	return Phys::job_system.get();
 }

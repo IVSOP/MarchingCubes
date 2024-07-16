@@ -3,10 +3,12 @@
 #include "LookupTable.hpp"
 #include "Looper.hpp"
 
+#define PLAYER_POS Position(glm::vec3(64, 16, 64))
+
 Client::Client()
 : windowManager(std::make_unique<WindowManager>(1920, 1080, this)),
   world(std::make_unique<World>()),
-  player(std::make_unique<Player>(world->entt_registry, Position(glm::vec3(64, 16, 64)), glm::vec3(0, 0, -1))),
+  player(std::make_unique<Player>(world->entt_registry, PLAYER_POS, glm::vec3(0, 0, -1))),
   renderer(std::make_unique<Renderer>(1920, 1080)), // get these from window manager???
   inputHandler(glfw_handleMouseMov_callback, glfw_handleMouseKey_callback) // funcs from window manager
 {
@@ -60,10 +62,14 @@ Client::Client()
 	// world.get()->loadHeightMap("textures/Ridge Through Terrain Height Map.png");
 	world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
 	// world.get()->loadHeightMap("textures/Height Map.png");
+	world->buildData();
+
+	// I dont like this but all physics setup is done here for all classes
 
 	Phys::setup_phys();
-	world->buildData();
 	Phys::loadTerrain(world->getPhysTerrain());
+
+	player->setupPhys(PLAYER_POS);
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {
@@ -102,7 +108,7 @@ void Client::mainloop() {
 
         // printf("delta is %f (%f fps)\n", deltaTime, 1.0f / deltaTime);
 		// TODO sometimes I use this data, other times I call functions from Player which gets them again, what a mess
-		Position  &pos = player->getPos();
+		Position  pos = player->getPos();
 		Direction &dir = player->getDir();
 		Movement  &mov = player->getMov();
 
@@ -131,20 +137,23 @@ void Client::mainloop() {
 			mov);
         // lock.unlock();
 
-		auto phys_pos_view = world->entt_registry.group<Position, Physics>();
-		for (auto entity : phys_pos_view) {
-			Physics &phys = phys_pos_view.get<Physics>(entity);
+		// auto phys_pos_view = world->entt_registry.group<Position, Physics>();
+		// for (auto entity : phys_pos_view) {
+		// 	Physics &phys = phys_pos_view.get<Physics>(entity);
 
-			// if (world->checkBasicCollision(phys_pos_view.get<Position>(entity).pos)) {
-			// 	phys.vel.y = 0.0f;
-			// 	phys.slowDown(2.0f, static_cast<GLfloat>(deltaTime));
-			// } else {
-			// 	phys.addGravity();
-			// }
+		// 	// if (world->checkBasicCollision(phys_pos_view.get<Position>(entity).pos)) {
+		// 	// 	phys.vel.y = 0.0f;
+		// 	// 	phys.slowDown(2.0f, static_cast<GLfloat>(deltaTime));
+		// 	// } else {
+		// 	// 	phys.addGravity();
+		// 	// }
 
 
-			phys.applyToPosition(phys_pos_view.get<Position>(entity).pos, static_cast<GLfloat>(deltaTime));
-		}
+		// 	phys.applyToPosition(phys_pos_view.get<Position>(entity).pos, static_cast<GLfloat>(deltaTime));
+		// }
+
+		const int collisionSteps = 1;
+		Phys::getPhysSystem()->Update(deltaTime, collisionSteps, Phys::getTempAllocator(), Phys::getJobSystem());
 
         currentFrameTime = glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;
