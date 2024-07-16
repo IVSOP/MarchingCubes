@@ -69,8 +69,7 @@ void Player::move(Camera_Movement direction, float deltaTime) {
 	// movement speed
 	const Movement &mov = registry.get<Movement>(player_entity);
 
-	// idk
-	Physics &phys = registry.get<Physics>(player_entity);
+	// Physics &phys = registry.get<Physics>(player_entity);
 
 
 	// JPH::Vec3 velocity;
@@ -92,7 +91,7 @@ void Player::move(Camera_Movement direction, float deltaTime) {
 		speed = mov.speed * deltaTime;
 	}
 
-	glm::vec3 mov_dir;
+	glm::vec3 mov_dir(0.0f);
 	switch(direction) {
 		case(FORWARD):
 			// normalize this too?????
@@ -100,7 +99,7 @@ void Player::move(Camera_Movement direction, float deltaTime) {
 			break;
 		case(BACKWARD):
 			// normalize this too?????
-			mov_dir = dir.front;
+			mov_dir = - dir.front;
 			break;
 
 		case(FRONT):
@@ -111,31 +110,32 @@ void Player::move(Camera_Movement direction, float deltaTime) {
 		case(BACK):
 			// normalize needed since it would get different speeds for different Y values
 			// contas manhosas sao para em vez de ir para a frente manter-se no mesmo plano (ex minecraft voar ao carregar no W nunca sobe nem desce)
-			mov_dir = glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup));
+			mov_dir = - glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup));
 			break;
 		case(LEFT):
-			mov_dir = dir.right;
+			mov_dir = - dir.right;
 			break;
 		case(RIGHT):
 			mov_dir = dir.right;
 			break;
 		case(UP):
-			mov_dir = glm::normalize(dir.up * dir.worldup);
+			mov_dir = glm::normalize(dir.worldup); // dir.up * dir.worldup); // why * up?????????
 			break;
 		case(DOWN):
-			mov_dir = glm::normalize(dir.up * dir.worldup);
+			mov_dir = - glm::normalize(dir.worldup); // dir.up * dir.worldup); // why * up?????????
 			break;
 	}
 
-	JPH::Vec3 desired_velocity = JPH::Vec3(mov_dir.x, mov_dir.y, mov_dir.z) * speed;
+	// cur + (movement * speed)
+	JPH::Vec3 new_velocity = current_velocity + (JPH::Vec3(mov_dir.x, mov_dir.y, mov_dir.z) * speed);
 
-	if (!desired_velocity.IsNearZero() || !physCharacter->IsSupported()) {
-		desired_velocity.SetY(current_velocity.GetY());
-	}
-	const JPH::Vec3 new_velocity = current_velocity; // 0.75f * current_velocity + 0.25f * desired_velocity;
+	// if (!new_velocity.IsNearZero() || !physCharacter->IsSupported()) {
+	// 	new_velocity.SetY(current_velocity.GetY());
+	// }
 
 	// Update the velocity
 	physCharacter->SetLinearVelocity(new_velocity);
+	// printf("velocity was %f %f %f, is now %f %f %f\n", current_velocity.GetX(), current_velocity.GetY(), current_velocity.GetZ(), new_velocity.GetX(), new_velocity.GetY(), new_velocity.GetZ());
 }
 
 void Player::look(float xoffset, float yoffset) {

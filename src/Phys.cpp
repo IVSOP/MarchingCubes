@@ -65,11 +65,11 @@ void Phys::setup_phys() {
 
 	// Create class that filters object vs object layers
 	// Note: As this is an interface, PhysicsSystem will take a reference to this so this instance needs to stay alive!
-	ObjectLayerPairFilterImpl object_vs_object_layer_filter;
+	ObjectLayerPairFilterImpl *object_vs_object_layer_filter = new ObjectLayerPairFilterImpl(); // TODO free this
 
 	// Now we can create the actual physics system.
 	Phys::phys_system = std::make_unique<PhysicsSystem>();
-	Phys::phys_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *broad_phase_layer_interface, *object_vs_broadphase_layer_filter, object_vs_object_layer_filter);
+	Phys::phys_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *broad_phase_layer_interface, *object_vs_broadphase_layer_filter, *object_vs_object_layer_filter);
 
 		// // A body activation listener gets notified when bodies activate and go to sleep
 		// // Note that this is called from a job so whatever you do here needs to be thread safe.
@@ -93,20 +93,29 @@ BodyInterface &Phys::getBodyInterface() { return Phys::phys_system->GetBodyInter
 void Phys::loadTerrain(const TriangleList &triangles) {
 	BodyInterface &bodyInterface = getBodyInterface();
 
-	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
-	JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get();
+	// JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
+	// meshShapeSettings.SetEmbedded();
+	// JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get();
 
-	JPH::Vec3 terrainPosition(0, 0, 0);
+	JPH::Vec3 terrainPosition = JPH::Vec3::sZero();
 	JPH::Quat terrainRotation = JPH::Quat::sIdentity();
 
-	JPH::BodyCreationSettings bodySettings(meshShape, terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
+	JPH::BodyCreationSettings bodySettings(new JPH::MeshShapeSettings(triangles), terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
 
 	// could also receive indices instead of triangles
 	Body *terrain = bodyInterface.CreateBody(bodySettings);
-	bodyInterface.AddBody(terrain->GetID(), EActivation::DontActivate);
 
-	// delete body...
+	// TODO remove this
+	if (terrain == nullptr) {
+		exit(5);
+	}
+
+	bodyInterface.AddBody(terrain->GetID(), EActivation::DontActivate);
+	// TODO delete body
 }
+
+// when there should be a collision, I get a segfault
+// is some handler or listener missing? or does some of the data in the function above need to be on the heap?
 
 PhysicsSystem *Phys::getPhysSystem() {
 	return Phys::phys_system.get();
