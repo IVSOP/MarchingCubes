@@ -21,6 +21,9 @@ struct Direction {
 	glm::vec3 up;
 	glm::vec3 right;
 
+	Direction()
+		: pitch(0.0f), yaw(0.0f), front(0.0f), worldup(0.0f), up(0.0f), right(0.0f) {}
+
 	Direction(GLfloat pitch, GLfloat yaw, const glm::vec3 &front, const glm::vec3 &worldup, const glm::vec3 &up, const glm::vec3 &right)
 		: pitch(pitch), yaw(yaw), front(front), worldup(worldup), up(up), right(right) {}
 

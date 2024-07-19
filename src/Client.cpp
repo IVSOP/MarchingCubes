@@ -4,11 +4,12 @@
 #include "Looper.hpp"
 
 #define PLAYER_POS Position(glm::vec3(64, 16, 64))
+#define PLAYER_LOOKAT glm::vec3(0, 0, -1)
 
 Client::Client()
 : windowManager(std::make_unique<WindowManager>(1920, 1080, this)),
   world(std::make_unique<World>()),
-  player(std::make_unique<Player>(world->entt_registry, PLAYER_POS, glm::vec3(0, 0, -1))),
+  player(std::make_unique<Player>(world->entt_registry)),
   renderer(std::make_unique<Renderer>(1920, 1080)), // get these from window manager???
   inputHandler(glfw_handleMouseMov_callback, glfw_handleMouseKey_callback) // funcs from window manager
 {
@@ -99,7 +100,7 @@ Client::Client()
 	// Phys::loadTerrain(flat_terrain);
 
 
-	player->setupPhys(PLAYER_POS);
+	player->setupPhys(PLAYER_POS, PLAYER_LOOKAT);
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {
@@ -139,8 +140,8 @@ void Client::mainloop() {
         // printf("delta is %f (%f fps)\n", deltaTime, 1.0f / deltaTime);
 		// TODO sometimes I use this data, other times I call functions from Player which gets them again, what a mess
 		Position  pos = player->getPos();
-		Direction &dir = player->getDir();
-		Movement  &mov = player->getMov();
+		Direction dir;// = player->getDir();
+		Movement  mov = player->getMov();
 
 		SelectedBlockInfo selectedBlock; // = world.get()->getSelectedBlock(pos.pos, dir.front, renderer->break_range);
         inputHandler.applyInputs(
@@ -184,6 +185,8 @@ void Client::mainloop() {
 
 		const int collisionSteps = 1;
 		Phys::getPhysSystem()->Update(deltaTime, collisionSteps, Phys::getTempAllocator(), Phys::getJobSystem());
+
+		player->postTick();
 
         currentFrameTime = glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;

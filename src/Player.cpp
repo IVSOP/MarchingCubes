@@ -1,17 +1,27 @@
 #include "Player.hpp"
 
-Player::Player(entt::registry &registry, const Position &position, const glm::vec3 &lookatPoint)
+Player::Player(entt::registry &registry)
 						// register the player entity
-	: registry(registry), player_entity(registry.create())
+	: registry(registry), player_entity(registry.create()), dir()
 {
+	// TODO what a mess
+	dir.up = glm::vec3(0.0f, 1.0f, 0.0f);
+	dir.worldup = glm::vec3(0.0f, 1.0f, 0.0f);
+
 	// register the needed components
 	// registry.emplace<Position>(player_entity, position); // in physics
-	registry.emplace<Direction>(player_entity, Direction::lookat(position.pos, glm::vec3(0.0f, 1.0f, 0.0f), lookatPoint));
+	// registry.emplace<Direction>(player_entity, Direction::lookat(position.pos, glm::vec3(0.0f, 1.0f, 0.0f), lookatPoint));
 	registry.emplace<Movement>(player_entity, 10.0f, false);
 	// registry.emplace<Physics>(player_entity);
 }
 
-void Player::setupPhys(const Position &position) {
+void Player::postTick() {
+	dir.front = getRotation();
+	dir.updateVectors();
+}
+
+// lookatPoint ignored for now, got lazy translating the lookatpoint into a vector
+void Player::setupPhys(const Position &position, const glm::vec3 &lookatPoint) {
 	// make the shape a capsule
 	standingShape = JPH::RotatedTranslatedShapeSettings(JPH::Vec3(0, 0.5f * playerHeight + playerRadius, 0), JPH::Quat::sIdentity(), new JPH::CapsuleShape(0.5f * playerHeight, playerRadius)).Create().Get();
 
@@ -63,16 +73,8 @@ void Player::setupPhys(const Position &position) {
 		// 	*mTempAllocator);
 
 void Player::move(Camera_Movement direction, float deltaTime) {
-	// Position &pos = registry.get<Position>(player_entity);
-
-	// gives the front vector
-	const Direction &dir = registry.get<Direction>(player_entity);
-
 	// movement speed
 	const Movement &mov = registry.get<Movement>(player_entity);
-
-	// Physics &phys = registry.get<Physics>(player_entity);
-
 
 	// JPH::Vec3 velocity;
 	// // if on ground, do nothing
@@ -143,9 +145,6 @@ void Player::move(Camera_Movement direction, float deltaTime) {
 void Player::look(float xoffset, float yoffset) {
 	GLfloat MouseSensitivity = 0.1f; // hardcoded for now
 
-	Direction &dir = registry.get<Direction>(player_entity);
-
-
 	xoffset *= MouseSensitivity;
 	yoffset *= MouseSensitivity;
 
@@ -164,6 +163,10 @@ void Player::look(float xoffset, float yoffset) {
 	// update Front, Right and Up Vectors using the updated Euler angles
 	dir.updateVectors();
 
+	JPH::Quat rot_jph = JPH::Quat(dir.front.x, dir.front.y, dir.front.z, 1.0f).Normalized();
+	// !!! IMPORTANT to avoid problems, for now the player object only rotates horizontally
+	rot_jph.SetY(0.0f);
+	physCharacter->SetRotation(rot_jph);
 }
 
 void Player::speedUp(bool speedup) {
@@ -171,9 +174,6 @@ void Player::speedUp(bool speedup) {
 }
 
 glm::mat4 Player::getViewMatrix() {
-	// const Position &pos = registry.get<Position>(player_entity);
-	const Direction &dir = registry.get<Direction>(player_entity);
-
 	JPH::Vec3 pos_jph = physCharacter->GetPosition();
 	// add the height otherwise camera is on the floor
 	const glm::vec3 pos(pos_jph.GetX(), pos_jph.GetY() + this->playerHeight, pos_jph.GetZ());
@@ -188,14 +188,19 @@ Position Player::getPos() {
 	return Position(res);
 }
 
-Direction &Player::getDir() {
-	return registry.get<Direction>(player_entity);
-}
+// Direction &Player::getDir() {
+// 	return registry.get<Direction>(player_entity);
+// }
 
 Movement  &Player::getMov() {
 	return registry.get<Movement>(player_entity);
 }
 
+glm::vec3 Player::getRotation() const {
+	JPH::Quat rot_jph = physCharacter->GetRotation();
+
+	return glm::vec3(rot_jph.GetX(), rot_jph.GetY(), rot_jph.GetZ());
+}
 
 // Player::Player(std::ifstream &file)
 // : camera(file)
