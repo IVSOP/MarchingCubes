@@ -18,6 +18,11 @@ Player::Player(entt::registry &registry)
 void Player::postTick() {
 	dir.front = getRotation();
 	dir.updateVectors();
+
+	JPH::Quat rot_jph = JPH::Quat(dir.front.x, dir.front.y, dir.front.z, 1.0f).Normalized();
+	// !!! IMPORTANT to avoid problems, for now the player object only rotates horizontally
+	rot_jph.SetY(0.0f);
+	physCharacter->SetRotation(rot_jph);
 }
 
 // lookatPoint ignored for now, got lazy translating the lookatpoint into a vector
@@ -163,10 +168,10 @@ void Player::look(float xoffset, float yoffset) {
 	// update Front, Right and Up Vectors using the updated Euler angles
 	dir.updateVectors();
 
-	JPH::Quat rot_jph = JPH::Quat(dir.front.x, dir.front.y, dir.front.z, 1.0f).Normalized();
+	// JPH::Quat rot_jph = JPH::Quat(dir.front.x, dir.front.y, dir.front.z, 1.0f).Normalized();
 	// !!! IMPORTANT to avoid problems, for now the player object only rotates horizontally
-	rot_jph.SetY(0.0f);
-	physCharacter->SetRotation(rot_jph);
+	// rot_jph.SetY(0.0f);
+	// physCharacter->SetRotation(rot_jph);
 }
 
 void Player::speedUp(bool speedup) {
