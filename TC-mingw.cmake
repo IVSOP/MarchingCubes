@@ -8,7 +8,7 @@ set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
 # set(CMAKE_C_COMPILER   i686-w64-mingw32-gcc)
 # set(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
 
-# flags for only building and linking statically
+# since I am cross compiling its important for libc pthread etc to be statically linked to avoid problems
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static") # -static -DGLEW_STATIC

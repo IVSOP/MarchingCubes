@@ -27,33 +27,45 @@ find_package(OpenGL REQUIRED)
 
 if (LINUX_TO_WINDOWS)
 	include_directories(external/glew/include)
+
+	file(COPY external/glew/bin/Release/x64/glew32.dll DESTINATION ${CMAKE_BINARY_DIR})
+	file(COPY external/steamworks/sdk/redistributable_bin/win64/steam_api64.dll DESTINATION ${CMAKE_BINARY_DIR})
+
+	# lib files are used at compile time only, so I don't copy them and link them directly
 	link_directories(
 		external/glew/lib/Release/x64/
-		external/glew/bin/Release/x64/
+		# external/glew/bin/Release/x64/
+		external/steamworks/sdk/redistributable_bin/win64/
+		${CMAKE_BINARY_DIR}/
 	)
-	file(COPY external/glew/bin/Release/x64/glew32.dll DESTINATION ${CMAKE_BINARY_DIR})
 
 else (LINUX_TO_WINDOWS)
-	if (WIN32)
+	if (WIN32) # not considered at all
 
-		message(STATUS "Toolkits_DIR set to: " ${TOOLKITS_FOLDER})
-		set(TOOLKITS_FOLDER "" CACHE PATH "Path to Toolkits folder")
+		# message(STATUS "Toolkits_DIR set to: " ${TOOLKITS_FOLDER})
+		# set(TOOLKITS_FOLDER "" CACHE PATH "Path to Toolkits folder")
 
-		set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+		# set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 
-		if (NOT EXISTS "${TOOLKITS_FOLDER}/glew/GL/glew.h" OR NOT EXISTS "${TOOLKITS_FOLDER}/glew/glew32.lib")
-			message(ERROR ": GLEW not found")
-		endif (NOT EXISTS "${TOOLKITS_FOLDER}/glew/GL/glew.h" OR NOT EXISTS "${TOOLKITS_FOLDER}/glew/glew32.lib")	
+		# if (NOT EXISTS "${TOOLKITS_FOLDER}/glew/GL/glew.h" OR NOT EXISTS "${TOOLKITS_FOLDER}/glew/glew32.lib")
+		# 	message(ERROR ": GLEW not found")
+		# endif (NOT EXISTS "${TOOLKITS_FOLDER}/glew/GL/glew.h" OR NOT EXISTS "${TOOLKITS_FOLDER}/glew/glew32.lib")	
 
 
-		include_directories(${TOOLKITS_FOLDER}/glut ${TOOLKITS_FOLDER}/glew)
+		# include_directories(${TOOLKITS_FOLDER}/glew)
 
-		if (EXISTS "${TOOLKITS_FOLDER}/glew/glew32.dll")
-			file(COPY ${TOOLKITS_FOLDER}/glew/glew32.dll DESTINATION ${CMAKE_BINARY_DIR})
-		endif(EXISTS "${TOOLKITS_FOLDER}/glew/glew32.dll")	
+		# if (EXISTS "${TOOLKITS_FOLDER}/glew/glew32.dll")
+		# 	file(COPY ${TOOLKITS_FOLDER}/glew/glew32.dll DESTINATION ${CMAKE_BINARY_DIR})
+		# endif(EXISTS "${TOOLKITS_FOLDER}/glew/glew32.dll")	
 
 	else (WIN32)
 		find_package(GLEW REQUIRED)
+
+		file(COPY external/steamworks/sdk/redistributable_bin/linux64/libsteam_api.so DESTINATION ${CMAKE_BINARY_DIR})
+		link_directories(
+			${CMAKE_BINARY_DIR}/
+		)
+
 	endif (WIN32)
 endif (LINUX_TO_WINDOWS)
 
@@ -76,6 +88,8 @@ include_directories(external/entt/single_include/entt)
 add_subdirectory(external/JoltPhysics/Build)
 include_directories(external/JoltPhysics/Jolt)
 include(Jolt_Cmake.cmake)
+
+include_directories(external/steamworks/sdk/public/)
 
 add_executable(MarchingCubes
 		src/main.cpp
@@ -115,20 +129,21 @@ if (LINUX_TO_WINDOWS)
 		OpenGL::GL
 		EnTT::EnTT
 		Jolt
+		steam_api64
 	)
 
 else (LINUX_TO_WINDOWS)
-	if (WIN32)
-		target_link_libraries(MarchingCubes
-			glfw
-			# GLEW::GLEW
-			# OpenGL::GL
-			${OPENGL_LIBRARIES} 
-			${TOOLKITS_FOLDER}/glut/glut32.lib 
-			${TOOLKITS_FOLDER}/glew/glew32.lib
-			EnTT::EnTT
-			Jolt
-		)
+	if (WIN32) # !!!! not tested, I pretty much ignore this use case
+		# target_link_libraries(MarchingCubes
+		# 	glfw
+		# 	# GLEW::GLEW
+		# 	# OpenGL::GL
+		# 	${OPENGL_LIBRARIES} 
+		# 	${TOOLKITS_FOLDER}/glut/glut32.lib 
+		# 	${TOOLKITS_FOLDER}/glew/glew32.lib
+		# 	EnTT::EnTT
+		# 	Jolt
+		# )
 
 
 	else (WIN32)
@@ -138,6 +153,7 @@ else (LINUX_TO_WINDOWS)
 				OpenGL::GL
 				EnTT::EnTT
 				Jolt
+				steam_api
 		)
 
 	endif (WIN32)

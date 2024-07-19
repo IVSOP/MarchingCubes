@@ -13,7 +13,7 @@ then
 else
     if [ "$1" == "windows" ]
     then
-	tar -c buildWin/MarchingCubes.exe buildWin/glew32.dll shaders/ textures/ -f - | zstd -10 --long --threads=0 --stdout > MarchingCubes.tar.zst
+	tar -c steam_appid.txt buildWin/MarchingCubes.exe buildWin/glew32.dll buildWin/steam_api64.dll shaders/ textures/ -f - | zstd -10 --long --threads=0 --stdout > MarchingCubes.tar.zst
     else
         echo "Specify linux or windows"
     fi
