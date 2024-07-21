@@ -90,27 +90,117 @@ void Phys::setup_phys() {
 
 BodyInterface &Phys::getBodyInterface() { return Phys::phys_system->GetBodyInterface(); }
 
-void Phys::loadTerrain(const TriangleList &triangles) {
+JPH::Body *Phys::createBody(const TriangleList &triangles) {
 	BodyInterface &bodyInterface = getBodyInterface();
 
 	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
 	meshShapeSettings.SetEmbedded();
-	JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get(); // this vs JPH::MeshShapeSettings* ?????
+	JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get(); // this vs JPH::MeshShapeSettings* ????? TODO
 
 	JPH::Vec3 terrainPosition = JPH::Vec3::sZero();
 	JPH::Quat terrainRotation = JPH::Quat::sIdentity();
 
+	// this can receive either shape or shape settings, and only needs a pointer
+	// need to figure out what is the optimal way to do things
+	// can receive shape * or settings *
 	JPH::BodyCreationSettings bodySettings(meshShape, terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
 
-	// could also receive indices instead of triangles
-	Body *terrain = bodyInterface.CreateBody(bodySettings);
+	// could also receive indices
+	Body *body = bodyInterface.CreateBody(bodySettings);
 
 	// TODO remove this
-	if (terrain == nullptr) {
+	if (body == nullptr) {
 		exit(5);
 	}
 
-	bodyInterface.AddBody(terrain->GetID(), EActivation::DontActivate);
+	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
+	// TODO delete body
+
+
+	// Vec3 a = meshShape->GetCenterOfMass();
+	// printf("%f %f %f\n", a.GetX(), a.GetY(), a.GetZ());
+	// exit(1);
+
+	return body;
+}
+
+JPH::Body *Phys::createBody(const TriangleList &triangles, const glm::vec3 &coords) {
+	BodyInterface &bodyInterface = getBodyInterface();
+
+	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
+	meshShapeSettings.SetEmbedded();
+	JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get(); // this vs JPH::MeshShapeSettings* ????? TODO
+
+	JPH::Vec3 terrainPosition = JPH::Vec3(coords.x, coords.y, coords.z);
+	JPH::Quat terrainRotation = JPH::Quat::sIdentity();
+
+	// this can receive either shape or shape settings, and only needs a pointer
+	// need to figure out what is the optimal way to do things
+	// can receive shape * or settings *
+	JPH::BodyCreationSettings bodySettings(meshShape, terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
+
+	// could also receive indices
+	Body *body = bodyInterface.CreateBody(bodySettings);
+
+	// TODO remove this
+	if (body == nullptr) {
+		exit(5);
+	}
+
+	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
+	// TODO delete body
+
+
+	// Vec3 a = meshShape->GetCenterOfMass();
+	// printf("%f %f %f\n", a.GetX(), a.GetY(), a.GetZ());
+	// exit(1);
+
+	return body;
+}
+
+// THIS SEGFAULTS , DO NOT USE
+// pretty sure there is no way to make it ever work
+JPH::Body *Phys::createEmptyBody() {
+	BodyInterface &bodyInterface = getBodyInterface();
+
+	JPH::Shape *shape = new MeshShape();
+
+	JPH::Vec3 terrainPosition = JPH::Vec3::sZero();
+	JPH::Quat terrainRotation = JPH::Quat::sIdentity();
+
+	// this can receive either shape or shape settings, and only needs a pointer
+	// need to figure out what is the optimal way to do things
+	// can receive shape * or settings *
+	JPH::BodyCreationSettings bodySettings(shape, terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
+
+	// could also receive indices
+	Body *body = bodyInterface.CreateBody(bodySettings);
+
+	// TODO remove this
+	if (body == nullptr) {
+		exit(5);
+	}
+
+	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
+	// TODO delete body
+
+
+	// Vec3 a = meshShape->GetCenterOfMass();
+	// printf("%f %f %f\n", a.GetX(), a.GetY(), a.GetZ());
+	// exit(1);
+
+	return body;
+}
+
+void Phys::setBodyMeshShape(Body *body, const TriangleList &triangles) {
+	BodyInterface &bodyInterface = getBodyInterface();
+
+	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
+	meshShapeSettings.SetEmbedded();
+	JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get(); // this vs JPH::MeshShapeSettings* ????? TODO
+
+	// false since center of mass does not matter for terrain
+	bodyInterface.SetShape(body->GetID(), meshShape, false, EActivation::DontActivate);
 	// TODO delete body
 
 
@@ -119,8 +209,11 @@ void Phys::loadTerrain(const TriangleList &triangles) {
 	// exit(1);
 }
 
-// when there should be a collision, I get a segfault
-// is some handler or listener missing? or does some of the data in the function above need to be on the heap?
+void Phys::destroyBody(JPH::Body *body) {
+	BodyInterface &bodyInterface = getBodyInterface();
+
+	bodyInterface.DestroyBody(body->GetID());
+}
 
 PhysicsSystem *Phys::getPhysSystem() {
 	return Phys::phys_system.get();

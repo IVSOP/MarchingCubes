@@ -63,41 +63,40 @@ Client::Client()
 	// world.get()->loadHeightMap("textures/Ridge Through Terrain Height Map.png");
 	world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
 	// world.get()->loadHeightMap("textures/Height Map.png");
+
+
+	// Phys::setup_phys();
+
+	// flat terrain for testing
+	// JPH::TriangleList flat_terrain;
+
+	// JPH::Float3 v1, v2, v3;
+
+	// const glm::vec3 verts[] = {
+	// 	glm::vec3(1.0f, 0.0f, 1.0f) * 1000.0f,
+	// 	glm::vec3(1.0f, 0.0f, -1.0f) * 1000.0f,
+	// 	glm::vec3(-1.0f, 0.0f, -1.0f) * 1000.0f,
+
+	// 	glm::vec3(-1.0f,0.0f,  -1.0f) * 1000.0f,
+	// 	glm::vec3(-1.0f,0.0f,  1.0f) * 1000.0f,
+	// 	glm::vec3(1.0f, 0.0f, 1.0f) * 1000.0f,
+	// };
+
+
+	// v1.x = verts[0].x; v1.y = verts[0].y; v1.z = verts[0].z;
+	// v2.x = verts[1].x; v2.y = verts[1].y; v2.z = verts[1].z;
+	// v3.x = verts[2].x; v3.y = verts[2].y; v3.z = verts[2].z;
+	// JPH::Triangle a(v1, v2, v3);
+	// v1.x = verts[3].x; v1.y = verts[3].y; v1.z = verts[3].z;
+	// v2.x = verts[4].x; v2.y = verts[4].y; v2.z = verts[4].z;
+	// v3.x = verts[5].x; v3.y = verts[5].y; v3.z = verts[5].z;
+	// JPH::Triangle b(v1, v2, v3);
+	// flat_terrain.push_back(a);
+	// flat_terrain.push_back(b);
+
+	// Phys::loadTerrain(world->getPhysTerrain());
+
 	world->buildData();
-
-	// I dont like this but all physics setup is done here for all classes
-
-	Phys::setup_phys();
-
-	JPH::TriangleList flat_terrain;
-
-	JPH::Float3 v1, v2, v3;
-
-	const glm::vec3 verts[] = {
-		glm::vec3(1.0f, 0.0f, 1.0f) * 1000.0f,
-		glm::vec3(1.0f, 0.0f, -1.0f) * 1000.0f,
-		glm::vec3(-1.0f, 0.0f, -1.0f) * 1000.0f,
-
-		glm::vec3(-1.0f,0.0f,  -1.0f) * 1000.0f,
-		glm::vec3(-1.0f,0.0f,  1.0f) * 1000.0f,
-		glm::vec3(1.0f, 0.0f, 1.0f) * 1000.0f,
-	};
-
-
-	v1.x = verts[0].x; v1.y = verts[0].y; v1.z = verts[0].z;
-	v2.x = verts[1].x; v2.y = verts[1].y; v2.z = verts[1].z;
-	v3.x = verts[2].x; v3.y = verts[2].y; v3.z = verts[2].z;
-	JPH::Triangle a(v1, v2, v3);
-	v1.x = verts[3].x; v1.y = verts[3].y; v1.z = verts[3].z;
-	v2.x = verts[4].x; v2.y = verts[4].y; v2.z = verts[4].z;
-	v3.x = verts[5].x; v3.y = verts[5].y; v3.z = verts[5].z;
-	JPH::Triangle b(v1, v2, v3);
-	flat_terrain.push_back(a);
-	flat_terrain.push_back(b);
-
-	Phys::loadTerrain(world->getPhysTerrain());
-
-	// Phys::loadTerrain(flat_terrain);
 
 
 	player->setupPhys(PLAYER_POS, PLAYER_LOOKAT);

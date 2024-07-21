@@ -15,14 +15,15 @@
 
 #include "LookupTable.hpp"
 
-#include <Jolt/Jolt.h>
-#include <Jolt/RegisterTypes.h>
-#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
-#include <Jolt/Physics/Collision/Shape/CylinderShape.h>
-#include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
-#include <Jolt/Physics/Collision/Shape/BoxShape.h>
-#include <Jolt/Physics/Collision/Shape/SphereShape.h>
-#include <Jolt/Physics/Collision/Shape/MeshShape.h>
+#include "Phys.hpp"
+// #include <Jolt/Jolt.h>
+// #include <Jolt/RegisterTypes.h>
+// #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+// #include <Jolt/Physics/Collision/Shape/CylinderShape.h>
+// #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
+// #include <Jolt/Physics/Collision/Shape/BoxShape.h>
+// #include <Jolt/Physics/Collision/Shape/SphereShape.h>
+// #include <Jolt/Physics/Collision/Shape/MeshShape.h>
 
 
 // normal {
@@ -59,6 +60,21 @@ struct Chunk {
 	// [i] corresponds to normal == i
 	std::vector<Vertex> verts; // I suspect that most chunks will have empty space so I use a vector. idk how bad this is, memory will be extremely sparse. maybe using a fixed size array here will be better, need to test
 	std::vector<Point> debug_points;
+
+	// internaly, it seems like jolt turns triangles into a list of triangles with indices
+	// TODO look into optimizing this, maybe calculate the indices myself. it is important that building a chunk is as fast as possible
+	// TODO the normals can also be precomputed. for now I'm going doin the easy path
+	JPH::TriangleList triangles;
+	JPH::Body *body;
+
+	Chunk() {
+		// create the physics body
+		body = nullptr;
+	}
+
+	~Chunk() {
+		// TODO destroy the body
+	}
 
 	Bitmap<8> getDataAt(const glm::u8vec3 &pos) const {
 		Bitmap<8> data = 0; // = 0 not needed???
@@ -118,31 +134,31 @@ struct Chunk {
 	// 	return ! isEmptyAt(x, y, z);
 	// }
 
-	std::vector<Vertex> getVerts(GLuint normal) {
-		if (vertsHaveChanged) {
-			rebuildVerts();
-		}
+	std::vector<Vertex> &getVerts(GLuint normal) {
+		// if (vertsHaveChanged) {
+		// 	rebuildVerts();
+		// }
 		return this->verts;
 	}
 
 	// returns how much was added
 	constexpr GLuint addVertsTo(VertContainer<Vertex> &_verts) {
-		if (vertsHaveChanged) {
-			rebuildVerts();
-		}
+		// if (vertsHaveChanged) {
+		// 	rebuildVerts();
+		// }
 		_verts.add(verts);
 		return verts.size();
 	}
 
 	constexpr GLuint addPointsTo(VertContainer<Point> &_points) {
-		if (vertsHaveChanged) {
-			rebuildVerts();
-		}
+		// if (vertsHaveChanged) {
+		// 	rebuildVerts();
+		// }
 		_points.add(debug_points);
 		return debug_points.size();
 	}
 
-	void generateVoxelTriangles(std::vector<Vertex> &verts, std::vector<Point> &points, GLuint x, GLuint y, GLuint z) const {
+	void generateVoxelTriangles(GLuint x, GLuint y, GLuint z) {
 		
 		// for (GLuint y = 0; y < CHUNK_SIZE; y++) {
 		// 	for (GLuint z = 0; z < CHUNK_SIZE; z++) {
@@ -173,6 +189,10 @@ struct Chunk {
 		// for this configuration, get list of indices corresponding to 'activated' edges
 		const int8_t *edgeIndices = LookupTable::triTable[cubedata];
 
+		const glm::vec3 pos_float = glm::vec3(pos);
+		glm::vec3 g1, g2, g3;
+		JPH::Float3 v1, v2, v3; // TODO fix this mess of conversions
+
 		Vertex vert;
 		// for every 3 edges we can make a triangle
 		for (int i = 0; i < 16; i += 3) {
@@ -181,35 +201,27 @@ struct Chunk {
 			
 			// TODO edgeTable[cubedata] already gives all 3 corners (bit [i] == 1 means one of the corners is [i]). test if that approach is faster 
 
-			// instead of doing the commented approach, since I always just get the mid point instead of interpolating,
-			// this means I can precompute the values to be faster
-				// // for the 3 current edges being considered, get the two corners that define them
-				// int edgeIndexA = edgeIndices[i];
-				// int a0 = LookupTable::cornerIndexAFromEdge[edgeIndexA];
-				// int a1 = LookupTable::cornerIndexBFromEdge[edgeIndexA];
-
-				// int edgeIndexB = edgeIndices[i + 1];
-				// int b0 = LookupTable::cornerIndexAFromEdge[edgeIndexB];
-				// int b1 = LookupTable::cornerIndexBFromEdge[edgeIndexB];
-
-				// int edgeIndexC = edgeIndices[i + 2];
-				// int c0 = LookupTable::cornerIndexAFromEdge[edgeIndexC];
-				// int c1 = LookupTable::cornerIndexBFromEdge[edgeIndexC];
-
-				// // Calculate positions of each vertex
-				// // instead of interpolating, I get the mid point
-				// triangle[0].coords = ((LookupTable::corner_coords[a0] + LookupTable::corner_coords[a1]) / 2.0f) + pos_in_chunk;
-				// triangle[1].coords = ((LookupTable::corner_coords[b0] + LookupTable::corner_coords[b1]) / 2.0f) + pos_in_chunk;
-				// triangle[2].coords = ((LookupTable::corner_coords[c0] + LookupTable::corner_coords[c1]) / 2.0f) + pos_in_chunk;
-
+			// triangle for GPU
 			const GLint edgeIndexA = edgeIndices[i];
 			const GLint edgeIndexB = edgeIndices[i + 1];
 			const GLint edgeIndexC = edgeIndices[i + 2];
 
 			// TODO messy conversions
-			vert = Vertex(glm::uvec3(x, y, z), glm::uvec3(edgeIndexA, edgeIndexB, edgeIndexC), 0);
+			vert = Vertex(pos, glm::uvec3(edgeIndexA, edgeIndexB, edgeIndexC), 0);
 
 			verts.push_back(vert);
+
+
+			// triangle for JPH
+			g1 = pos_float + LookupTable::finalCoords[edgeIndexA];
+			g2 = pos_float + LookupTable::finalCoords[edgeIndexB];
+			g3 = pos_float + LookupTable::finalCoords[edgeIndexC];
+
+			v1.x = g1.x; v1.y = g1.y; v1.z = g1.z;
+			v2.x = g2.x; v2.y = g2.y; v2.z = g2.z;
+			v3.x = g3.x; v3.y = g3.y; v3.z = g3.z;
+
+			triangles.push_back(JPH::Triangle(v1, v2, v3));
 		}
 	}
 
@@ -217,12 +229,29 @@ struct Chunk {
 		vertsHaveChanged = false;
 		verts.clear();
 		debug_points.clear();
+		triangles.clear();
 
 		for (GLuint y = 0; y < CHUNK_SIZE; y ++) {
 			for (GLuint z = 0; z < CHUNK_SIZE; z ++) {
 				for (GLuint x = 0; x < CHUNK_SIZE; x ++) {
-					generateVoxelTriangles(verts, debug_points, x, y, z);
+					generateVoxelTriangles(x, y, z);
 				}
+			}
+		}
+	}
+
+	// TODO this is bad
+	void rebuildBody(const glm::vec3 &coords) {
+		if (triangles.size() > 0) {
+			if (body != nullptr) {
+				Phys::setBodyMeshShape(body, triangles);
+			} else {
+				body = Phys::createBody(triangles, coords);
+			}
+		} else { // no triangles
+			if (body != nullptr) {
+				Phys::destroyBody(body);
+				body = nullptr;
 			}
 		}
 	}
@@ -261,28 +290,29 @@ struct Chunk {
 
 	}
 
-	void addPhysTerrain(JPH::TriangleList &triangles, const glm::ivec3 &offset) const {
-		glm::u8vec3 pos, edges;
-		glm::vec3 final_pos, g1, g2, g3;
-		JPH::Float3 v1, v2, v3; // what a mess
+	// TODO test if doing it like this is faster
+	// void addPhysTerrain(JPH::TriangleList &triangles, const glm::ivec3 &offset) const {
+	// 	glm::u8vec3 pos, edges;
+	// 	glm::vec3 final_pos, g1, g2, g3;
+	// 	JPH::Float3 v1, v2, v3; // what a mess
 
-		for (GLuint i = 0; i < verts.size(); i++) {
-			pos = verts[i].getLocalPos();
-			edges = verts[i].getEdges();
+	// 	for (GLuint i = 0; i < verts.size(); i++) {
+	// 		pos = verts[i].getLocalPos();
+	// 		edges = verts[i].getEdges();
 
-			final_pos = glm::vec3(offset + glm::ivec3(pos));
+	// 		final_pos = glm::vec3(offset + glm::ivec3(pos));
 
-			g1 = final_pos + LookupTable::finalCoords[edges[0]];
-			g2 = final_pos + LookupTable::finalCoords[edges[1]];
-			g3 = final_pos + LookupTable::finalCoords[edges[2]];
+	// 		g1 = final_pos + LookupTable::finalCoords[edges[0]];
+	// 		g2 = final_pos + LookupTable::finalCoords[edges[1]];
+	// 		g3 = final_pos + LookupTable::finalCoords[edges[2]];
 
-			v1.x = g1.x; v1.y = g1.y; v1.z = g1.z;
-			v2.x = g2.x; v2.y = g2.y; v2.z = g2.z;
-			v3.x = g3.x; v3.y = g3.y; v3.z = g3.z;
+	// 		v1.x = g1.x; v1.y = g1.y; v1.z = g1.z;
+	// 		v2.x = g2.x; v2.y = g2.y; v2.z = g2.z;
+	// 		v3.x = g3.x; v3.y = g3.y; v3.z = g3.z;
 
-			triangles.push_back(JPH::Triangle(v1, v2, v3));
-		}
-	}
+	// 		triangles.push_back(JPH::Triangle(v1, v2, v3));
+	// 	}
+	// }
 };
 
 

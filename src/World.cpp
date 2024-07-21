@@ -8,9 +8,18 @@
 
 #include "Logs.hpp"
 
-// also this can probably be optimized but for now I will leave it to compiler magic
-// yes very ugly will clean this up later
-// make player position align to the chunk somehow???????/ doing == on floats is kind of bad
+/*
+DESIGN CHOICES:
+
+I concluded that having the chunks be dumb and the world managing them was the best way to do things
+Before, doing addVertsTo() would rebuild the vertices if necessary
+But, now that I have physics and need to update the triangles that make up the body's mesh,
+I needed to have the chunk itself set its own triangles to its own body, which feels ver messy
+So I shifted control into here, and here we check if the triangles need to be rebuilt or not and do things according to that
+However, the chunk is still able to upload its phys triangles and generate its body, so that the body and triangles never have to leave it
+But this is never done automatically and only done when the world tells it to
+Kind of a mess but I can easily change it when I have to
+*/
 void World::buildData() {
 	verts.clear();
 	debug_points.clear();
@@ -25,6 +34,12 @@ void World::buildData() {
 
 				const glm::vec3 coords = getChunkCoordsFloat(x, y, z);
 	
+				Chunk &chunk = chunks[x][y][z];
+
+				if (chunk.vertsHaveChanged == true) {
+					chunk.rebuildVerts();
+					chunk.rebuildBody(getChunkCoordsFloat(x, y, z));
+				}
 
 				end_index += chunks[x][y][z].addVertsTo(verts);
 				(void)chunks[x][y][z].addPointsTo(debug_points);
@@ -273,29 +288,4 @@ void World::loadHeightMap(const std::string &path) {
 	}
 
 	free(buffer);
-}
-
-JPH::TriangleList World::getPhysTerrain() const {
-	// Create regular grid of triangles
-	JPH::TriangleList triangles;
-
-	// for (GLuint i = 0; i < verts.size(); i++) {
-	// 	triangles.push_back(JPH::Triangle(...));
-	// }
-
-	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
-		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
-			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
-				const Chunk &chunk = chunks[x][y][z];
-
-				chunk.addPhysTerrain(triangles, getChunkCoords(x, y, z));
-			}
-		}
-	}
-
-	// for (GLuint i = 0; i < triangles.size(); i++) {
-	// 	printf("%f %f %f\n", triangles[i].GetCentroid().GetX(), triangles[i].GetCentroid().GetY(), triangles[i].GetCentroid().GetZ());
-	// }
-
-	return triangles;
 }

@@ -19,10 +19,17 @@ void Player::postTick() {
 	dir.front = getRotation();
 	dir.updateVectors();
 
+
+	/// ???????? wtf is going on here
+	// normalizing after setting y to 0 makes it so the player is turning vertically but the y component is 0 wtf??????
+	// in debug mode this throws an assertion, here it just works
+	// I don't even care
+
 	JPH::Quat rot_jph = JPH::Quat(dir.front.x, dir.front.y, dir.front.z, 1.0f).Normalized();
 	// !!! IMPORTANT to avoid problems, for now the player object only rotates horizontally
 	rot_jph.SetY(0.0f);
 	physCharacter->SetRotation(rot_jph);
+	// printf("%f %f %f\n", rot_jph.GetX(), rot_jph.GetY(), rot_jph.GetZ());
 }
 
 // lookatPoint ignored for now, got lazy translating the lookatpoint into a vector

@@ -1,7 +1,9 @@
 #ifndef PHYS_HPP
 #define PHYS_HPP
 
-#include "common.hpp"
+#include "types.hpp"
+#include "stdlib.hpp"
+
 #include <Jolt/Jolt.h>
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Core/Factory.h>
@@ -159,7 +161,11 @@ public:
 
 	static JPH::BodyInterface &getBodyInterface();
 
-	static void loadTerrain(const JPH::TriangleList &triangles);
+	static JPH::Body *createBody(const JPH::TriangleList &triangles);
+	static JPH::Body *createBody(const JPH::TriangleList &triangles, const glm::vec3 &coords);
+	static JPH::Body *createEmptyBody(); // DO NOT USE
+	static void destroyBody(JPH::Body *body);
+	static void setBodyMeshShape(JPH::Body *body, const JPH::TriangleList &triangles);
 
 	static JPH::PhysicsSystem *getPhysSystem();
 	static JPH::TempAllocatorImpl *getTempAllocator();
