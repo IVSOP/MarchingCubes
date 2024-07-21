@@ -207,7 +207,7 @@ struct Chunk {
 			const GLint edgeIndexC = edgeIndices[i + 2];
 
 			// TODO messy conversions
-			vert = Vertex(pos, glm::uvec3(edgeIndexA, edgeIndexB, edgeIndexC), 0);
+			vert = Vertex(pos, glm::uvec3(edgeIndexA, edgeIndexB, edgeIndexC), materials[y][z][x]);
 
 			verts.push_back(vert);
 
@@ -259,7 +259,7 @@ struct Chunk {
 	// TODO types and casts are awful here
 	// data should already be offset itself
 																		// offset that places world on the positive quadrants
-	void generate(const glm::ivec3 &chunk_pos, unsigned char *data, int width, const glm::ivec3 &offset) {
+	void generate(const glm::ivec3 &chunk_pos, unsigned char *data, int width, const glm::ivec3 &offset, GLbyte material) {
 		glm::ivec3 pos;
 		unsigned char height;
 
@@ -283,7 +283,7 @@ struct Chunk {
 		for (GLuint y = 0; y < CHUNK_SIZE; y++) {
 			for (GLuint z = 0; z < CHUNK_SIZE; z++) {
 				for (GLuint x = 0; x < CHUNK_SIZE; x++) {
-					materials[y][z][x] = 0;
+					materials[y][z][x] = material;
 				}
 			}
 		}

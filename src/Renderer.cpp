@@ -387,7 +387,7 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 			glm::vec3(0.9f, 0.9f, 0.85f),
 			glm::vec3(0.0f),
 			32.0f,
-			4
+			3
 		};
 
 		GLCall(glBindBuffer(GL_TEXTURE_BUFFER, materialBuffer));

@@ -38,7 +38,7 @@ void World::buildData() {
 
 				if (chunk.vertsHaveChanged == true) {
 					chunk.rebuildVerts();
-					chunk.rebuildBody(getChunkCoordsFloat(x, y, z));
+					chunk.rebuildBody(getChunkCoordsFloat(x, y, z)); // I need to offset the phys body, make the world give the chunk its coords
 				}
 
 				end_index += chunks[x][y][z].addVertsTo(verts);
@@ -282,7 +282,7 @@ void World::loadHeightMap(const std::string &path) {
 				Chunk &chunk = chunks[x][y][z];
 
 				// chunk needs to know where it is
-				chunk.generate(getChunkCoords(x, y, z), buffer, width, offset);
+				chunk.generate(getChunkCoords(x, y, z), buffer, width, offset, (x + z) % 2);
 			}
 		}
 	}

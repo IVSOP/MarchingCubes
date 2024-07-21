@@ -58,6 +58,7 @@ struct World {
 	: verts(1 << 10), debug_points(1 << 10), indirect(1 << 10), info(1 << 10) // why tf is 2e10 == 20000000000?????????????
 	{
 		// the default constructor of each chunk creates an empty body
+		// or it would if that was possible
 	}
 
 	void copyChunkTo(const Chunk &chunk, const glm::uvec3 position) {
@@ -221,8 +222,6 @@ struct World {
 	// 		}
 	// 	}
 	// }
-
-	// void addSphere(const glm::vec3 &center, GLfloat radius);
 
 	void loadHeightMap(const std::string &path);
 };
