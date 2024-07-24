@@ -62,7 +62,7 @@ public:
 
 	std::unique_ptr<TextureArray> textureArray = nullptr; // pointer since it starts as null and gets initialized later. unique_ptr so it always gets deleted
 
-	void draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov); // const
+	void draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo); // const
 
 	void loadTextures();
 	void resizeViewport(GLsizei viewport_width, GLsizei viewport_height);
@@ -71,7 +71,7 @@ public:
 	void checkFrameBuffer();
 
 private:
-	void prepareFrame(GLuint num_verts, Position &pos, Direction &dir, Movement &mov, GLfloat deltatime);
+	void prepareFrame(GLuint num_verts, Position &pos, Direction &dir, Movement &mov, GLfloat deltatime, const SelectedBlockInfo &selectedInfo);
 	void drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view); // camera is for debugging
 	void drawAxis(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 	void drawNormals(const VertContainer<Vertex> &verts, const std::vector<IndirectData> &indirect, const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);

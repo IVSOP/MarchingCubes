@@ -139,10 +139,10 @@ void Client::mainloop() {
         // printf("delta is %f (%f fps)\n", deltaTime, 1.0f / deltaTime);
 		// TODO sometimes I use this data, other times I call functions from Player which gets them again, what a mess
 		Position  pos = player->getPos();
-		Direction dir;// = player->getDir();
+		Direction dir = player->getDir();
 		Movement  mov = player->getMov();
 
-		SelectedBlockInfo selectedBlock; // = world.get()->getSelectedBlock(pos.pos, dir.front, renderer->break_range);
+		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(pos.pos, dir.front, renderer->break_range);
         inputHandler.applyInputs(
 			world.get(),
 			selectedBlock,
@@ -164,7 +164,8 @@ void Client::mainloop() {
 			windowManager.get()->window, deltaTime,
 			pos,
 			dir,
-			mov);
+			mov,
+			selectedBlock);
         // lock.unlock();
 
 		// auto phys_pos_view = world->entt_registry.group<Position, Physics>();

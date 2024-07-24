@@ -40,7 +40,7 @@ public:
 	Player() = delete;
 	// idk how I feel about this, but this class registers the new player entity in the registry
 	Player(entt::registry &registry);
-	~Player() = default;
+	~Player() = default; // TODO delete character
 
 	void setupPhys(const Position &position, const glm::vec3 &lookat);
 
@@ -50,7 +50,7 @@ public:
 	void speedUp(bool speedup);
 
 	Position  getPos(); // not a reference for complicated reasons
-	// Direction &getDir();
+	Direction &getDir();
 	Movement  &getMov();
 
 	// Player(std::ifstream &file);

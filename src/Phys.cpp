@@ -212,6 +212,7 @@ void Phys::setBodyMeshShape(Body *body, const TriangleList &triangles) {
 void Phys::destroyBody(JPH::Body *body) {
 	BodyInterface &bodyInterface = getBodyInterface();
 
+	bodyInterface.RemoveBody(body->GetID());
 	bodyInterface.DestroyBody(body->GetID());
 }
 

@@ -53,44 +53,44 @@ void World::buildData() {
 	}
 }
 
-SelectedBlockInfo World::getBlockInfo(const glm::ivec3 &position) { return SelectedBlockInfo(); }
-// 	SelectedBlockInfo ret;
+SelectedBlockInfo World::getBlockInfo(const glm::ivec3 &position) {
+	SelectedBlockInfo ret;
 
-// 	// had weird innacuracies when values were not floats, like -7.15 + 8 == 0 but actualy was -7 + 8 == 1
+	// had weird innacuracies when values were not floats, like -7.15 + 8 == 0 but actualy was -7 + 8 == 1
 
-// 	Chunk *chunk = &chunks // this gets ID of the chunk
-// 		[static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f))]
-// 		[static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f))]
-// 		[static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f))];
+	Chunk *chunk = &chunks // this gets ID of the chunk
+		[static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f))]
+		[static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f))]
+		[static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f))];
 
-// 	ret.chunkID = chunk - &chunks[0][0][0];
+	ret.chunkID = chunk - &chunks[0][0][0];
 
-// 	// this gets position inside of the chunk
-// 	glm::u8vec3 pos;
-// 	if (position.x < 0) {
-// 		pos.x = (CHUNK_SIZE - (abs(position.x) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative values 2) starts at -1 not 0. the last % feels bad, is only for when == CHUNK_SIZE to prevent resulting in CHUNK_SIZE. have to redo this math
-// 	} else {
-// 		pos.x = position.x % CHUNK_SIZE;
-// 	}
+	// this gets position inside of the chunk
+	glm::u8vec3 pos;
+	if (position.x < 0) {
+		pos.x = (CHUNK_SIZE - (abs(position.x) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative values 2) starts at -1 not 0. the last % feels bad, is only for when == CHUNK_SIZE to prevent resulting in CHUNK_SIZE. have to redo this math
+	} else {
+		pos.x = position.x % CHUNK_SIZE;
+	}
 	
-// 	if (position.y < 0) {
-// 		pos.y = (CHUNK_SIZE - (abs(position.y) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative values 2) starts at -1 not 0. the last % feels bad, is only for when == CHUNK_SIZE to prevent resulting in CHUNK_SIZE. have to redo this math
-// 	} else {
-// 		pos.y = position.y % CHUNK_SIZE;
-// 	}
+	if (position.y < 0) {
+		pos.y = (CHUNK_SIZE - (abs(position.y) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative values 2) starts at -1 not 0. the last % feels bad, is only for when == CHUNK_SIZE to prevent resulting in CHUNK_SIZE. have to redo this math
+	} else {
+		pos.y = position.y % CHUNK_SIZE;
+	}
 	
-// 	if (position.z < 0) {
-// 		pos.z = (CHUNK_SIZE - (abs(position.z) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative values 2) starts at -1 not 0. the last % feels bad, is only for when == CHUNK_SIZE to prevent resulting in CHUNK_SIZE. have to redo this math
-// 	} else {
-// 		pos.z = position.z % CHUNK_SIZE;
-// 	}
+	if (position.z < 0) {
+		pos.z = (CHUNK_SIZE - (abs(position.z) % CHUNK_SIZE)) % CHUNK_SIZE; // weird math needed since 1) negative values 2) starts at -1 not 0. the last % feels bad, is only for when == CHUNK_SIZE to prevent resulting in CHUNK_SIZE. have to redo this math
+	} else {
+		pos.z = position.z % CHUNK_SIZE;
+	}
 
-// 	ret.position = pos;
-// 	ret.materialID = chunk->getVoxelAt(pos).material_id;
-// 	ret._isEmpty = chunk->isEmptyAt(pos);
+	ret.position = pos;
+	ret.materialID = chunk->getVoxelAt(pos).material_id;
+	ret._isEmpty = chunk->isVoxelEmptyAt(pos);
 
-// 	return ret;
-// }
+	return ret;
+}
 
 SelectedBlockInfo World::getSelectedBlock(const glm::vec3 &position, const glm::vec3 &lookPosition, GLfloat radius) {
 	radius *= 2.0f; // to act as range

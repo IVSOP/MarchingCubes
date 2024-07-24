@@ -73,10 +73,34 @@ struct Chunk {
 	}
 
 	~Chunk() {
-		// TODO destroy the body
+		// call destroyChunk instead?????
+		if (body) {
+			Phys::destroyBody(body);
+		}
 	}
 
-	Bitmap<8> getDataAt(const glm::u8vec3 &pos) const {
+	// destructor that can be called manually to clean things up
+	// WARNING for now does not reset the vertex/triangles arrays, just clears them (memory still taken up)
+	void destroyChunk() {
+		if (body) {
+			Phys::destroyBody(body);
+			body = nullptr;
+		}
+
+		// reset bitmask
+		// just memset, should be fast
+		(void)memset(corners, 0, sizeof(corners));
+		// needed??
+		(void)memset(materials, 0, sizeof(materials));
+		vertsHaveChanged = true;
+	}
+
+	// extremely shitty
+	constexpr bool isDestroyed() const {
+		return (body == nullptr);
+	}
+
+	constexpr Bitmap<8> getDataAt(const glm::u8vec3 &pos) const {
 		Bitmap<8> data = 0; // = 0 not needed???
 
 		// TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! this is what this should look like:
@@ -107,9 +131,10 @@ struct Chunk {
 	// 	vertsHaveChanged = true;
 	// }
 
-	// constexpr bool isEmptyAt(const glm::u8vec3 &pos) {
-	// 	return (voxels[pos.y][pos.z][pos.x].data.allFalse());
-	// }
+	// specific for a voxel, check is all bits around this position are empty
+	constexpr bool isVoxelEmptyAt(const glm::u8vec3 &pos) {
+		return (getDataAt(pos).allFalse());
+	}
 
 	// constexpr void breakVoxelAt(GLubyte x, GLubyte y, GLubyte z) {
 	// 	vertsHaveChanged = true;

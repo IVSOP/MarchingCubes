@@ -200,9 +200,9 @@ Position Player::getPos() {
 	return Position(res);
 }
 
-// Direction &Player::getDir() {
-// 	return registry.get<Direction>(player_entity);
-// }
+Direction &Player::getDir() {
+	return dir;
+}
 
 Movement  &Player::getMov() {
 	return registry.get<Movement>(player_entity);
