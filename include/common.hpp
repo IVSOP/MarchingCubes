@@ -61,6 +61,7 @@ static constexpr glm::ivec3 getChunkCoords(GLuint x, GLuint y, GLuint z) {
 }
 
 // same as other ones but uses chunk ID
+// DOES NOT WORK!!!!!!!!!!!!!!!!
 static constexpr glm::ivec3 getChunkCoordsByID(GLuint ID) {
 	// what the fuck?
 	GLuint x = ID / (WORLD_SIZE_X * WORLD_SIZE_Y);

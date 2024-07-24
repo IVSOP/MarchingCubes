@@ -242,6 +242,87 @@ SelectedBlockInfo World::getSelectedBlock(const glm::vec3 &position, const glm::
 // 	}
 // }
 
+void World::breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius) {
+	const glm::vec3 center = glm::vec3(getWorldCoords(selectedInfo.chunkID, selectedInfo.position));
+	// const GLfloat radius_squared = radius * radius;
+
+	// this constant is the size of the diagonal of a 1x1 cube (ie, the biggest possible distance inside of it)
+	// sqrt(2 * x^2 + x^2), x = 1, sqrt(3)
+	constexpr GLfloat diagonal = 1.73205080757f;
+
+	// 2 spheres will be calculated, one that is big enough to make sure no chunk that should be considered is in fact not considered,
+	// and a smaller one where all chunks within can be considered as being completely empty after the destruction
+	const GLfloat big_radius   = radius + diagonal * CHUNK_SIZE_FLOAT;
+	const GLfloat small_radius = radius - diagonal * CHUNK_SIZE_FLOAT;
+
+	// if it is small enough, no chunk could ever possibli fit inside
+	// > vs >= ???
+
+	if (small_radius >= CHUNK_SIZE_FLOAT) {
+		// calculate the bounding box and destroy every chunk inside it
+		GLint min_x = glm::clamp(static_cast<GLint>(((center.x - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X),
+		      max_x = glm::clamp(static_cast<GLint>(((center.x + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X),
+			  min_y = glm::clamp(static_cast<GLint>(((center.y - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y),
+			  max_y = glm::clamp(static_cast<GLint>(((center.y + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y),
+			  min_z = glm::clamp(static_cast<GLint>(((center.z - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z),
+			  max_z = glm::clamp(static_cast<GLint>(((center.z + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z);
+
+		printf("center: %f %f %f radius: %f\n", center.x, center.y, center.z, small_radius);
+		printf("x %d %d y %d %d z %d %d\n", min_x, max_x, min_y, max_y, min_z, max_z);
+
+		for (GLint x = min_x; x <= max_x; x++) {
+			for (GLint y = min_y; y <= max_y; y++) {
+				for (GLint z = min_z; z <= max_z; z++) {
+					chunks[x][y][z].destroyChunk();
+				}
+			}
+		}
+	}
+
+	
+
+	// // box that sphere is contained in
+	// // +/-1 is needed to make sure shared corners are broken correctly
+	// GLint min_x = glm::clamp(static_cast<GLint>(real_center_float.x - radius) - 1, MIN_X, MAX_X),
+	// 	  max_x = glm::clamp(static_cast<GLint>(real_center_float.x + radius) + 1, MIN_X, MAX_X),
+	// 	  min_y = glm::clamp(static_cast<GLint>(real_center_float.y - radius) - 1, MIN_Y, MAX_Y),
+	// 	  max_y = glm::clamp(static_cast<GLint>(real_center_float.y + radius) + 1, MIN_Y, MAX_Y),
+	// 	  min_z = glm::clamp(static_cast<GLint>(real_center_float.z - radius) - 1, MIN_Z, MAX_Z),
+	// 	  max_z = glm::clamp(static_cast<GLint>(real_center_float.z + radius) + 1, MIN_Z, MAX_Z);
+
+	// GLfloat dist_squared;
+
+	// Bitmap<8> mask;
+	// mask.setAllTrue();
+
+	// for (GLint x = min_x; x <= max_x; x++) {
+	// 	for (GLint y = min_y; y <= max_y; y++) {
+	// 		for (GLint z = min_z; z <= max_z; z++) {
+
+	// 			const glm::vec3 pos = glm::vec3(x, y, z);
+
+	// 			if (glm::distance2(real_center_float, pos) <= small_radius_squared) {
+	// 				breakVoxel(glm::ivec3(pos));
+	// 			} else {
+	// 				for (GLubyte corner = 0; corner < 8; corner++) {
+	// 					const glm::vec3 final_pos = LookupTable::corner_coords[corner] + pos;
+	// 					dist_squared = glm::distance2(real_center_float, final_pos);
+
+	// 					// corner is inside breaking sphere
+	// 					if (dist_squared <= radius_squared) {
+	// 						mask.clearBit(corner);
+	// 					}
+	// 				}
+
+	// 				maskVoxelValue(glm::ivec3(pos), mask);
+
+	// 				mask.setAllTrue();
+	// 			}
+	// 		}
+	// 	}
+	// }
+}
+
 // TODO not optimized
 void World::loadHeightMap(const std::string &path) {
 	stbi_set_flip_vertically_on_load(true);
