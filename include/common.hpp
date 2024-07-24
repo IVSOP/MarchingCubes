@@ -84,17 +84,19 @@ struct SelectedBlockInfo {
 	GLuint chunkID;
 	GLubyte normal;
 	bool _isEmpty;
-	glm::u8vec3 position; // relative to chunk
+	glm::u8vec3 local_pos; // relative to chunk
+	glm::ivec3 world_pos;
 
-	SelectedBlockInfo(GLint materialID, GLuint chunkID, GLubyte normal, bool isEmpty, const glm::u8vec3 &position)
-	: materialID(materialID), chunkID(chunkID), normal(normal), _isEmpty(isEmpty), position(position) {}
+	SelectedBlockInfo(GLint materialID, GLuint chunkID, GLubyte normal, bool isEmpty, const glm::u8vec3 &local_pos, const glm::ivec3 &world_pos)
+	: materialID(materialID), chunkID(chunkID), normal(normal), _isEmpty(isEmpty), local_pos(local_pos), world_pos(world_pos) {}
 
 	SelectedBlockInfo() = default;
 
 	constexpr bool isEmpty() const { return _isEmpty; }
 
-	glm::vec3 getWorldPosition() const {
-		return glm::vec3(getChunkCoordsByID(chunkID)) + glm::vec3(position);
+	glm::ivec3 getWorldPosition() const {
+		// return glm::vec3(getChunkCoordsByID(chunkID)) + glm::vec3(position);
+		return world_pos;
 	}
 };
 

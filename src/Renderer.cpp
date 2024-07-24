@@ -305,7 +305,7 @@ void Renderer::prepareFrame(GLuint num_verts, Position &pos, Direction &dir, Mov
 	// ImGui::ShowDemoWindow();
 	ImGui::Text("FPS: %lf", 1.0f / deltaTime);
 	ImGui::Text("Facing x:%f y:%f z:%f", dir.front.x, dir.front.y, dir.front.z);
-	ImGui::Text("Selected: material %d, chunk %u, normal %u, empty %d, pos %u %u %u", selectedInfo.materialID, selectedInfo.chunkID, selectedInfo.normal, selectedInfo.isEmpty(), selectedInfo.position.x, selectedInfo.position.y, selectedInfo.position.z);
+	ImGui::Text("Selected: material %d, chunk %u, normal %u, empty %d, world pos %d %d %d", selectedInfo.materialID, selectedInfo.chunkID, selectedInfo.normal, selectedInfo.isEmpty(), selectedInfo.world_pos.x, selectedInfo.world_pos.y, selectedInfo.world_pos.z);
 
 	ImGui::Text("%u vertices", num_verts);
 	ImGui::InputFloat3("Position", glm::value_ptr(pos.pos));

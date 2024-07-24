@@ -85,7 +85,8 @@ SelectedBlockInfo World::getBlockInfo(const glm::ivec3 &position) {
 		pos.z = position.z % CHUNK_SIZE;
 	}
 
-	ret.position = pos;
+	ret.local_pos = pos;
+	ret.world_pos = position;
 	ret.materialID = chunk->getVoxelAt(pos).material_id;
 	ret._isEmpty = chunk->isVoxelEmptyAt(pos);
 
@@ -116,7 +117,7 @@ SelectedBlockInfo World::getSelectedBlock(const glm::vec3 &position, const glm::
 
 	if (dx == 0 && dy == 0 && dz == 0) {
 		// throw std::range_error("Raycast in zero direction!");
-		return SelectedBlockInfo(-1, 0, 0, true, {});
+		return SelectedBlockInfo(-1, 0, 0, true, {}, {});
 	}
 
 	// will optimize this later
@@ -204,7 +205,7 @@ SelectedBlockInfo World::getSelectedBlock(const glm::vec3 &position, const glm::
 
 	}
 	// nothing found within range
-	return SelectedBlockInfo(-1, 0, 0, true, {});
+	return SelectedBlockInfo(-1, 0, 0, true, {}, {});
 }
 
 // void World::addSphere(const glm::vec3 &center, GLfloat radius) {
@@ -243,7 +244,7 @@ SelectedBlockInfo World::getSelectedBlock(const glm::vec3 &position, const glm::
 // }
 
 void World::breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius) {
-	const glm::vec3 center = glm::vec3(getWorldCoords(selectedInfo.chunkID, selectedInfo.position));
+	const glm::vec3 center = glm::vec3(selectedInfo.world_pos); //glm::vec3(getWorldCoords(selectedInfo.chunkID, selectedInfo.position));
 	// const GLfloat radius_squared = radius * radius;
 
 	// this constant is the size of the diagonal of a 1x1 cube (ie, the biggest possible distance inside of it)
@@ -252,28 +253,47 @@ void World::breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radi
 
 	// 2 spheres will be calculated, one that is big enough to make sure no chunk that should be considered is in fact not considered,
 	// and a smaller one where all chunks within can be considered as being completely empty after the destruction
-	const GLfloat big_radius   = radius + diagonal * CHUNK_SIZE_FLOAT;
-	const GLfloat small_radius = radius - diagonal * CHUNK_SIZE_FLOAT;
+	const GLfloat big_radius   = radius + (diagonal * CHUNK_SIZE_FLOAT);
+	const GLfloat small_radius = radius - (diagonal * CHUNK_SIZE_FLOAT);
 
 	// if it is small enough, no chunk could ever possibli fit inside
 	// > vs >= ???
 
 	if (small_radius >= CHUNK_SIZE_FLOAT) {
 		// calculate the bounding box and destroy every chunk inside it
-		GLint min_x = glm::clamp(static_cast<GLint>(((center.x - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X),
-		      max_x = glm::clamp(static_cast<GLint>(((center.x + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X),
-			  min_y = glm::clamp(static_cast<GLint>(((center.y - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y),
-			  max_y = glm::clamp(static_cast<GLint>(((center.y + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y),
-			  min_z = glm::clamp(static_cast<GLint>(((center.z - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z),
-			  max_z = glm::clamp(static_cast<GLint>(((center.z + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z);
+		GLint min_x = glm::clamp(static_cast<GLint>(((center.x - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X - 1),
+		      max_x = glm::clamp(static_cast<GLint>(((center.x + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X - 1),
+			  min_y = glm::clamp(static_cast<GLint>(((center.y - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y - 1),
+			  max_y = glm::clamp(static_cast<GLint>(((center.y + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y - 1),
+			  min_z = glm::clamp(static_cast<GLint>(((center.z - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z - 1),
+			  max_z = glm::clamp(static_cast<GLint>(((center.z + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z - 1);
 
-		printf("center: %f %f %f radius: %f\n", center.x, center.y, center.z, small_radius);
-		printf("x %d %d y %d %d z %d %d\n", min_x, max_x, min_y, max_y, min_z, max_z);
+		// printf("center: %f %f %f radius: %f\n", center.x, center.y, center.z, small_radius);
+		// printf("x %d %d y %d %d z %d %d\n", min_x, max_x, min_y, max_y, min_z, max_z);
 
 		for (GLint x = min_x; x <= max_x; x++) {
 			for (GLint y = min_y; y <= max_y; y++) {
 				for (GLint z = min_z; z <= max_z; z++) {
 					chunks[x][y][z].destroyChunk();
+				}
+			}
+		}
+	}
+
+	GLint min_x = glm::clamp(static_cast<GLint>(((center.x - big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X - 1),
+		  max_x = glm::clamp(static_cast<GLint>(((center.x + big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X - 1),
+		  min_y = glm::clamp(static_cast<GLint>(((center.y - big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y - 1),
+		  max_y = glm::clamp(static_cast<GLint>(((center.y + big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y - 1),
+		  min_z = glm::clamp(static_cast<GLint>(((center.z - big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z - 1),
+		  max_z = glm::clamp(static_cast<GLint>(((center.z + big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z - 1);
+
+
+	for (GLint x = min_x; x <= max_x; x++) {
+		for (GLint y = min_y; y <= max_y; y++) {
+			for (GLint z = min_z; z <= max_z; z++) {
+				Chunk &chunk = chunks[x][y][z];
+				if (! chunk.isDestroyed()) {
+					chunk.breakSphere(center, radius * radius, getChunkCoordsFloat(x, y, z));
 				}
 			}
 		}

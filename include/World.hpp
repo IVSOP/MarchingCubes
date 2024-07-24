@@ -2,7 +2,7 @@
 #define WORLD_H
 
 #include "common.hpp"
-#include "Chunk.hpp"
+// #include "Chunk.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp> // distance2
@@ -96,10 +96,10 @@ struct World {
 	}
 
 	// // SelectedBlockInfo is what the caller will have, and it contains all the information needed to do this
-	// void breakVoxel(const SelectedBlockInfo &selectedInfo) {
-	// 	Chunk &chunk = getChunkByID(selectedInfo.chunkID);
-	// 	chunk.breakVoxelAt(selectedInfo.position);
-	// }
+	void breakVoxel(const SelectedBlockInfo &selectedInfo) {
+		Chunk &chunk = getChunkByID(selectedInfo.chunkID);
+		chunk.breakVoxelAt(selectedInfo.local_pos);
+	}
 
 	// void breakVoxel(const glm::ivec3 position) {
 	// 	// got lazy, this will automatically get chunk and position inside it
@@ -131,6 +131,8 @@ struct World {
 	// start considering chunk center instead of the corner, as its position
 	// move shpere to center of nearest chunk. 1 unit moved = 1 unit reduction in radius (this is usefull for the smaller sphere etc)
 	// clamping takes min and max, sometimes only one is needed
+	// also see https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+	// in the clamps, do +/- 1 to final result instead of using the small and big radius
 	void breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius);
 
 	void loadHeightMap(const std::string &path);

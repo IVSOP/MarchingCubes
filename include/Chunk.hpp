@@ -16,14 +16,9 @@
 #include "LookupTable.hpp"
 
 #include "Phys.hpp"
-// #include <Jolt/Jolt.h>
-// #include <Jolt/RegisterTypes.h>
-// #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
-// #include <Jolt/Physics/Collision/Shape/CylinderShape.h>
-// #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
-// #include <Jolt/Physics/Collision/Shape/BoxShape.h>
-// #include <Jolt/Physics/Collision/Shape/SphereShape.h>
-// #include <Jolt/Physics/Collision/Shape/MeshShape.h>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp> // distance2
 
 
 // normal {
@@ -111,15 +106,35 @@ struct Chunk {
 
 		// but the place where I got my marching cubes data has a weird order for the vertices of the cube
 		// for now this is fast enough but in the future I need to change it
-		data = static_cast<uint8_t>( (corners[pos.y][pos.z].data >> pos.x)               & 0x00000003)       | // 0,1
-			   static_cast<uint8_t>(((corners[pos.y][pos.z + 1].data >> (pos.x + 1))     & 0x00000001) << 2) | // 2
-			   static_cast<uint8_t>(((corners[pos.y][pos.z + 1].data >> pos.x)           & 0x00000001) << 3) | // 3
-			   static_cast<uint8_t>(((corners[pos.y + 1][pos.z].data >> pos.x)           & 0x00000003) << 4) | // 4, 5
+		data = static_cast<uint8_t>( (corners[pos.y][pos.z].data         >> pos.x)       & 0x00000003)       | // 0,1
+			   static_cast<uint8_t>(((corners[pos.y][pos.z + 1].data     >> (pos.x + 1)) & 0x00000001) << 2) | // 2
+			   static_cast<uint8_t>(((corners[pos.y][pos.z + 1].data     >> pos.x)       & 0x00000001) << 3) | // 3
+			   static_cast<uint8_t>(((corners[pos.y + 1][pos.z].data     >> pos.x)       & 0x00000003) << 4) | // 4, 5
 			   static_cast<uint8_t>(((corners[pos.y + 1][pos.z + 1].data >> (pos.x + 1)) & 0x00000001) << 6) | // 6
 			   static_cast<uint8_t>(((corners[pos.y + 1][pos.z + 1].data >> pos.x)       & 0x00000001) << 7);  // 7
 
 		return data;
 
+	}
+
+	constexpr void setDataAt(const glm::u8vec3 &pos, const Bitmap<8> _data) {
+
+		const uint32_t data = static_cast<uint32_t>(_data.data);
+
+		// cursed wtf
+		corners[pos.y][pos.z].data         &= ~(0x00000003 << pos.x);
+		corners[pos.y][pos.z + 1].data     &= ~(0x00000001 << (pos.x + 1));
+		corners[pos.y][pos.z + 1].data     &= ~(0x00000001 << pos.x);
+		corners[pos.y + 1][pos.z].data     &= ~(0x00000003 << pos.x);
+		corners[pos.y + 1][pos.z + 1].data &= ~(0x00000001 << (pos.x + 1));
+		corners[pos.y + 1][pos.z + 1].data &= ~(0x00000001 << pos.x);
+
+		corners[pos.y][pos.z].data         |= ((data & 0x00000003) << pos.x);
+		corners[pos.y][pos.z + 1].data     |= (((data >> 2) & 0x00000001) << (pos.x + 1));
+		corners[pos.y][pos.z + 1].data     |= (((data >> 3) & 0x00000001) << pos.x);
+		corners[pos.y + 1][pos.z].data     |= (((data >> 4) & 0x00000003) << pos.x);
+		corners[pos.y + 1][pos.z + 1].data |= (((data >> 6) & 0x00000001) << (pos.x + 1));
+		corners[pos.y + 1][pos.z + 1].data |= (((data >> 7) & 0x00000001) << pos.x);
 	}
 
 	Voxel getVoxelAt(const glm::u8vec3 &pos) const {
@@ -140,10 +155,30 @@ struct Chunk {
 	// 	vertsHaveChanged = true;
 	// }
 
-	// constexpr void breakVoxelAt(const glm::u8vec3 &pos) {
-	// 	voxels[pos.y][pos.z][pos.x].data.clear();
-	// 	vertsHaveChanged = true;
-	// }
+	constexpr void breakVoxelAt(const glm::u8vec3 &pos) {
+		// constexpr Bitmap<8> data = 0x00;
+		// setDataAt(pos, data);
+
+		corners[pos.y][pos.z].data         &= ~(0x00000003 << pos.x);
+		corners[pos.y][pos.z + 1].data     &= ~(0x00000001 << (pos.x + 1));
+		corners[pos.y][pos.z + 1].data     &= ~(0x00000001 << pos.x);
+		corners[pos.y + 1][pos.z].data     &= ~(0x00000003 << pos.x);
+		corners[pos.y + 1][pos.z + 1].data &= ~(0x00000001 << (pos.x + 1));
+		corners[pos.y + 1][pos.z + 1].data &= ~(0x00000001 << pos.x);
+
+		vertsHaveChanged = true; // do not do this here since this gets called many times TODO
+	}
+
+	constexpr void breakCornerAt(const glm::u8vec3 &pos) {
+		corners[pos.y][pos.z].clearBit(pos.x);
+		corners[pos.y][pos.z + 1].clearBit(pos.x);
+		corners[pos.y][pos.z + 1].clearBit(pos.x);
+		corners[pos.y + 1][pos.z].clearBit(pos.x);
+		corners[pos.y + 1][pos.z + 1].clearBit(pos.x);
+		corners[pos.y + 1][pos.z + 1].clearBit(pos.x);
+
+		vertsHaveChanged = true; // do not do this here since this gets called many times TODO
+	}
 
 	// constexpr void setVoxelValue(const glm::u8vec3 &pos, const Bitmap<8> &value) {
 	// 	voxels[pos.y][pos.z][pos.x].data = value;
@@ -338,6 +373,27 @@ struct Chunk {
 	// 		triangles.push_back(JPH::Triangle(v1, v2, v3));
 	// 	}
 	// }
+
+	// TODO EXTREMELY unoptimized
+	void breakSphere(const glm::vec3 &center, GLfloat radius_squared, const glm::vec3 &offset) {
+		// GLint min_x = glm::clamp(static_cast<GLint>(center.x - radius), 0, CHUNK_SIZE),
+		//       max_x = glm::clamp(static_cast<GLint>(center.x + radius), 0, CHUNK_SIZE),
+		//       min_y = glm::clamp(static_cast<GLint>(center.y - radius), 0, CHUNK_SIZE),
+		//       max_y = glm::clamp(static_cast<GLint>(center.y + radius), 0, CHUNK_SIZE),
+		//       min_z = glm::clamp(static_cast<GLint>(center.z - radius), 0, CHUNK_SIZE),
+		//       max_z = glm::clamp(static_cast<GLint>(center.z + radius), 0, CHUNK_SIZE);
+
+		for (GLint x = 0; x < CHUNK_SIZE_CORNERS; x++) {
+			for (GLint y = 0; y < CHUNK_SIZE_CORNERS; y++) {
+				for (GLint z = 0; z < CHUNK_SIZE_CORNERS; z++) {
+					if (glm::distance2(glm::vec3(x, y, z) + offset, center) <= radius_squared) {
+						// breakVoxelAt(glm::u8vec3(x, y, z));
+						breakCornerAt(glm::u8vec3(x, y, z));
+					}
+				}
+			}
+		}
+	}
 };
 
 
