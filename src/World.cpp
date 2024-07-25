@@ -293,54 +293,13 @@ void World::breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radi
 			for (GLint z = min_z; z <= max_z; z++) {
 				Chunk &chunk = chunks[x][y][z];
 				if (! chunk.isDestroyed()) {
+					// printf("considering chunk %d %d %d (%f %f %f)\n", x, y, z, getChunkCoordsFloat(x, y, z).x, getChunkCoordsFloat(x, y, z).y, getChunkCoordsFloat(x, y, z).z);
 					chunk.breakSphere(center, radius * radius, getChunkCoordsFloat(x, y, z));
 				}
 			}
 		}
 	}
-
-	
-
-	// // box that sphere is contained in
-	// // +/-1 is needed to make sure shared corners are broken correctly
-	// GLint min_x = glm::clamp(static_cast<GLint>(real_center_float.x - radius) - 1, MIN_X, MAX_X),
-	// 	  max_x = glm::clamp(static_cast<GLint>(real_center_float.x + radius) + 1, MIN_X, MAX_X),
-	// 	  min_y = glm::clamp(static_cast<GLint>(real_center_float.y - radius) - 1, MIN_Y, MAX_Y),
-	// 	  max_y = glm::clamp(static_cast<GLint>(real_center_float.y + radius) + 1, MIN_Y, MAX_Y),
-	// 	  min_z = glm::clamp(static_cast<GLint>(real_center_float.z - radius) - 1, MIN_Z, MAX_Z),
-	// 	  max_z = glm::clamp(static_cast<GLint>(real_center_float.z + radius) + 1, MIN_Z, MAX_Z);
-
-	// GLfloat dist_squared;
-
-	// Bitmap<8> mask;
-	// mask.setAllTrue();
-
-	// for (GLint x = min_x; x <= max_x; x++) {
-	// 	for (GLint y = min_y; y <= max_y; y++) {
-	// 		for (GLint z = min_z; z <= max_z; z++) {
-
-	// 			const glm::vec3 pos = glm::vec3(x, y, z);
-
-	// 			if (glm::distance2(real_center_float, pos) <= small_radius_squared) {
-	// 				breakVoxel(glm::ivec3(pos));
-	// 			} else {
-	// 				for (GLubyte corner = 0; corner < 8; corner++) {
-	// 					const glm::vec3 final_pos = LookupTable::corner_coords[corner] + pos;
-	// 					dist_squared = glm::distance2(real_center_float, final_pos);
-
-	// 					// corner is inside breaking sphere
-	// 					if (dist_squared <= radius_squared) {
-	// 						mask.clearBit(corner);
-	// 					}
-	// 				}
-
-	// 				maskVoxelValue(glm::ivec3(pos), mask);
-
-	// 				mask.setAllTrue();
-	// 			}
-	// 		}
-	// 	}
-	// }
+	// exit(1);
 }
 
 // TODO not optimized
@@ -350,9 +309,9 @@ void World::loadHeightMap(const std::string &path) {
 	constexpr int expected_height = WORLD_SIZE_Z * CHUNK_SIZE;
 
 	// offset that places world on the positive quadrants
-	constexpr glm::ivec3 offset = glm::ivec3(((WORLD_SIZE_X / 2) * CHUNK_SIZE),
-											 ((WORLD_SIZE_Y / 2) * CHUNK_SIZE),
-											 ((WORLD_SIZE_Z / 2) * CHUNK_SIZE));
+	constexpr glm::ivec3 offset = glm::ivec3(((WORLD_SIZE_X / 2) * CHUNK_SIZE_CORNERS),
+											 ((WORLD_SIZE_Y / 2) * CHUNK_SIZE_CORNERS),
+											 ((WORLD_SIZE_Z / 2) * CHUNK_SIZE_CORNERS));
 
 	int width, height, BPP;
 	unsigned char *buffer =	stbi_load(path.c_str(), &width, &height, &BPP, 1);

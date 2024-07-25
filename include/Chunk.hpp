@@ -6,6 +6,7 @@
 #define CHUNK_SIZE_CORNERS (CHUNK_SIZE + 1)
 
 #define CHUNK_SIZE_FLOAT static_cast<GLfloat>(CHUNK_SIZE)
+#define CHUNK_SIZE_CORNERS_FLOAT static_cast<GLfloat>(CHUNK_SIZE_CORNERS)
 
 #include <vector>
 #include "VertContainer.hpp"
@@ -171,11 +172,6 @@ struct Chunk {
 
 	constexpr void breakCornerAt(const glm::u8vec3 &pos) {
 		corners[pos.y][pos.z].clearBit(pos.x);
-		corners[pos.y][pos.z + 1].clearBit(pos.x);
-		corners[pos.y][pos.z + 1].clearBit(pos.x);
-		corners[pos.y + 1][pos.z].clearBit(pos.x);
-		corners[pos.y + 1][pos.z + 1].clearBit(pos.x);
-		corners[pos.y + 1][pos.z + 1].clearBit(pos.x);
 
 		vertsHaveChanged = true; // do not do this here since this gets called many times TODO
 	}
