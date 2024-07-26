@@ -163,6 +163,7 @@ public:
 
 	static JPH::Body *createBody(const JPH::TriangleList &triangles);
 	static JPH::Body *createBody(const JPH::TriangleList &triangles, const glm::vec3 &coords);
+	static JPH::Body *createBodyWithNormals(const JPH::TriangleList &triangles, const glm::vec3 &coords, const JPH::Vec3 *normals);
 	static JPH::Body *createEmptyBody(); // DO NOT USE
 	static void destroyBody(JPH::Body *body);
 	static void setBodyMeshShape(JPH::Body *body, const JPH::TriangleList &triangles);

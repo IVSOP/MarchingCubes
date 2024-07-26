@@ -158,6 +158,40 @@ JPH::Body *Phys::createBody(const TriangleList &triangles, const glm::vec3 &coor
 	return body;
 }
 
+JPH::Body *Phys::createBodyWithNormals(const TriangleList &triangles, const glm::vec3 &coords, const Vec3 *normals) {
+	BodyInterface &bodyInterface = getBodyInterface();
+
+	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
+	meshShapeSettings.SetEmbedded();
+	JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get(); // this vs JPH::MeshShapeSettings* ????? TODO
+
+	JPH::Vec3 terrainPosition = JPH::Vec3(coords.x, coords.y, coords.z);
+	JPH::Quat terrainRotation = JPH::Quat::sIdentity();
+
+	// this can receive either shape or shape settings, and only needs a pointer
+	// need to figure out what is the optimal way to do things
+	// can receive shape * or settings *
+	JPH::BodyCreationSettings bodySettings(meshShape, terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
+
+	// could also receive indices
+	Body *body = bodyInterface.CreateBody(bodySettings);
+
+	// TODO remove this
+	if (body == nullptr) {
+		exit(5);
+	}
+
+	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
+	// TODO delete body
+
+
+	// Vec3 a = meshShape->GetCenterOfMass();
+	// printf("%f %f %f\n", a.GetX(), a.GetY(), a.GetZ());
+	// exit(1);
+
+	return body;
+}
+
 // THIS SEGFAULTS , DO NOT USE
 // pretty sure there is no way to make it ever work
 JPH::Body *Phys::createEmptyBody() {

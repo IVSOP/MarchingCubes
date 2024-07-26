@@ -64,6 +64,7 @@ struct Chunk {
 	// TODO look into optimizing this, maybe calculate the indices myself. it is important that building a chunk is as fast as possible
 	// TODO the normals can also be precomputed. for now I'm going doin the easy path
 	JPH::TriangleList triangles;
+	// std::vector<JPH::Vec3> normals;
 	JPH::Body *body;
 
 	Chunk() {
@@ -251,6 +252,7 @@ struct Chunk {
 		const glm::vec3 pos_float = glm::vec3(pos);
 		glm::vec3 g1, g2, g3;
 		JPH::Float3 v1, v2, v3; // TODO fix this mess of conversions
+		glm::vec3 normal;
 
 		Vertex vert;
 		// for every 3 edges we can make a triangle
@@ -281,6 +283,9 @@ struct Chunk {
 			v3.x = g3.x; v3.y = g3.y; v3.z = g3.z;
 
 			triangles.push_back(JPH::Triangle(v1, v2, v3));
+
+			// normal = LookupTable::normals[edgeIndexA][edgeIndexB][edgeIndexC];
+			// normals.push_back(JPH::Vec3(normal.x, normal.y, normal.z));
 		}
 	}
 
@@ -289,6 +294,7 @@ struct Chunk {
 		verts.clear();
 		debug_points.clear();
 		triangles.clear();
+		// normals.clear();
 
 		ZoneScoped;
 
@@ -307,7 +313,7 @@ struct Chunk {
 			if (body != nullptr) {
 				Phys::setBodyMeshShape(body, triangles);
 			} else {
-				body = Phys::createBody(triangles, coords);
+				body = Phys::createBodyWithNormals(triangles, coords, normals.data());
 			}
 		} else { // no triangles
 			if (body != nullptr) {

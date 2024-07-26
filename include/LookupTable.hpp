@@ -17,6 +17,8 @@ struct LookupTable {
 	static const int8_t triTable[256][16];
 	static const glm::vec3 finalCoords[12];
 	static void getNormals();
+	static void getNormals2();
+	static const glm::vec3 normals[12][12][12];
 };
 
 // typedef struct {
