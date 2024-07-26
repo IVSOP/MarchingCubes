@@ -22,6 +22,9 @@
 #include <glm/gtx/norm.hpp> // distance2
 
 
+#include <tracy/Tracy.hpp>
+// TracyOpenGL.hpp
+
 // normal {
 // 	0 - y (bottom)
 // 	1 + y (top)
@@ -286,6 +289,8 @@ struct Chunk {
 		verts.clear();
 		debug_points.clear();
 		triangles.clear();
+
+		ZoneScoped;
 
 		for (GLuint y = 0; y < CHUNK_SIZE; y ++) {
 			for (GLuint z = 0; z < CHUNK_SIZE; z ++) {

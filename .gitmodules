@@ -16,3 +16,6 @@
 [submodule "external/JoltPhysics"]
 	path = external/JoltPhysics
 	url = git@github.com:jrouwe/JoltPhysics.git
+[submodule "external/tracy"]
+	path = external/tracy
+	url = https://github.com/wolfpld/tracy

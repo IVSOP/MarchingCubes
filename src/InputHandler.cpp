@@ -108,8 +108,7 @@ void InputHandler::applyInputs(World *world, const SelectedBlockInfo &selectedIn
 			if ((&keys[GLFW_MOUSE_BUTTON_LEFT])->last_mods == GLFW_MOD_SHIFT) {
 				world->breakVoxelSphere(selectedInfo, break_radius);
 			} else {
-				// world->breakVoxelSafe(selectedInfo);
-				world->breakVoxelSphere(selectedInfo, 1.0f);
+				world->breakVoxel(selectedInfo);
 				// printf("breaking voxel at %d %d %d\n", selectedInfo.getWorldPosition().x, selectedInfo.getWorldPosition().y, selectedInfo.getWorldPosition().z);
 				// world->breakVoxelSphere(selectedInfo, 1.0f);
 			}

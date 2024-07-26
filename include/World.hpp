@@ -95,10 +95,13 @@ struct World {
 		return cursed_ptr[chunkID];
 	}
 
-	// // SelectedBlockInfo is what the caller will have, and it contains all the information needed to do this
+	// SelectedBlockInfo is what the caller will have, and it contains all the information needed to do this
+	// TODO optimize, sometimes gettint outside chunks might not be needed
 	void breakVoxel(const SelectedBlockInfo &selectedInfo) {
-		Chunk &chunk = getChunkByID(selectedInfo.chunkID);
-		chunk.breakVoxelAt(selectedInfo.local_pos);
+		// Chunk &chunk = getChunkByID(selectedInfo.chunkID);
+		// chunk.breakVoxelAt(selectedInfo.local_pos);
+		constexpr GLfloat diagonal = 1.73205080757f;
+		breakVoxelSphere(selectedInfo, diagonal);
 	}
 
 	// void breakVoxel(const glm::ivec3 position) {

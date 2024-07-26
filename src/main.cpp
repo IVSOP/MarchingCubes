@@ -4,6 +4,8 @@
 
 #include "Phys.hpp"
 
+#include <tracy/Tracy.hpp>
+
 #define APP_ID 480
 
 int main(int argc, char **argv) {

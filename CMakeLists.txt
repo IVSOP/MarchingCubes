@@ -8,17 +8,19 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 
+set(TRACY_DEFINES "-DTRACY_ENABLE -D TRACY_ONLY_LOCALHOST -DTRACY_NO_CRASH_HANDLER") #-DTRACY_NO_BROADCAST
+
 if (WIN32)
 
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} -O2")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -O2")
 
 	cmake_policy(SET CMP0072 NEW)
 
 else (WIN32)
-	set(CMAKE_CXX_FLAGS_DEBUG "${GCC_COVERAGE_COMPILE_FLAGS} -Wno-deprecated ${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3")
+	set(CMAKE_CXX_FLAGS_DEBUG "${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -Wno-deprecated ${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3")
 	# I have no idea if _RELEASE is even doing anything here or if the vars after also should have it
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} -Wno-deprecated -O2 -Wall -Wextra -pedantic -Wno-unused-parameter")
-	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} -DPROFILING")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -Wno-deprecated -O2 -Wall -Wextra -pedantic -Wno-unused-parameter")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -DPROFILING")
 endif(WIN32)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -89,6 +91,9 @@ add_subdirectory(external/JoltPhysics/Build)
 include_directories(external/JoltPhysics/Jolt)
 include(Jolt_Cmake.cmake)
 
+add_subdirectory(external/tracy)
+include_directories(external/tracy/public/tracy)
+
 include_directories(external/steamworks/sdk/public/)
 
 add_executable(MarchingCubes
@@ -130,6 +135,7 @@ if (LINUX_TO_WINDOWS)
 		EnTT::EnTT
 		Jolt
 		steam_api64
+		Tracy::TracyClient
 	)
 
 else (LINUX_TO_WINDOWS)
@@ -138,8 +144,8 @@ else (LINUX_TO_WINDOWS)
 		# 	glfw
 		# 	# GLEW::GLEW
 		# 	# OpenGL::GL
-		# 	${OPENGL_LIBRARIES} 
-		# 	${TOOLKITS_FOLDER}/glut/glut32.lib 
+		# 	${OPENGL_LIBRARIES}
+		# 	${TOOLKITS_FOLDER}/glut/glut32.lib
 		# 	${TOOLKITS_FOLDER}/glew/glew32.lib
 		# 	EnTT::EnTT
 		# 	Jolt
@@ -154,6 +160,7 @@ else (LINUX_TO_WINDOWS)
 				EnTT::EnTT
 				Jolt
 				steam_api
+				Tracy::TracyClient
 		)
 
 	endif (WIN32)
