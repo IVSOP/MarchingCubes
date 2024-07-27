@@ -5,6 +5,7 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize2.h"
 
+#include "Crash.hpp"
 #include "Logs.hpp"
 
 TextureArray::TextureArray(GLsizei _width, GLsizei _height, GLsizei _depth)
@@ -36,19 +37,14 @@ TextureArray::~TextureArray() {
 
 // texture array needs to be bound but not necessarily activated
 void TextureArray::addTexture(const char path[]) {
-	if (this->sp >= this->depth - 1) {
-		Log::log(LOG_TYPE::ERR, std::string(__func__), "sp exceeds max depth. This class is not prepared to handle such cases, change it to have multiple texture arrays and manage them or something");
-		exit(EXIT_FAILURE);
-	}
+	CRASH_IF(this->sp >= this->depth - 1, "sp exceeds max depth. This class is not prepared to handle such cases, change it to have multiple texture arrays and manage them or something");
 
 	stbi_set_flip_vertically_on_load(true);
 	int _width, _height, BPP;
 	unsigned char *buffer =	stbi_load(path, &_width, &_height, &BPP, 4); // 4 -> RGBA or just use STBI_rgb_alpha
 
-	if (!buffer) {
-		Log::log(LOG_TYPE::ERR, std::string(__func__), "Error loading image");
-		exit(EXIT_FAILURE);
-	}
+	CRASH_IF(!buffer, "Error loading image");
+
 
 	if (_width != this->width || _height != this->height) {
 		#ifndef __WIN32

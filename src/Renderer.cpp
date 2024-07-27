@@ -6,6 +6,7 @@
 #include "Vertex.hpp"
 #include "Material.hpp"
 #include "Camera.hpp"
+#include "Crash.hpp"
 
 // I know full well how cursed this is
 #define TEX_ARRAY_SLOT 0
@@ -699,8 +700,5 @@ void Renderer::resizeViewport(GLsizei viewport_width, GLsizei viewport_height) {
 void Renderer::checkFrameBuffer() {
 	GLCall(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
 
-	if (status != GL_FRAMEBUFFER_COMPLETE) {
-    	puts("Error in fbo");
-		exit(1);
-	}
+	CRASH_IF(status != GL_FRAMEBUFFER_COMPLETE, "Error in fbo");
 }

@@ -1,4 +1,5 @@
 #include "Phys.hpp"
+#include "Crash.hpp"
 
 using namespace JPH;
 
@@ -109,12 +110,9 @@ JPH::Body *Phys::createBody(const TriangleList &triangles) {
 	Body *body = bodyInterface.CreateBody(bodySettings);
 
 	// TODO remove this
-	if (body == nullptr) {
-		exit(5);
-	}
+	CRASH_IF(body == nullptr, "No more bodies available");
 
 	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
-	// TODO delete body
 
 
 	// Vec3 a = meshShape->GetCenterOfMass();
@@ -143,12 +141,9 @@ JPH::Body *Phys::createBody(const TriangleList &triangles, const glm::vec3 &coor
 	Body *body = bodyInterface.CreateBody(bodySettings);
 
 	// TODO remove this
-	if (body == nullptr) {
-		exit(5);
-	}
+	CRASH_IF(body == nullptr, "No more bodies available");
 
 	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
-	// TODO delete body
 
 
 	// Vec3 a = meshShape->GetCenterOfMass();
@@ -213,9 +208,7 @@ JPH::Body *Phys::createEmptyBody() {
 	Body *body = bodyInterface.CreateBody(bodySettings);
 
 	// TODO remove this
-	if (body == nullptr) {
-		exit(5);
-	}
+	CRASH_IF(body == nullptr, "No more bodies available");
 
 	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
 	// TODO delete body

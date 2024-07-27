@@ -7,6 +7,7 @@
 #include "stb_image_resize2.h"
 
 #include "Logs.hpp"
+#include "Crash.hpp"
 
 /*
 DESIGN CHOICES:
@@ -316,10 +317,7 @@ void World::loadHeightMap(const std::string &path) {
 	int width, height, BPP;
 	unsigned char *buffer =	stbi_load(path.c_str(), &width, &height, &BPP, 1);
 
-	if (!buffer) {
-		Log::log(LOG_TYPE::ERR, std::string(__func__), "Error loading image");
-		exit(EXIT_FAILURE);
-	}
+	CRASH_IF(!buffer, "Error loading image");
 
 	if (width != expected_width || height != expected_height) {
 		Log::log(LOG_TYPE::WARN, std::string(__PRETTY_FUNCTION__),

@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "Crash.hpp"
 
 const GLchar *readFromFile(const char *filepath) {
     std::ifstream inFile(filepath, std::ios::binary);
@@ -19,15 +20,11 @@ const GLchar *readFromFile(const char *filepath) {
 
         /*if (charread. != fileSize) {
             fprintf(stderr, "Did not read all chars: %ld vs %ld\n", size, charread);
-            exit(1);
+            // exit(1);
         }*/
 
         return ret;
     }
 
-    std::cerr << "Invalid file path " << filepath << std::endl;
-
-    exit(1);
+    CRASH_IF(true, "Invalid file path: " + std::string(filepath));
 }
-
-

@@ -113,6 +113,7 @@ add_executable(MarchingCubes
 		src/LookupTable.cpp
 		src/Logs.cpp
 		src/Phys.cpp
+		src/Crash.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp
