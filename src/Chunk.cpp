@@ -93,6 +93,7 @@ void Chunk::rebuildVerts() {
 // data should already be offset itself
 																	// offset that places world on the positive quadrants
 void Chunk::generate(const glm::ivec3 &chunk_pos, unsigned char *data, int width, const glm::ivec3 &offset, GLbyte material) {
+	destroyed = false;
 	glm::ivec3 pos;
 	unsigned char height;
 

@@ -66,10 +66,12 @@ struct Chunk {
 	JPH::TriangleList triangles;
 	// std::vector<JPH::Vec3> normals;
 	JPH::Body *body;
+	bool destroyed; // TODO I don't like this
 
 	Chunk() {
 		// create the physics body
 		body = nullptr;
+		destroyed = true;
 	}
 
 	~Chunk() {
@@ -82,9 +84,11 @@ struct Chunk {
 	// destructor that can be called manually to clean things up
 	// WARNING will clear the std::vectors and their memory
 	void destroyChunk() {
+		destroyed = true;
+
 		if (body) {
 			Phys::destroyBody(body);
-			body = nullptr;
+			body = nullptr; // for safety, I would rather get a segfault than weird bugs
 		}
 
 		verts.clear();
@@ -102,7 +106,7 @@ struct Chunk {
 
 	// extremely shitty
 	constexpr bool isDestroyed() const {
-		return (body == nullptr);
+		return destroyed;
 	}
 
 	constexpr Bitmap<8> getDataAt(const glm::u8vec3 &pos) const {
