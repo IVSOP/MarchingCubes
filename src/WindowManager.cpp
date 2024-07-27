@@ -62,7 +62,7 @@ void glfw_handleFileDrop_callback(GLFWwindow* window, int count, const char** pa
 }
 
 WindowManager::WindowManager(int windowWidth, int windowHeight, Client *client)
-: windowFov(90.0), windowZNear(0.1), windowZFar(1000.0), windowWidth(windowWidth), windowHeight(windowHeight)
+: windowFov(90.0), windowZNear(0.1), windowZFar(10000.0), windowWidth(windowWidth), windowHeight(windowHeight)
 {
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit()) {

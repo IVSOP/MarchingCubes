@@ -12,7 +12,6 @@
 
 class Renderer {
 public:
-
 	Renderer() = delete;
 	Renderer(GLsizei viewport_width, GLsizei viewport_height);
 	~Renderer();
