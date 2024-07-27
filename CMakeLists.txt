@@ -105,6 +105,7 @@ add_executable(MarchingCubes
 		src/Client.cpp
 		src/Player.cpp
 		src/World.cpp
+		src/Chunk.cpp
 		src/Renderer.cpp
 		src/WindowManager.cpp
 		src/InputHandler.cpp

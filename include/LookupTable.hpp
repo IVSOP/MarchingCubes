@@ -9,16 +9,37 @@
 // https://paulbourke.net/geometry/polygonise/
 
 struct LookupTable {
-	static const uint16_t edgeTable[256]; // ????
+	// for each of the 256 cube configuration cases, what edges are active
+	static const uint16_t edgeTable[256];
+
+	// I forgor, no longer use it
 	static const uint8_t cornerIndexAFromEdge[12];
 	static const uint8_t cornerIndexBFromEdge[12];
+
 	static const glm::vec3 corner_coords[8];
-	// for each of the 256 cube configuration cases, array with the indices of the vertex
+
+	// for each of the 256 cube configuration cases, array with the indices of the active edges
+	// array always ends in -1
 	static const int8_t triTable[256][16];
+
+	// for each of the 256 cube configuration cases, how many active edges it has
+	// TODO just look at it, there is some weird pattern going on
+	static const uint8_t num_edges[256];
+
+	// for each of the 256 cube configuration cases, array with the indices of the active edges
+	// you must use num_edges to find out how big the array is, the unused values are undefined
+	static const uint8_t edges[256][15];
+
+	// for each of the 12 edges, their position inside the cube
 	static const glm::vec3 finalCoords[12];
+
+	// for [edgeA][edgeB][edgeC], the normal of the resulting triangle
+	static const glm::vec3 normals[12][12][12];
+
 	static void getNormals();
 	static void getNormals2();
-	static const glm::vec3 normals[12][12][12];
+	static void getNumEdges();
+	static void getEdges();
 };
 
 // typedef struct {

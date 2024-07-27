@@ -58,7 +58,7 @@ struct Chunk {
 	bool vertsHaveChanged = true;
 	// [i] corresponds to normal == i
 	std::vector<Vertex> verts; // I suspect that most chunks will have empty space so I use a vector. idk how bad this is, memory will be extremely sparse. maybe using a fixed size array here will be better, need to test
-	std::vector<Point> debug_points;
+	// std::vector<Point> debug_points;
 
 	// internaly, it seems like jolt turns triangles into a list of triangles with indices
 	// TODO look into optimizing this, maybe calculate the indices myself. it is important that building a chunk is as fast as possible
@@ -80,12 +80,17 @@ struct Chunk {
 	}
 
 	// destructor that can be called manually to clean things up
-	// WARNING for now does not reset the vertex/triangles arrays, just clears them (memory still taken up)
+	// WARNING will clear the std::vectors and their memory
 	void destroyChunk() {
 		if (body) {
 			Phys::destroyBody(body);
 			body = nullptr;
 		}
+
+		verts.clear();
+		verts.shrink_to_fit();
+		triangles.clear();
+		triangles.shrink_to_fit();
 
 		// reset bitmask
 		// just memset, should be fast
@@ -142,7 +147,7 @@ struct Chunk {
 		corners[pos.y + 1][pos.z + 1].data |= (((data >> 7) & 0x00000001) << pos.x);
 	}
 
-	Voxel getVoxelAt(const glm::u8vec3 &pos) const {
+	constexpr Voxel getVoxelAt(const glm::u8vec3 &pos) const {
 		return Voxel(getDataAt(pos).data, materials[pos.y][pos.z][pos.x]);
 	}
 
@@ -194,7 +199,7 @@ struct Chunk {
 	// 	return ! isEmptyAt(x, y, z);
 	// }
 
-	std::vector<Vertex> &getVerts(GLuint normal) {
+	constexpr std::vector<Vertex> &getVerts(GLuint normal) {
 		// if (vertsHaveChanged) {
 		// 	rebuildVerts();
 		// }
@@ -214,98 +219,22 @@ struct Chunk {
 		// if (vertsHaveChanged) {
 		// 	rebuildVerts();
 		// }
-		_points.add(debug_points);
-		return debug_points.size();
+		// _points.add(debug_points);
+		// return debug_points.size();
+		return 0;
 	}
 
-	void generateVoxelTriangles(GLuint x, GLuint y, GLuint z) {
-		
-		// for (GLuint y = 0; y < CHUNK_SIZE; y++) {
-		// 	for (GLuint z = 0; z < CHUNK_SIZE; z++) {
-		// 		if (corners[y][z].data != 0xFFFFFFFF && corners[y][z].data != 0x00000000) {
-		// 			corners[y][z].print();
-		// 		}
-		// 	}
-		// }
+	void generateVoxelTriangles(GLuint x, GLuint y, GLuint z);
 
-		// Bitmap<8> cubedata = voxels[y][z][x].data;
-		const glm::u8vec3 pos = glm::u8vec3(x, y, z);
-		uint8_t cubedata = getDataAt(pos).data;
+	void rebuildVerts();
 
+	// TODO types and casts are awful here
+	// data should already be offset itself
+																		// offset that places world on the positive quadrants
+	void generate(const glm::ivec3 &chunk_pos, unsigned char *data, int width, const glm::ivec3 &offset, GLbyte material);
 
-		// if it is completely inside or outside, nothing gets drawn
-		// idk if this makes anything faster, but it helps when using debug points
-		if (cubedata == 0xFF || cubedata == 0x00) {
-			return;
-		}
-
-		// const glm::vec3 pos_in_chunk = glm::vec3(static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z));
-		// for (GLubyte corner = 0; corner < 8; corner ++) {
-		// 	if (cubedata & (1 << corner)) {
-		// 		points.emplace_back(LookupTable::corner_coords[corner] + pos_in_chunk);
-		// 	}
-		// }
-
-		// for this configuration, get list of indices corresponding to 'activated' edges
-		const int8_t *edgeIndices = LookupTable::triTable[cubedata];
-
-		const glm::vec3 pos_float = glm::vec3(pos);
-		glm::vec3 g1, g2, g3;
-		JPH::Float3 v1, v2, v3; // TODO fix this mess of conversions
-		glm::vec3 normal;
-
-		Vertex vert;
-		// for every 3 edges we can make a triangle
-		for (int i = 0; i < 16; i += 3) {
-			// If edge index is -1, then no further vertices exist in this configuration
-			if (edgeIndices[i] == -1) { break; }
-			
-			// TODO edgeTable[cubedata] already gives all 3 corners (bit [i] == 1 means one of the corners is [i]). test if that approach is faster 
-
-			// triangle for GPU
-			const GLint edgeIndexA = edgeIndices[i];
-			const GLint edgeIndexB = edgeIndices[i + 1];
-			const GLint edgeIndexC = edgeIndices[i + 2];
-
-			// TODO messy conversions
-			vert = Vertex(pos, glm::uvec3(edgeIndexA, edgeIndexB, edgeIndexC), materials[y][z][x]);
-
-			verts.push_back(vert);
-
-
-			// triangle for JPH
-			g1 = pos_float + LookupTable::finalCoords[edgeIndexA];
-			g2 = pos_float + LookupTable::finalCoords[edgeIndexB];
-			g3 = pos_float + LookupTable::finalCoords[edgeIndexC];
-
-			v1.x = g1.x; v1.y = g1.y; v1.z = g1.z;
-			v2.x = g2.x; v2.y = g2.y; v2.z = g2.z;
-			v3.x = g3.x; v3.y = g3.y; v3.z = g3.z;
-
-			triangles.push_back(JPH::Triangle(v1, v2, v3));
-
-			// normal = LookupTable::normals[edgeIndexA][edgeIndexB][edgeIndexC];
-			// normals.push_back(JPH::Vec3(normal.x, normal.y, normal.z));
-		}
-	}
-
-	void rebuildVerts() {
-		vertsHaveChanged = false;
-		verts.clear();
-		debug_points.clear();
-		triangles.clear();
-		// normals.clear();
-
-		ZoneScoped;
-
-		for (GLuint y = 0; y < CHUNK_SIZE; y ++) {
-			for (GLuint z = 0; z < CHUNK_SIZE; z ++) {
-				for (GLuint x = 0; x < CHUNK_SIZE; x ++) {
-					generateVoxelTriangles(x, y, z);
-				}
-			}
-		}
-	}
+	// TODO EXTREMELY unoptimized
+	void breakSphere(const glm::vec3 &center, GLfloat radius_squared, const glm::vec3 &offset);
 
 	// TODO this is bad
 	void rebuildBody(const glm::vec3 &coords) {
@@ -313,91 +242,13 @@ struct Chunk {
 			if (body != nullptr) {
 				Phys::setBodyMeshShape(body, triangles);
 			} else {
-				body = Phys::createBodyWithNormals(triangles, coords, normals.data());
+				// body = Phys::createBodyWithNormals(triangles, coords, normals.data());
+				body = Phys::createBody(triangles, coords);
 			}
 		} else { // no triangles
 			if (body != nullptr) {
 				Phys::destroyBody(body);
 				body = nullptr;
-			}
-		}
-	}
-
-	// TODO types and casts are awful here
-	// data should already be offset itself
-																		// offset that places world on the positive quadrants
-	void generate(const glm::ivec3 &chunk_pos, unsigned char *data, int width, const glm::ivec3 &offset, GLbyte material) {
-		glm::ivec3 pos;
-		unsigned char height;
-
-		// change to int???
-		for (GLuint y = 0; y < CHUNK_SIZE_CORNERS; y++) {
-			for (GLuint z = 0; z < CHUNK_SIZE_CORNERS; z++) {
-				corners[y][z].clear();
-				for (GLuint x = 0; x < CHUNK_SIZE_CORNERS; x++) {
-
-					pos = chunk_pos + glm::ivec3(x, y, z) + offset; // pos of the corner + offset
-
-					height = data[pos.z * width + pos.x];
-					// if height of voxel <= height of heightmap
-					if (pos.y <= static_cast<GLint>(height)) {
-						corners[y][z].setBit(x);
-					}
-				}
-			}
-		}
-
-		for (GLuint y = 0; y < CHUNK_SIZE; y++) {
-			for (GLuint z = 0; z < CHUNK_SIZE; z++) {
-				for (GLuint x = 0; x < CHUNK_SIZE; x++) {
-					materials[y][z][x] = material;
-				}
-			}
-		}
-
-	}
-
-	// TODO test if doing it like this is faster
-	// void addPhysTerrain(JPH::TriangleList &triangles, const glm::ivec3 &offset) const {
-	// 	glm::u8vec3 pos, edges;
-	// 	glm::vec3 final_pos, g1, g2, g3;
-	// 	JPH::Float3 v1, v2, v3; // what a mess
-
-	// 	for (GLuint i = 0; i < verts.size(); i++) {
-	// 		pos = verts[i].getLocalPos();
-	// 		edges = verts[i].getEdges();
-
-	// 		final_pos = glm::vec3(offset + glm::ivec3(pos));
-
-	// 		g1 = final_pos + LookupTable::finalCoords[edges[0]];
-	// 		g2 = final_pos + LookupTable::finalCoords[edges[1]];
-	// 		g3 = final_pos + LookupTable::finalCoords[edges[2]];
-
-	// 		v1.x = g1.x; v1.y = g1.y; v1.z = g1.z;
-	// 		v2.x = g2.x; v2.y = g2.y; v2.z = g2.z;
-	// 		v3.x = g3.x; v3.y = g3.y; v3.z = g3.z;
-
-	// 		triangles.push_back(JPH::Triangle(v1, v2, v3));
-	// 	}
-	// }
-
-	// TODO EXTREMELY unoptimized
-	void breakSphere(const glm::vec3 &center, GLfloat radius_squared, const glm::vec3 &offset) {
-		// GLint min_x = glm::clamp(static_cast<GLint>(center.x - radius), 0, CHUNK_SIZE),
-		//       max_x = glm::clamp(static_cast<GLint>(center.x + radius), 0, CHUNK_SIZE),
-		//       min_y = glm::clamp(static_cast<GLint>(center.y - radius), 0, CHUNK_SIZE),
-		//       max_y = glm::clamp(static_cast<GLint>(center.y + radius), 0, CHUNK_SIZE),
-		//       min_z = glm::clamp(static_cast<GLint>(center.z - radius), 0, CHUNK_SIZE),
-		//       max_z = glm::clamp(static_cast<GLint>(center.z + radius), 0, CHUNK_SIZE);
-
-		for (GLint x = 0; x < CHUNK_SIZE_CORNERS; x++) {
-			for (GLint y = 0; y < CHUNK_SIZE_CORNERS; y++) {
-				for (GLint z = 0; z < CHUNK_SIZE_CORNERS; z++) {
-					if (glm::distance2(glm::vec3(x, y, z) + offset, center) <= radius_squared) {
-						// breakVoxelAt(glm::u8vec3(x, y, z));
-						breakCornerAt(glm::u8vec3(x, y, z));
-					}
-				}
 			}
 		}
 	}
