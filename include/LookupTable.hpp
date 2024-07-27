@@ -22,8 +22,7 @@ struct LookupTable {
 	// array always ends in -1
 	static const int8_t triTable[256][16];
 
-	// for each of the 256 cube configuration cases, how many active edges it has
-	// TODO just look at it, there is some weird pattern going on
+	// for each of the 256 cube configuration cases, how many triangles it has (edges / 3)
 	static const uint8_t num_edges[256];
 
 	// for each of the 256 cube configuration cases, array with the indices of the active edges

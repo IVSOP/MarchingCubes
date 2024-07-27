@@ -28,8 +28,6 @@ void Chunk::generateVoxelTriangles(GLuint x, GLuint y, GLuint z) {
 	// 	}
 	// }
 
-	// for this configuration, get list of indices corresponding to 'activated' edges
-	const int8_t *edgeIndices = LookupTable::triTable[cubedata];
 
 	const glm::vec3 pos_float = glm::vec3(pos);
 	glm::vec3 g1, g2, g3;
@@ -37,17 +35,35 @@ void Chunk::generateVoxelTriangles(GLuint x, GLuint y, GLuint z) {
 	// glm::vec3 normal;
 
 	Vertex vert;
+
+#ifdef OLD_MARCHING_CUBES
+	// for this configuration, get list of indices corresponding to 'activated' edges
+	const int8_t *edgeIndices = LookupTable::triTable[cubedata];
+
+
 	// for every 3 edges we can make a triangle
 	for (int i = 0; i < 16; i += 3) {
 		// If edge index is -1, then no further vertices exist in this configuration
 		if (edgeIndices[i] == -1) { break; }
 		
 		// TODO edgeTable[cubedata] already gives all 3 corners (bit [i] == 1 means one of the corners is [i]). test if that approach is faster 
-
-		// triangle for GPU
 		const GLint edgeIndexA = edgeIndices[i];
 		const GLint edgeIndexB = edgeIndices[i + 1];
 		const GLint edgeIndexC = edgeIndices[i + 2];
+
+#else
+	
+	const uint8_t num_triangles = LookupTable::num_edges[cubedata];
+	const uint8_t *edges = LookupTable::edges[cubedata];
+
+	for (unsigned int i = 0; i < num_triangles; i ++) {
+		
+		// triangle for GPU
+		const GLint edgeIndexA = edges[i * 3];
+		const GLint edgeIndexB = edges[(i * 3) + 1];
+		const GLint edgeIndexC = edges[(i * 3) + 2];
+
+#endif
 
 		// TODO messy conversions
 		vert = Vertex(pos, glm::uvec3(edgeIndexA, edgeIndexB, edgeIndexC), materials[y][z][x]);
