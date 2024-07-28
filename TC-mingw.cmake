@@ -1,5 +1,8 @@
 # the name of the target operating system
 set(CMAKE_SYSTEM_NAME Windows)
+set(CROSS_COMPILE_TOOLCHAIN_PREFIX "x86_64-w64-mingw32")
+set(CMAKE_SYSTEM_PROCESSOR x86_64)
+
 
 # which compilers to use for C and C++
 set(CMAKE_C_COMPILER   x86_64-w64-mingw32-gcc)

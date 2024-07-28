@@ -16,6 +16,11 @@ public:
 	Renderer(GLsizei viewport_width, GLsizei viewport_height);
 	~Renderer();
 
+	// for models
+	// GLuint VAO_models;
+	// GLuint VBO;
+	// Shader modelShader;
+
 	GLsizei viewport_width, viewport_height;
 
 	GLuint materialBuffer, materialTBO;
