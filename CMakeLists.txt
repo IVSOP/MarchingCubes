@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 set(TRACY_DEFINES "-DTRACY_ENABLE -D TRACY_ONLY_LOCALHOST -DTRACY_NO_CRASH_HANDLER") #-DTRACY_NO_BROADCAST
 
+# ????? wtf is GCC_COVERAGE_COMPILE_FLAGS
 if (WIN32)
 
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -O2")
@@ -17,10 +18,10 @@ if (WIN32)
 	cmake_policy(SET CMP0072 NEW)
 
 else (WIN32)
-	set(CMAKE_CXX_FLAGS_DEBUG "${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -Wno-deprecated ${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -O0 -g3")
 	# I have no idea if _RELEASE is even doing anything here or if the vars after also should have it
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -Wno-deprecated -O2 -Wall -Wextra -pedantic -Wno-unused-parameter")
-	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "{CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -Wno-deprecated -O2 -Wall -Wextra -pedantic -Wno-unused-parameter")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -O2 -Wall -Wextra -pedantic -Wno-unused-parameter")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "{CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -O2 -Wall -Wextra -pedantic -Wno-unused-parameter")
 endif(WIN32)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -94,11 +95,11 @@ include_directories(external/tracy/public/tracy)
 include_directories(external/steamworks/sdk/public/)
 
 # assimp is built manually only for some reason (but on mingw it works, wtf)
-# compile it with 'cmake -DASSIMP_BUILD_TESTS=off -B build; cmake --build build --parallel' or, for mingw, do 'cp ../../TC-mingw.cmake .; cmake -DASSIMP_BUILD_TESTS=off -B buildWin -DCMAKE_TOOLCHAIN_FILE=TC-mingw.cmake; cmake --build buildWin --parallel'
-# !!!!! does not build on mingw, gave up trying to figure out why that is, so binaries are in assim_windows
-# add_subdirectory(external/assimp)
-include_directories(external/assimp/code)
-include_directories(external/assimp/include)
+# compile it with 'cmake -DASSIMP_BUILD_TESTS=off -DCMAKE_BUILD_TYPE=Release -DASSIMP_NO_EXPORT=on -B build; cmake --build build --parallel' or, for mingw, do 'cp ../../TC-mingw.cmake .; cmake -DASSIMP_BUILD_TESTS=off -DCMAKE_BUILD_TYPE=Release -DASSIMP_NO_EXPORT=on -B buildWin -DCMAKE_TOOLCHAIN_FILE=TC-mingw.cmake; cmake --build buildWin --parallel'
+# !!!!! does not build on mingw, gave up trying to figure out why that is, so binaries are in assimp_windows
+add_subdirectory(external/assimp)
+#include_directories(external/assimp/code)
+include_directories(external/assimp/include/assimp)
 
 add_executable(MarchingCubes
 		src/main.cpp

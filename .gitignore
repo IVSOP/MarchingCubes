@@ -2,7 +2,7 @@ build/
 debug/
 private/
 imgui.ini
-.vscode/
+#.vscode/
 profiling/
 buildWin/
 idk.txt

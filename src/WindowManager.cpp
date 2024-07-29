@@ -87,7 +87,7 @@ WindowManager::WindowManager(int windowWidth, int windowHeight, Client *client)
 	glfwSetWindowUserPointer(window, client);
 
 	// vsync
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
     ///////////////////////// CALLBAKCS
     glfwSetFramebufferSizeCallback(window, glfw_resizeViewport_callback);

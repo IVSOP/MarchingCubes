@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/include/*",
+                "${workspaceFolder}/external/glm/**",
+                "${workspaceFolder}/external/glfw/include/**",
+                "${workspaceFolder}/external/imgui/**",
+                "${workspaceFolder}/external/imgui/backends/**",
+                "${workspaceFolder}/external/stb/**",
+                "${workspaceFolder}/external/entt/single_include/entt/**",
+                "${workspaceFolder}/external/JoltPhysics/Jolt/**",
+                "${workspaceFolder}/external/JoltPhysics/**",
+                "${workspaceFolder}/external/tracy/public/tracy/**",
+                "${workspaceFolder}/external/steamworks/sdk/public/**",
+                "${workspaceFolder}/external/tracy/public/*",
+				"${workspaceFolder}/external/assimp/include/assimp/*"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
