@@ -40,7 +40,7 @@ public:
 	Player() = delete;
 	// idk how I feel about this, but this class registers the new player entity in the registry
 	Player(entt::registry &registry);
-	~Player() = default; // TODO delete character
+	~Player();
 
 	void setupPhys(const Position &position, const glm::vec3 &lookat);
 

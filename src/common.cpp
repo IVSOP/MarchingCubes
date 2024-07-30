@@ -27,4 +27,5 @@ const GLchar *readFromFile(const char *filepath) {
     }
 
     CRASH_IF(true, "Invalid file path: " + std::string(filepath));
+	return nullptr;
 }

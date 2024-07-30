@@ -74,9 +74,11 @@ struct ViewportVertex { // if needed, to draw on the entire viewport
 	ViewportVertex(float x, float y, float z, float tex_x, float tex_y) : coords(x, y, z, 1.0f), tex_coord(tex_x, tex_y) {}
 };
 
-struct SimpleVertex {
-	glm::vec3 coords = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	SimpleVertex(float x, float y, float z) : coords(x, y, z) {}
+struct ModelVertex {
+	glm::vec3 coords = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 normal;
+	glm::vec2 uv;
+	ModelVertex(const glm::vec3 &coords, const glm::vec3 &normal, const glm::vec2 &uv) : coords(coords), normal(normal), uv(uv) {}
 };
 
 #endif //CG_VERTEX_H

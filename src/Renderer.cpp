@@ -108,7 +108,8 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
   normalShader("shaders/normals.vert", "shaders/normals.frag", "shaders/normals.gs"),
   blurShader("shaders/blur.vert", "shaders/blur.frag"),
   hdrBbloomMergeShader("shaders/hdrBloomMerge.vert", "shaders/hdrBloomMerge.frag"),
-  pointshader("shaders/points.vert", "shaders/points.frag")
+  pointshader("shaders/points.vert", "shaders/points.frag"),
+  modelShader("shaders/basic.vert", "shaders/basic.frag")
 {
 	//////////////////////////// LOADING VAO ////////////////////////////
 	GLCall(glGenVertexArrays(1, &this->VAO));
@@ -178,6 +179,31 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
 		GLCall(glEnableVertexAttribArray(vertex_texcoord_layout));					// size appart				// offset
 		GLCall(glVertexAttribPointer(vertex_texcoord_layout, 2, GL_FLOAT, GL_FALSE, sizeof(ViewportVertex), (const void *)offsetof(ViewportVertex, tex_coord)));
 		// GLCall(glVertexAttribDivisor(vertex_normal_layout, 0)); // values are per vertex
+	}
+
+	//////////////////////////// LOADING VAO FOR MODELS ////////////////////////////
+	GLCall(glGenVertexArrays(1, &this->VAO_models));
+	GLCall(glBindVertexArray(this->VAO_models));
+
+	glGenBuffers(1, &IBO_models);
+
+	//////////////////////////// LOADING VBO FOR MODELS ////////////////////////////
+	GLCall(glGenBuffers(1, &this->VBO_models));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO_models));
+	// GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
+	{
+		GLuint vertex_position_layout = 0;
+		GLCall(glEnableVertexAttribArray(vertex_position_layout));					// size appart				// offset
+		GLCall(glVertexAttribPointer(vertex_position_layout, 3, GL_FLOAT, GL_FALSE, sizeof(ModelVertex), (const void *)offsetof(ModelVertex, coords)));
+		// GLCall(glVertexAttribDivisor(vertex_position_layout, 0)); // values are per vertex
+
+		GLuint vertex_normal_layout = 1;
+		GLCall(glEnableVertexAttribArray(vertex_normal_layout));					// size appart				// offset
+		GLCall(glVertexAttribPointer(vertex_normal_layout, 3, GL_FLOAT, GL_FALSE, sizeof(ModelVertex), (const void *)offsetof(ModelVertex, normal)));
+
+		GLuint vertex_uv_layout = 2;
+		GLCall(glEnableVertexAttribArray(vertex_uv_layout));					// size appart				// offset
+		GLCall(glVertexAttribPointer(vertex_uv_layout, 2, GL_FLOAT, GL_FALSE, sizeof(ModelVertex), (const void *)offsetof(ModelVertex, uv)));
 	}
 
 	//////////////////////////// INDIRECT BUFFER ////////////////////////////
@@ -623,9 +649,10 @@ void Renderer::endFrame(GLFWwindow * window) {
     glfwSwapBuffers(window);
 }
 
-void Renderer::draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo) {
+void Renderer::draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const std::vector<GameObject> &objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo) {
 	prepareFrame(verts.size(), pos, dir, mov, deltaTime, selectedInfo);
 	drawLighting(verts, points, indirect, chunkInfo, projection, view);
+	drawObjects(view, projection, objs);
 	bloomBlur(this->bloomBlurPasses);
 	merge();
 
@@ -701,4 +728,27 @@ void Renderer::checkFrameBuffer() {
 	GLCall(GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
 
 	CRASH_IF(status != GL_FRAMEBUFFER_COMPLETE, "Error in fbo");
+}
+
+// TODO optimize, for now 1 draw per object
+void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<GameObject> &objs) {
+	constexpr glm::mat4 model(1.0f);
+
+	// bind VAO, VBO
+	GLCall(glBindVertexArray(this->VAO_models));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO_models));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO_models));
+
+	for (const GameObject &obj : objs) {
+		// load vertices
+		GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj.verts.size(), obj.verts.data(), GL_STATIC_DRAW));
+		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj.indices.size(), obj.indices.data(), GL_STATIC_DRAW));
+
+		modelShader.use();
+		modelShader.setMat4("u_Model", model);
+		modelShader.setMat4("u_View", view);
+		modelShader.setMat4("u_Projection", projection);
+
+		GLCall(glDrawElements(GL_TRIANGLES, static_cast<GLuint>(obj.indices.size()), GL_UNSIGNED_INT, 0));
+	}
 }

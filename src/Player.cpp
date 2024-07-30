@@ -15,6 +15,10 @@ Player::Player(entt::registry &registry)
 	// registry.emplace<Physics>(player_entity);
 }
 
+Player::~Player() {
+	physCharacter->RemoveFromPhysicsSystem();
+}
+
 void Player::postTick() {
 	dir.front = getRotation();
 	dir.updateVectors();
@@ -26,8 +30,7 @@ void Player::postTick() {
 	// I don't even care
 
 	JPH::Quat rot_jph = JPH::Quat(dir.front.x, dir.front.y, dir.front.z, 1.0f).Normalized();
-	// !!! IMPORTANT to avoid problems, for now the player object only rotates horizontally
-	rot_jph.SetY(0.0f);
+	// rot_jph.SetY(0.0f);
 	physCharacter->SetRotation(rot_jph);
 	// printf("%f %f %f\n", rot_jph.GetX(), rot_jph.GetY(), rot_jph.GetZ());
 }

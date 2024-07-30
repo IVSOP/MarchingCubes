@@ -102,10 +102,6 @@ Client::Client()
 
 
 	player->setupPhys(PLAYER_POS, PLAYER_LOOKAT);
-
-	std::unique_ptr<GameObject> gameobject = Importer::load("magujo.glb");
-
-	printf("\n\n\n\nobject has %lu verts\n\n\n\n", gameobject->verts.size());
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {
@@ -136,6 +132,9 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 }
 
 void Client::mainloop() {
+	std::vector<GameObject> objs;
+	Importer::load("magujo.glb", objs);
+
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep
     while (!glfwWindowShouldClose(windowManager.get()->window)) {
         glfwPollEvents(); // at the start due to imgui (??) test moving it to after the unlock()
@@ -160,18 +159,20 @@ void Client::mainloop() {
     	world.get()->buildData();
 
 		glm::mat4 view = player->getViewMatrix();
-		renderer.get()->draw(
+		renderer->draw(
 			view,
 			world.get()->getVerts(),
 			world.get()->getPoints(),
 			world.get()->getIndirect(),
 			world.get()->getInfo(),
+			objs,
 			windowManager.get()->projection,
 			windowManager.get()->window, deltaTime,
 			pos,
 			dir,
 			mov,
 			selectedBlock);
+		
         // lock.unlock();
 
 		// auto phys_pos_view = world->entt_registry.group<Position, Physics>();

@@ -12,11 +12,12 @@
 #define ASSETS_FOLDER "assets/"
 
 struct GameObject {
-	VertContainer<SimpleVertex> verts;
+	VertContainer<ModelVertex> verts;
+	std::vector<GLuint> indices; // use vertcontainer???
 
-	GameObject() = delete;
+	GameObject() : verts(1) {}
 	GameObject(std::size_t vert_cap) : verts(vert_cap) {}
-	GameObject(VertContainer<SimpleVertex> verts) : verts(verts) {}
+	GameObject(VertContainer<ModelVertex> verts) : verts(verts) {}
 	~GameObject() = default;
 };
 
@@ -26,6 +27,9 @@ public:
 	// for now returns only the model at the root node
 	// returns unique_ptr to make it clear it is the caller's responsibility to free it, automatically or not
 	static std::unique_ptr<GameObject> load(const std::string &name);
+
+	// adds object to vector of other objects
+	static void load(const std::string &name, std::vector<GameObject> &objs);
 };
 
 

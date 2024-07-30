@@ -10,16 +10,14 @@
 
 #include <vector>
 
+#include "Assets.hpp"
+
+// TODO many things are not deleted (ex: all related to models)
 class Renderer {
 public:
 	Renderer() = delete;
 	Renderer(GLsizei viewport_width, GLsizei viewport_height);
 	~Renderer();
-
-	// for models
-	// GLuint VAO_models;
-	// GLuint VBO;
-	// Shader modelShader;
 
 	GLsizei viewport_width, viewport_height;
 
@@ -64,9 +62,16 @@ public:
 	GLfloat break_range = 10.0f;
 	Shader pointshader;
 
+	// for models
+	Shader modelShader;
+	GLuint VAO_models;
+	GLuint VBO_models;
+	GLuint IBO_models;
+
 	std::unique_ptr<TextureArray> textureArray = nullptr; // pointer since it starts as null and gets initialized later. unique_ptr so it always gets deleted
 
-	void draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo); // const
+	void draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const std::vector<GameObject> &objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo); // const
+	void drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<GameObject> &objs);
 
 	void loadTextures();
 	void resizeViewport(GLsizei viewport_width, GLsizei viewport_height);
