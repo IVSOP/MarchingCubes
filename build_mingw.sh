@@ -2,7 +2,7 @@
 
 DIR="buildWin"
 
-if cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=TC-mingw.cmake -D-DGLFW_BUILD_DOCS=OFF -S . -B $DIR; then
+if cmake -DASSIMP_BUILD_TESTS=off -DASSIMP_NO_EXPORT=on -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=TC-mingw.cmake -D-DGLFW_BUILD_DOCS=OFF -S . -B $DIR; then
 	printf "\n"
 	if cmake --build $DIR --parallel; then
 		exit 0

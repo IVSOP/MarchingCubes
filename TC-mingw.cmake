@@ -12,8 +12,7 @@ set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
 # set(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
 
 # since I am cross compiling its important for libc pthread etc to be statically linked to avoid problems
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+# TODO this is an ugly hack
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static") # -static -DGLEW_STATIC
 
 # where is the target environment located
