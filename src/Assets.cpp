@@ -84,12 +84,12 @@ void Importer::load(const std::string &name, std::vector<GameObject> &objs) {
 	// need to iterate over the nodes recursively and add up the vertices that make up their meshes
 	// TODO test this vs iterating over things already in scene
 
-	GameObject obj = GameObject(1); // getNextPowerOfTwo(mesh->mNumVertices));
+	objs.emplace_back(1); // getNextPowerOfTwo(mesh->mNumVertices));
 
 	aiNode *node = scene->mRootNode;
 
-	recursive_add_verts(scene, node, &obj, 0);
+	recursive_add_verts(scene, node, &objs.back(), 0);
 
-	objs.push_back(obj);
+	// objs.push_back(obj);
 }
 
