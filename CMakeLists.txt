@@ -30,6 +30,7 @@ add_executable(MarchingCubes
 		src/Logs.cpp
 		src/Phys.cpp
 		src/Crash.cpp
+		src/Assets.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp

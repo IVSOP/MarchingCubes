@@ -3,6 +3,8 @@
 #include "LookupTable.hpp"
 #include "Looper.hpp"
 
+#include "Assets.hpp"
+
 #define PLAYER_POS Position(glm::vec3(64, 16, 64))
 #define PLAYER_LOOKAT glm::vec3(0, 0, -1)
 
@@ -100,6 +102,10 @@ Client::Client()
 
 
 	player->setupPhys(PLAYER_POS, PLAYER_LOOKAT);
+
+	std::unique_ptr<GameObject> gameobject = Importer::load("magujo.glb");
+
+	printf("\n\n\n\nobject has %lu verts\n\n\n\n", gameobject->verts.size());
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {
