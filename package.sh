@@ -9,11 +9,11 @@ fi
 
 if [ "$1" == "linux" ]
 then
-    echo "Unfinished"
+   	tar --owner=0 --group=0 --no-same-owner --no-same-permissions -c steam_appid.txt shaders/ textures/ -C build MarchingCubes *.so -f - | zstd -10 --long --threads=0 --stdout > MarchingCubes.tar.zst
 else
     if [ "$1" == "windows" ]
     then
-	tar --owner=0 --group=0 --no-same-owner --no-same-permissions -c steam_appid.txt shaders/ textures/ -C buildWin MarchingCubes.exe glew32.dll steam_api64.dll -f - | zstd -10 --long --threads=0 --stdout > MarchingCubes.tar.zst
+	tar --owner=0 --group=0 --no-same-owner --no-same-permissions -c steam_appid.txt shaders/ textures/ -C buildWin MarchingCubes.exe *.dll -f - | zstd -10 --long --threads=0 --stdout > MarchingCubes.tar.zst
     else
         echo "Specify linux or windows"
     fi

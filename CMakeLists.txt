@@ -62,13 +62,6 @@ else (WIN32)
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELEASE>:-O2;-Wall;-Wextra;-pedantic;-Wno-unused-parameter>") # ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELWITHDEBINFO>:-O2;-Wall;-Wextra;-pedantic;-Wno-unused-parameter>") # ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}
 	# MinSizeRel
-			
-			
-	
-
-	# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -O0 -g3")
-	# set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -O2 -Wall -Wextra -pedantic -Wno-unused-parameter")
-	# set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "{CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ${TRACY_DEFINES} -O2 -Wall -Wextra -pedantic -Wno-unused-parameter")
 endif(WIN32)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON) # ???????
@@ -141,9 +134,10 @@ include_directories(external/tracy/public/tracy)
 
 include_directories(external/steamworks/sdk/public/)
 
-set(BUILD_SHARED_LIBS ON)
+# set(BUILD_SHARED_LIBS ON)
+# TODO if doing this as shared lib, copy the .so/.dll to build/buildWin
 add_subdirectory(external/assimp)
-set(BUILD_SHARED_LIBS OFF)
+# set(BUILD_SHARED_LIBS OFF)
 
 #include_directories(external/assimp/code)
 include_directories(external/assimp/include/assimp)
