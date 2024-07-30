@@ -24,9 +24,16 @@ void process_mesh(const aiMesh *mesh, GameObject *obj) {
 	for(unsigned int f = 0; f < mesh->mNumFaces; f++)
 	{
 		const aiFace face = mesh->mFaces[f];
+		JPH::Vec3 phys_verts[3];
+		// I assume faces are all triangles since I use aiProcess_Triangulate, TODO make an assert or something
+		CRASH_IF(face.mNumIndices != 3, "Face is not a triangle");
+
 		for(unsigned int j = 0; j < face.mNumIndices; j++) {
 			obj->indices.emplace_back(face.mIndices[j] + index_offset);
+			const aiVector3D &triangle = mesh->mVertices[face.mIndices[j]];
+			phys_verts[j] = JPH::Vec3(triangle.x, triangle.y, triangle.z);
 		}
+		obj->phys_triangles.emplace_back(phys_verts[0], phys_verts[1], phys_verts[2]);
 	}
 }
 

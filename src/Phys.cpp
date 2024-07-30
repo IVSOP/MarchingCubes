@@ -1,6 +1,12 @@
 #include "Phys.hpp"
 #include "Crash.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
+
 using namespace JPH;
 
 std::unique_ptr<PhysicsSystem> Phys::phys_system = nullptr;
@@ -91,7 +97,7 @@ void Phys::setup_phys() {
 
 BodyInterface &Phys::getBodyInterface() { return Phys::phys_system->GetBodyInterface(); }
 
-JPH::Body *Phys::createBody(const TriangleList &triangles) {
+JPH::Body *Phys::createTerrain(const TriangleList &triangles) {
 	BodyInterface &bodyInterface = getBodyInterface();
 
 	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
@@ -122,7 +128,7 @@ JPH::Body *Phys::createBody(const TriangleList &triangles) {
 	return body;
 }
 
-JPH::Body *Phys::createBody(const TriangleList &triangles, const glm::vec3 &coords) {
+JPH::Body *Phys::createTerrain(const TriangleList &triangles, const glm::vec3 &coords) {
 	BodyInterface &bodyInterface = getBodyInterface();
 
 	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
@@ -154,7 +160,7 @@ JPH::Body *Phys::createBody(const TriangleList &triangles, const glm::vec3 &coor
 }
 
 // commented out since I didnt push the changes I made to jolt
-JPH::Body *Phys::createBodyWithNormals(const TriangleList &triangles, const glm::vec3 &coords, const Vec3 *normals) {
+JPH::Body *Phys::createTerrainWithNormals(const TriangleList &triangles, const glm::vec3 &coords, const Vec3 *normals) {
 	// BodyInterface &bodyInterface = getBodyInterface();
 
 	// JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
@@ -189,12 +195,13 @@ JPH::Body *Phys::createBodyWithNormals(const TriangleList &triangles, const glm:
 	return nullptr;
 }
 
-// THIS SEGFAULTS , DO NOT USE
-// pretty sure there is no way to make it ever work
-JPH::Body *Phys::createEmptyBody() {
+JPH::Body *Phys::createBody(const TriangleList &triangles) {
+	float mass = 100.0f;
 	BodyInterface &bodyInterface = getBodyInterface();
 
-	JPH::Shape *shape = new MeshShape();
+	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
+	meshShapeSettings.SetEmbedded();
+	JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get(); // this vs JPH::MeshShapeSettings* ????? TODO
 
 	JPH::Vec3 terrainPosition = JPH::Vec3::sZero();
 	JPH::Quat terrainRotation = JPH::Quat::sIdentity();
@@ -202,7 +209,9 @@ JPH::Body *Phys::createEmptyBody() {
 	// this can receive either shape or shape settings, and only needs a pointer
 	// need to figure out what is the optimal way to do things
 	// can receive shape * or settings *
-	JPH::BodyCreationSettings bodySettings(shape, terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
+	JPH::BodyCreationSettings bodySettings(meshShape, terrainPosition, terrainRotation, JPH::EMotionType::Dynamic, Layers::MOVING);
+	bodySettings.mOverrideMassProperties = EOverrideMassProperties::CalculateInertia;
+	bodySettings.mMassPropertiesOverride.mMass = mass;
 
 	// could also receive indices
 	Body *body = bodyInterface.CreateBody(bodySettings);
@@ -211,7 +220,6 @@ JPH::Body *Phys::createEmptyBody() {
 	CRASH_IF(body == nullptr, "No more bodies available");
 
 	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
-	// TODO delete body
 
 
 	// Vec3 a = meshShape->GetCenterOfMass();
@@ -220,6 +228,89 @@ JPH::Body *Phys::createEmptyBody() {
 
 	return body;
 }
+
+JPH::Body *Phys::createBody(const TriangleList &triangles, const glm::vec3 &coords) {
+	float mass = 100.0f;
+	BodyInterface &bodyInterface = getBodyInterface();
+
+	JPH::MeshShapeSettings meshShapeSettings = JPH::MeshShapeSettings(triangles);
+	meshShapeSettings.SetEmbedded();
+	JPH::ShapeRefC meshShape = meshShapeSettings.Create().Get(); // this vs JPH::MeshShapeSettings* ????? TODO
+
+	JPH::Vec3 terrainPosition = JPH::Vec3(coords.x, coords.y, coords.z);
+	JPH::Quat terrainRotation = JPH::Quat::sIdentity();
+
+	// this can receive either shape or shape settings, and only needs a pointer
+	// need to figure out what is the optimal way to do things
+	// can receive shape * or settings *
+	JPH::BodyCreationSettings bodySettings(meshShape, terrainPosition, terrainRotation, JPH::EMotionType::Dynamic, Layers::MOVING);
+	bodySettings.mOverrideMassProperties = EOverrideMassProperties::CalculateInertia;
+	bodySettings.mMassPropertiesOverride.mMass = mass;
+
+	// could also receive indices
+	Body *body = bodyInterface.CreateBody(bodySettings);
+
+	// TODO remove this
+	CRASH_IF(body == nullptr, "No more bodies available");
+
+	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
+
+
+	// Vec3 a = meshShape->GetCenterOfMass();
+	// printf("%f %f %f\n", a.GetX(), a.GetY(), a.GetZ());
+	// exit(1);
+
+	return body;
+}
+
+void Phys::activateBody(const JPH::Body *body) {
+	BodyInterface &bodyInterface = getBodyInterface();
+
+	bodyInterface.ActivateBody(body->GetID());
+}
+
+glm::mat4 Phys::getBodyTransform(const JPH::Body *body) {
+	JPH::RVec3 position = body->GetPosition();
+	JPH::Quat rotation = body->GetRotation();
+
+	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(position.GetX(), position.GetY(), position.GetZ()));
+	glm::quat glmQuat(rotation.GetW(), rotation.GetX(), rotation.GetY(), rotation.GetZ());
+	glm::mat4 rotationMatrix = glm::toMat4(glmQuat); // TODO use glm::rotate instead???
+
+	return translationMatrix * rotationMatrix;
+}
+
+// // THIS SEGFAULTS , DO NOT USE
+// // pretty sure there is no way to make it ever work
+// JPH::Body *Phys::createEmptyBody() {
+// 	BodyInterface &bodyInterface = getBodyInterface();
+
+// 	JPH::Shape *shape = new MeshShape();
+
+// 	JPH::Vec3 terrainPosition = JPH::Vec3::sZero();
+// 	JPH::Quat terrainRotation = JPH::Quat::sIdentity();
+
+// 	// this can receive either shape or shape settings, and only needs a pointer
+// 	// need to figure out what is the optimal way to do things
+// 	// can receive shape * or settings *
+// 	JPH::BodyCreationSettings bodySettings(shape, terrainPosition, terrainRotation, JPH::EMotionType::Static, Layers::NON_MOVING);
+
+// 	// could also receive indices
+// 	Body *body = bodyInterface.CreateBody(bodySettings);
+
+// 	// TODO remove this
+// 	CRASH_IF(body == nullptr, "No more bodies available");
+
+// 	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
+// 	// TODO delete body
+
+
+// 	// Vec3 a = meshShape->GetCenterOfMass();
+// 	// printf("%f %f %f\n", a.GetX(), a.GetY(), a.GetZ());
+// 	// exit(1);
+
+// 	return body;
+// }
 
 void Phys::setBodyMeshShape(Body *body, const TriangleList &triangles) {
 	BodyInterface &bodyInterface = getBodyInterface();

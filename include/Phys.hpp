@@ -161,10 +161,18 @@ public:
 
 	static JPH::BodyInterface &getBodyInterface();
 
+	// specific for terrain since it might have specific options (like not being kinematic) 
+	static JPH::Body *createTerrain(const JPH::TriangleList &triangles);
+	static JPH::Body *createTerrain(const JPH::TriangleList &triangles, const glm::vec3 &coords);
+	// DO NOT USE
+	static JPH::Body *createTerrainWithNormals(const JPH::TriangleList &triangles, const glm::vec3 &coords, const JPH::Vec3 *normals);
+
 	static JPH::Body *createBody(const JPH::TriangleList &triangles);
 	static JPH::Body *createBody(const JPH::TriangleList &triangles, const glm::vec3 &coords);
-	static JPH::Body *createBodyWithNormals(const JPH::TriangleList &triangles, const glm::vec3 &coords, const JPH::Vec3 *normals);
-	static JPH::Body *createEmptyBody(); // DO NOT USE
+	static void activateBody(const JPH::Body *body);
+
+	static glm::mat4 getBodyTransform(const JPH::Body *body);
+
 	static void destroyBody(JPH::Body *body);
 	static void setBodyMeshShape(JPH::Body *body, const JPH::TriangleList &triangles);
 

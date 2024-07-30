@@ -247,7 +247,7 @@ struct Chunk {
 				Phys::setBodyMeshShape(body, triangles);
 			} else {
 				// body = Phys::createBodyWithNormals(triangles, coords, normals.data());
-				body = Phys::createBody(triangles, coords);
+				body = Phys::createTerrain(triangles, coords);
 			}
 		} else { // no triangles
 			if (body != nullptr) {

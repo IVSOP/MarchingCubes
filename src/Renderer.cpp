@@ -8,6 +8,8 @@
 #include "Camera.hpp"
 #include "Crash.hpp"
 
+#include "Phys.hpp"
+
 // I know full well how cursed this is
 #define TEX_ARRAY_SLOT 0
 #define BRIGHT_TEXTURE_SLOT 1
@@ -735,8 +737,6 @@ void Renderer::checkFrameBuffer() {
 
 // TODO optimize, for now 1 draw per object
 void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<GameObject> &objs) {
-	constexpr glm::mat4 model(1.0f);
-
 	modelShader.use();
 
 	// bind VAO, VBO
@@ -746,8 +746,6 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 
 	// TODO clean this up, same initialization as main shader
 	modelShader.setFloat("u_BloomThreshold", bloomThreshold);
-	// TODO this calculation is also done on draw()
-	modelShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * model))));
 
 	// // load UBO
 	// Material materials[8];
@@ -859,16 +857,19 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 	GLCall(glDrawBuffers(2, attachments));
 
 	// modelShader.validate();
+	modelShader.setMat4("u_View", view);
+	modelShader.setMat4("u_Projection", projection);
 
+	glm::mat4 model;
 	for (const GameObject &obj : objs) {
 		// load vertices
 		GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj.verts.size(), obj.verts.data(), GL_STATIC_DRAW));
 		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * obj.indices.size(), obj.indices.data(), GL_STATIC_DRAW));
 
-		modelShader.use();
+		model = Phys::getBodyTransform(obj.phys_body);
+
+		modelShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * model))));
 		modelShader.setMat4("u_Model", model);
-		modelShader.setMat4("u_View", view);
-		modelShader.setMat4("u_Projection", projection);
 
 		GLCall(glDrawElements(GL_TRIANGLES, obj.indices.size(), GL_UNSIGNED_INT, 0));
 	}

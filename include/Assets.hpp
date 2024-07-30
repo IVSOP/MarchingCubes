@@ -11,9 +11,14 @@
 
 #define ASSETS_FOLDER "assets/"
 
+#include "Phys.hpp"
+
 struct GameObject {
 	VertContainer<ModelVertex> verts;
 	std::vector<GLuint> indices; // use vertcontainer???
+	JPH::TriangleList phys_triangles;
+	// this is a weird hack I don't like it
+	JPH::Body *phys_body = nullptr;
 
 	GameObject() : verts(1) {} // cursed
 	GameObject(std::size_t vert_cap) : verts(vert_cap) {}

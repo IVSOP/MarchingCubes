@@ -134,6 +134,11 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 void Client::mainloop() {
 	std::vector<GameObject> objs;
 	Importer::load("magujo.glb", objs);
+	for (GameObject &obj : objs) {
+		// TODO destroy body
+		obj.phys_body = Phys::createBody(obj.phys_triangles);
+		// Phys::activateBody(obj.phys_body);
+	}
 
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep
     while (!glfwWindowShouldClose(windowManager.get()->window)) {
