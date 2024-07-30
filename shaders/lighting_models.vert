@@ -23,7 +23,7 @@ void main()
 	vec4 viewspace_position = u_View * u_Model * vec4(aPos, 1.0);
 	vs_out.v_FragPos = vec3(viewspace_position);
 	vs_out.v_Normal = u_NormalMatrix * aNormal;
-	vs_out.v_MaterialID = int(0);
+	vs_out.v_MaterialID = int(1);
 	vs_out.v_TexCoord = aTexCoord;
 
 	gl_Position = u_Projection * viewspace_position;

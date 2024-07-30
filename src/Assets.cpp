@@ -9,18 +9,15 @@ void process_mesh(const aiMesh *mesh, GameObject *obj) {
 	GLuint index_offset = obj->verts.size();
 
 	// go over all vertices of the mesh
-	if (mesh->HasNormals()) {
+	if (mesh->HasNormals() && mesh->HasTextureCoords(0)) { // 0 here cursed too
 		for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
 			const aiVector3D &pos = mesh->mVertices[v];
 			const aiVector3D &normal = mesh->mNormals[v];
-			obj->verts.emplace_back(glm::vec3(pos.x, pos.y, pos.z), glm::vec3(normal.x, normal.y, normal.z), glm::vec2(0.0f));
+			const aiVector3D &texcoords = mesh->mTextureCoords[0][v]; // [0] cursed, a vertex can contain up to 8 different texture coordinates
+			obj->verts.emplace_back(glm::vec3(pos.x, pos.y, pos.z), glm::vec3(normal.x, normal.y, normal.z), glm::vec2(texcoords.x, texcoords.y));
 		}
 	} else {
-		Log::log(LOG_TYPE::ERR, std::string(__PRETTY_FUNCTION__), "Mesh does not have normals");
-		for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
-			const aiVector3D &pos = mesh->mVertices[v];
-			obj->verts.emplace_back(glm::vec3(pos.x, pos.y, pos.z), glm::vec3(0.0f), glm::vec2(0.0f));
-		}
+		Log::log(LOG_TYPE::ERR, std::string(__PRETTY_FUNCTION__), "Mesh does not have normals, not loading anything for now");
 	}
 
 	// go over all faces of the mesh
