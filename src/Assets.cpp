@@ -1,6 +1,6 @@
 #include "Assets.hpp"
 #include "Crash.hpp"
-
+#include "Logs.hpp"
 																														// TODO doing this cpu side is prob bad
 #define POST_PROCESS aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices
 // aiProcessPreset_TargetRealtime_MaxQuality
@@ -9,9 +9,18 @@ void process_mesh(const aiMesh *mesh, GameObject *obj) {
 	GLuint index_offset = obj->verts.size();
 
 	// go over all vertices of the mesh
-	for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
-		const aiVector3D &pos = mesh->mVertices[v];
-		obj->verts.emplace_back(glm::vec3(pos.x, pos.y, pos.z), glm::vec3(0.0f), glm::vec2(0.0f));
+	if (mesh->HasNormals()) {
+		for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
+			const aiVector3D &pos = mesh->mVertices[v];
+			const aiVector3D &normal = mesh->mNormals[v];
+			obj->verts.emplace_back(glm::vec3(pos.x, pos.y, pos.z), glm::vec3(normal.x, normal.y, normal.z), glm::vec2(0.0f));
+		}
+	} else {
+		Log::log(LOG_TYPE::ERR, std::string(__PRETTY_FUNCTION__), "Mesh does not have normals");
+		for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
+			const aiVector3D &pos = mesh->mVertices[v];
+			obj->verts.emplace_back(glm::vec3(pos.x, pos.y, pos.z), glm::vec3(0.0f), glm::vec2(0.0f));
+		}
 	}
 
 	// go over all faces of the mesh
