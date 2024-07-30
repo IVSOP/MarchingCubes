@@ -2,7 +2,7 @@
 
 DIR="build"
 # add Release build type???
-if cmake -DASSIMP_BUILD_TESTS=off -DASSIMP_NO_EXPORT=on -DCMAKE_BUILD_TYPE=Release -DGLFW_BUILD_DOCS=OFF -S . -B $DIR; then
+if cmake -DCMAKE_BUILD_TYPE=Release -S . -B $DIR; then
 	printf "\n"
 	if cmake --build $DIR --parallel $(nproc); then
 		exit 0

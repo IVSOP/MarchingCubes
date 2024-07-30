@@ -7,9 +7,6 @@ set(CMAKE_CXX_EXTENSIONS OFF) #???????
 
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
-# set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries by default" FORCE)
-
-
 # TODO see link options like -Wl,--as-needed -Wl,-Bdynamic
 
 add_executable(MarchingCubes
@@ -45,18 +42,22 @@ target_include_directories(MarchingCubes
 		PUBLIC include/
 )
 
-target_compile_definitions(MarchingCubes PRIVATE
-	TRACY_ENABLE
-	TRACY_ONLY_LOCALHOST
-	TRACY_NO_CRASH_HANDLER
-)
+set(ASSIMP_BUILD_TESTS off)
+set(ASSIMP_NO_EXPORT on)
+set(ASSIMP_INSTALL off)
+set(ASSIMP_INJECT_DEBUG_POSTFIX off)
+set(ASSIMP_INSTALL_PDB off)
+set(ASSIMP_BUILD_ASSIMP_VIEW off)
+set(GLFW_BUILD_DOCS off)
+set(TRACY_ENABLE on)
+set(TRACY_ONLY_LOCALHOST on)
+set(TRACY_NO_CRASH_HANDLER on)
 
-# ????? wtf is GCC_COVERAGE_COMPILE_FLAGS
 if (WIN32)
 
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELEASE>:-O2>")
 
-	cmake_policy(SET CMP0072 NEW)
+	cmake_policy(SET CMP0072 NEW) # ???????????????????????????????????????
 
 else (WIN32)
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g3>") # ${CMAKE_CXX_FLAGS_DEBUG} ${GCC_COVERAGE_COMPILE_FLAGS}
@@ -64,6 +65,18 @@ else (WIN32)
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELWITHDEBINFO>:-O2;-Wall;-Wextra;-pedantic;-Wno-unused-parameter>") # ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}
 	# MinSizeRel
 endif(WIN32)
+
+# IPO takes too much time and mingw doesn't like it so I'll leave it off until needed
+if (Distribution)
+	include(CheckIPOSupported)
+	check_ipo_supported(RESULT result)
+	if (result)
+		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+		# set_property(TARGET foo PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+	else(result)
+		message(FATAL_ERROR "IPO not supported :)")
+	endif(result)
+endif (Distribution)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON) # ???????
 
@@ -158,14 +171,14 @@ if (WIN32)
 
 else (WIN32) # linux
 	target_link_libraries(MarchingCubes
-			glfw
-			GLEW::GLEW
-			OpenGL::GL
-			EnTT::EnTT
-			Jolt
-			steam_api
-			Tracy::TracyClient
-			assimp
+		glfw
+		GLEW::GLEW
+		OpenGL::GL
+		EnTT::EnTT
+		Jolt
+		steam_api
+		Tracy::TracyClient
+		assimp
 	)
 
 endif (WIN32)

@@ -15,6 +15,10 @@ set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
 # TODO this is an ugly hack
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static") # -static -DGLEW_STATIC
 
+# find_program(GCC_AR NAMES x86_64-w64-mingw32-gcc-ar)
+# find_program(GCC_RANLIB NAMES x86_64-w64-mingw32-gcc-ranlib)
+# find_library(LIBLTO_PLUGIN NAMES liblto_plugin.so PATHS /usr/lib/gcc/x86_64-w64-mingw32/13.1.0)
+
 # where is the target environment located
 # set(CMAKE_FIND_ROOT_PATH  /usr/i586-mingw32msvc
 #     /home/alex/mingw-install)

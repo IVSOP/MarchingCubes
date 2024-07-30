@@ -32,11 +32,9 @@ void process_mesh(const aiMesh *mesh, GameObject *obj) {
 
 void recursive_add_verts(const aiScene* scene, const aiNode *node, GameObject *obj) {
 	// since N meshes, need to offset index
-	GLuint index_offset;
 
 	// go over all meshes of the node
 	for (unsigned int m = 0; m < node->mNumMeshes; m++) {
-		index_offset = obj->verts.size();
 		const aiMesh *mesh = scene->mMeshes[node->mMeshes[m]];
 
 		process_mesh(mesh, obj);
