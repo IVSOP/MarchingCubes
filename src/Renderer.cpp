@@ -742,13 +742,13 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 	for (const GameObject &obj : objs) {
 		// load vertices
 		GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj.verts.size(), obj.verts.data(), GL_STATIC_DRAW));
-		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj.indices.size(), obj.indices.data(), GL_STATIC_DRAW));
+		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * obj.indices.size(), obj.indices.data(), GL_STATIC_DRAW));
 
 		modelShader.use();
 		modelShader.setMat4("u_Model", model);
 		modelShader.setMat4("u_View", view);
 		modelShader.setMat4("u_Projection", projection);
 
-		GLCall(glDrawElements(GL_TRIANGLES, static_cast<GLuint>(obj.indices.size()), GL_UNSIGNED_INT, 0));
+		GLCall(glDrawElements(GL_TRIANGLES, obj.indices.size(), GL_UNSIGNED_INT, 0));
 	}
 }
