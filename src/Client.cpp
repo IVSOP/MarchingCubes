@@ -132,6 +132,9 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 }
 
 void Client::mainloop() {
+
+	Importer::dumpMetadata("magujo.fbx");
+
 	std::vector<GameObject> objs;
 	Importer::load("magujo.glb", objs);
 	for (GameObject &obj : objs) {

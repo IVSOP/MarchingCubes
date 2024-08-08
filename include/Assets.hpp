@@ -34,6 +34,9 @@ public:
 
 	// adds object to vector of other objects
 	static void load(const std::string &name, std::vector<GameObject> &objs);
+
+	// for debug
+	static void dumpMetadata(const std::string &name);
 };
 
 

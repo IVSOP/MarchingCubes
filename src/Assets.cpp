@@ -105,3 +105,79 @@ void Importer::load(const std::string &name, std::vector<GameObject> &objs) {
 	// objs.push_back(obj);
 }
 
+void recursive_dump_metadata(const aiNode *node) {
+	aiMetadata *meta = node->mMetaData;
+
+	printf("Name: %s\n", node->mName.C_Str());
+
+	if (meta == nullptr) {
+		printf("No metadata\n");
+	} else {
+		aiMetadataEntry value;
+		printf("Metadata:\n");
+		for (unsigned int i = 0; i < meta->mNumProperties; i++) {
+			printf("%u - %s -", i, meta->mKeys[i].C_Str());
+
+			value = meta->mValues[i];
+
+			if (value.mData == nullptr) {
+				printf("empty");
+				continue;
+			}
+
+			switch (value.mType) {
+				case aiMetadataType::AI_BOOL:
+					printf("bool not implemented\n");
+					break;
+				case aiMetadataType::AI_INT32:
+					printf("int32 not implemented\n");
+					break;
+				case aiMetadataType::AI_UINT64:
+					printf("uint64 not implemented\n");
+					break;
+				case aiMetadataType::AI_FLOAT:
+					printf("float not implemented\n");
+					break;
+				case aiMetadataType::AI_DOUBLE:
+					printf("double not implemented\n");
+					break;
+				case aiMetadataType::AI_AISTRING:
+					printf("string not implemented\n");
+					break;
+				case aiMetadataType::AI_AIVECTOR3D:
+					printf("vec3 not implemented\n");
+					break;
+				case aiMetadataType::AI_AIMETADATA:
+					printf("metadata(\?\?\?) not implemented\n");
+					break;
+				case aiMetadataType::AI_INT64:
+					printf("int64 not implemented\n");
+					break;
+				case aiMetadataType::AI_UINT32:
+					printf("uint32 not implemented\n");
+					break;
+				default:
+					printf("Invalid type\n");
+					break;
+			}
+		}
+	}
+
+	// repeat for all children
+	for (unsigned int n = 0; n < node->mNumChildren; n++) {
+		recursive_dump_metadata(node->mChildren[n]);
+	}
+}
+
+void Importer::dumpMetadata(const std::string &name) {
+	Assimp::Importer importer;
+
+	const aiScene* scene = importer.ReadFile(ASSETS_FOLDER + name, POST_PROCESS);
+
+	 // If the import failed, report it
+	CRASH_IF(scene == nullptr, std::string("Failed to import asset from ") + ASSETS_FOLDER + name);
+
+	aiNode *node = scene->mRootNode;
+
+	recursive_dump_metadata(node);
+}

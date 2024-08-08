@@ -40,7 +40,6 @@ static void TraceImpl(const char *inFMT, ...)
 	std::cout << buffer << std::endl;
 }
 
-
 #ifdef JPH_ENABLE_ASSERTS
 
 	// Callback for asserts, connect this to your own assert handler if you have one
