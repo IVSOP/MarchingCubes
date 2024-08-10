@@ -35,6 +35,9 @@ public:
 	// for now since I don't have an editor I need a human readable format so I'll use json
 	// vecs are represented like a list of floats
 	// see Phys
+	// blender uses wxyz, I use xyzw
+	// blender has y-up
+	// basically I need to do treat blender abcd as bdca
 
 	// returns unique_ptr to make it clear it is the caller's responsibility to free it
 	static std::unique_ptr<GameObject> load(const std::string &model, const std::string &hitbox);

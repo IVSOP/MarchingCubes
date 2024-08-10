@@ -134,7 +134,7 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 void Client::mainloop() {
 
 	std::vector<GameObject> objs;
-	Importer::load("magujo.glb", "magujo-hitbox.json", objs);
+	Importer::load("magujo-hitbox.glb", "magujo-hitbox.json", objs);
 	for (GameObject &obj : objs) {
 		// obj.phys_body = Phys::createBody(obj.phys_triangles);
 		Phys::activateBody(obj.phys_body);

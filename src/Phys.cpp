@@ -302,7 +302,23 @@ JPH::Body *Phys::createBodyFromJson(const json &data) {
 				Quat(rotation_x, rotation_y, rotation_z, rotation_w),
 				new BoxShape(Vec3(scale_x, scale_y, scale_z))
 			);
-		
+		} else if (type == "sphere") {
+			float radius = shape_data["radius"].get<float>();
+
+			compound_shape->AddShape(
+				Vec3(position_x, position_y, position_z),
+				Quat(rotation_x, rotation_y, rotation_z, rotation_w),
+				new SphereShape(radius)
+			);
+		} else if (type == "cylinder") {
+			float radius = shape_data["radius"].get<float>();
+			float height = shape_data["height"].get<float>();
+
+			compound_shape->AddShape(
+				Vec3(position_x, position_y, position_z),
+				Quat(rotation_x, rotation_y, rotation_z, rotation_w),
+				new CylinderShape(height, radius)
+			);
 		} else {
 				CRASH_IF(true, "Invalid hitbox shape type");
 		}
