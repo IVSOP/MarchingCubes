@@ -16,24 +16,31 @@
 struct GameObject {
 	VertContainer<ModelVertex> verts;
 	std::vector<GLuint> indices; // use vertcontainer???
-	JPH::TriangleList phys_triangles;
-	// this is a weird hack I don't like it
+
+	// TODO keep this in the stack or delete the body if kept this way
+	// also don't forget to remove it from phys system
 	JPH::Body *phys_body = nullptr;
 
 	GameObject() : verts(1) {} // cursed
 	GameObject(std::size_t vert_cap) : verts(vert_cap) {}
 	GameObject(VertContainer<ModelVertex> verts) : verts(verts) {}
-	~GameObject() = default;
+	~GameObject() = default; // TODO
 };
 
 // uses assimp to import things
 class Importer {
 public:
+
+	// the two load functions receive a hitbox file as input
+	// for now since I don't have an editor I need a human readable format so I'll use json
+	// vecs are represented like a list of floats
+	// see Phys
+
 	// returns unique_ptr to make it clear it is the caller's responsibility to free it
-	static std::unique_ptr<GameObject> load(const std::string &name);
+	static std::unique_ptr<GameObject> load(const std::string &model, const std::string &hitbox);
 
 	// adds object to vector of other objects
-	static void load(const std::string &name, std::vector<GameObject> &objs);
+	static void load(const std::string &model, const std::string &hitbox, std::vector<GameObject> &objs);
 
 	// for debug
 	static void dumpMetadata(const std::string &name);

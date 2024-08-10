@@ -3,6 +3,7 @@
 
 #include "types.hpp"
 #include "stdlib.hpp"
+#include "Json.hpp"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/RegisterTypes.h>
@@ -22,35 +23,18 @@
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/MeshShape.h>
+#include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
 JPH_SUPPRESS_WARNINGS
 
 // JPH_NAMESPACE_BEGIN
 
 // Callback for traces, connect this to your own trace function if you have one
-static void TraceImpl(const char *inFMT, ...)
-{
-	// Format the message
-	va_list list;
-	va_start(list, inFMT);
-	char buffer[1024];
-	vsnprintf(buffer, sizeof(buffer), inFMT, list);
-	va_end(list);
-
-	// Print to the TTY
-	std::cout << buffer << std::endl;
-}
+void TraceImpl(const char *inFMT, ...);
 
 #ifdef JPH_ENABLE_ASSERTS
 
 	// Callback for asserts, connect this to your own assert handler if you have one
-	static bool AssertFailedImpl(const char *inExpression, const char *inMessage, const char *inFile, JPH::uint inLine)
-	{
-		// Print to the TTY
-		std::cout << inFile << ":" << inLine << ": (" << inExpression << ") " << (inMessage != nullptr? inMessage : "") << std::endl;
-
-		// Breakpoint
-		return true;
-	};
+	static bool AssertFailedImpl(const char *inExpression, const char *inMessage, const char *inFile, JPH::uint inLine);
 
 #endif // JPH_ENABLE_ASSERTS
 
@@ -168,7 +152,10 @@ public:
 
 	static JPH::Body *createBody(const JPH::TriangleList &triangles);
 	static JPH::Body *createBody(const JPH::TriangleList &triangles, const glm::vec3 &coords);
+	// read the shapes from the json and make them into a compound shape, then create a body with it
+	static JPH::Body *createBodyFromJson(const json &data);
 	static void activateBody(const JPH::Body *body);
+	static void addBodyToSystem(const JPH::Body *body);
 
 	static glm::mat4 getBodyTransform(const JPH::Body *body);
 

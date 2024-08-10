@@ -1,6 +1,7 @@
 #include "Assets.hpp"
 #include "Crash.hpp"
 #include "Logs.hpp"
+#include "Files.hpp"
 																														// TODO doing this cpu side is prob bad
 #define POST_PROCESS aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices
 // aiProcessPreset_TargetRealtime_MaxQuality
@@ -33,7 +34,7 @@ void process_mesh(const aiMesh *mesh, GameObject *obj) {
 			const aiVector3D &triangle = mesh->mVertices[face.mIndices[j]];
 			phys_verts[j] = JPH::Vec3(triangle.x, triangle.y, triangle.z);
 		}
-		obj->phys_triangles.emplace_back(phys_verts[0], phys_verts[1], phys_verts[2]);
+		// obj->phys_triangles.emplace_back(phys_verts[0], phys_verts[1], phys_verts[2]);
 	}
 }
 
@@ -53,7 +54,7 @@ void recursive_add_verts(const aiScene* scene, const aiNode *node, GameObject *o
 	}
 }
 
-std::unique_ptr<GameObject> Importer::load(const std::string &name) {
+std::unique_ptr<GameObject> Importer::load(const std::string &name, const std::string &hitbox) {
 	Assimp::Importer importer;
 
 	const aiScene* scene = importer.ReadFile(ASSETS_FOLDER + name, POST_PROCESS);
@@ -76,10 +77,13 @@ std::unique_ptr<GameObject> Importer::load(const std::string &name) {
 
 	recursive_add_verts(scene, node, obj.get());
 
+	FileHandler hitbox_file = FileHandler(ASSETS_FOLDER + hitbox);
+	obj->phys_body = Phys::createBodyFromJson(hitbox_file.readjson());
+
 	return obj;
 }
 
-void Importer::load(const std::string &name, std::vector<GameObject> &objs) {
+void Importer::load(const std::string &name, const std::string &hitbox, std::vector<GameObject> &objs) {
 	Assimp::Importer importer;
 
 	const aiScene* scene = importer.ReadFile(ASSETS_FOLDER + name, POST_PROCESS);
@@ -101,6 +105,9 @@ void Importer::load(const std::string &name, std::vector<GameObject> &objs) {
 	aiNode *node = scene->mRootNode;
 
 	recursive_add_verts(scene, node, &objs.back());
+
+	FileHandler hitbox_file = FileHandler(ASSETS_FOLDER + hitbox);
+	(&objs.back())->phys_body = Phys::createBodyFromJson(hitbox_file.readjson());
 
 	// objs.push_back(obj);
 }

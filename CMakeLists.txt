@@ -28,6 +28,7 @@ add_executable(MarchingCubes
 		src/Phys.cpp
 		src/Crash.cpp
 		src/Assets.cpp
+		src/Files.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp
@@ -156,6 +157,11 @@ add_subdirectory(external/assimp)
 #include_directories(external/assimp/code)
 include_directories(external/assimp/include/assimp)
 
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+# find_package(nlohmann_json 3.2.0 REQUIRED)
+add_subdirectory(external/json)
+
+
 if (WIN32)
 	target_link_libraries(MarchingCubes
 		glfw
@@ -167,6 +173,7 @@ if (WIN32)
 		steam_api64
 		Tracy::TracyClient
 		assimp
+		nlohmann_json::nlohmann_json
 	)
 
 else (WIN32) # linux
@@ -179,6 +186,7 @@ else (WIN32) # linux
 		steam_api
 		Tracy::TracyClient
 		assimp
+		nlohmann_json::nlohmann_json
 	)
 
 endif (WIN32)

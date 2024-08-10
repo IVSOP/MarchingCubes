@@ -263,10 +263,70 @@ JPH::Body *Phys::createBody(const TriangleList &triangles, const glm::vec3 &coor
 	return body;
 }
 
+
+
+JPH::Body *Phys::createBodyFromJson(const json &data) {
+
+	JPH::Ref<JPH::StaticCompoundShapeSettings> compound_shape = new JPH::StaticCompoundShapeSettings;
+
+	// TODO lots of error checking, this assumes all values exist and have the correct type
+	// when using AddShape(), the offsets and rotations are relative to the compound shape
+	// I could also apply them when creating the shapes themselves
+	// for now I'll leave it in AddShape
+	float position_x, position_y, position_z;
+	float rotation_x, rotation_y, rotation_z, rotation_w;
+
+	for (const auto &shape_data : data) {
+		position_x = shape_data["position"][0].get<float>();
+		position_y = shape_data["position"][1].get<float>();
+		position_z = shape_data["position"][2].get<float>();
+
+		rotation_x = shape_data["rotation"][0].get<float>();
+		rotation_y = shape_data["rotation"][1].get<float>();
+		rotation_z = shape_data["rotation"][2].get<float>();
+		rotation_w = shape_data["rotation"][3].get<float>();
+
+		// use shapes or shape settings?????????????????
+		const std::string type = shape_data["type"].get<std::string>();
+
+		// cant use switch :(
+
+		if (type == "box") {
+			float scale_x, scale_y, scale_z;
+			scale_x = shape_data["scale"][0].get<float>();
+			scale_y = shape_data["scale"][1].get<float>();
+			scale_z = shape_data["scale"][2].get<float>();
+
+			compound_shape->AddShape(
+				Vec3(position_x, position_y, position_z),
+				Quat(rotation_x, rotation_y, rotation_z, rotation_w),
+				new BoxShape(Vec3(scale_x, scale_y, scale_z))
+			);
+		
+		} else {
+				CRASH_IF(true, "Invalid hitbox shape type");
+		}
+	}
+
+	BodyCreationSettings bodySettings(compound_shape, Vec3::sZero(), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
+	BodyInterface &bodyInterface = getBodyInterface();
+	Body* body = bodyInterface.CreateBody(bodySettings);
+	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
+
+
+	return body;
+}
+
 void Phys::activateBody(const JPH::Body *body) {
 	BodyInterface &bodyInterface = getBodyInterface();
 
 	bodyInterface.ActivateBody(body->GetID());
+}
+
+void Phys::addBodyToSystem(const JPH::Body *body) {
+	BodyInterface &bodyInterface = getBodyInterface();
+
+	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
 }
 
 glm::mat4 Phys::getBodyTransform(const JPH::Body *body) {
@@ -347,3 +407,33 @@ TempAllocatorImpl *Phys::getTempAllocator() {
 JobSystem *Phys::getJobSystem() {
 	return Phys::job_system.get();
 }
+
+
+
+// Callback for traces, connect this to your own trace function if you have one
+void TraceImpl(const char *inFMT, ...)
+{
+	// Format the message
+	va_list list;
+	va_start(list, inFMT);
+	char buffer[1024];
+	vsnprintf(buffer, sizeof(buffer), inFMT, list);
+	va_end(list);
+
+	// Print to the TTY
+	std::cout << buffer << std::endl;
+}
+
+#ifdef JPH_ENABLE_ASSERTS
+
+	// Callback for asserts, connect this to your own assert handler if you have one
+	bool AssertFailedImpl(const char *inExpression, const char *inMessage, const char *inFile, JPH::uint inLine)
+	{
+		// Print to the TTY
+		std::cout << inFile << ":" << inLine << ": (" << inExpression << ") " << (inMessage != nullptr? inMessage : "") << std::endl;
+
+		// Breakpoint
+		return true;
+	};
+
+#endif // JPH_ENABLE_ASSERTS
