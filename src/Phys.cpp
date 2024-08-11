@@ -12,6 +12,7 @@ using namespace JPH;
 std::unique_ptr<PhysicsSystem> Phys::phys_system = nullptr;
 std::unique_ptr<JPH::TempAllocatorImpl> Phys::temp_allocator = nullptr;
 std::unique_ptr<JPH::JobSystem> Phys::job_system = nullptr;
+std::unique_ptr<PhysRenderer> Phys::phys_renderer = nullptr;
 
 void Phys::setup_phys() {
 	// Register allocation hook. In this example we'll just let Jolt use malloc / free but you can override these if you want (see Memory.h).
@@ -93,6 +94,9 @@ void Phys::setup_phys() {
 	// The main way to interact with the bodies in the physics system is through the body interface. There is a locking and a non-locking
 	// variant of this. We're going to use the locking version (even though we're not planning to access bodies from multiple threads)
 	// BodyInterface body_interface = physics_system->GetBodyInterface();
+
+	phys_renderer = std::make_unique<PhysRenderer>();
+	DebugRenderer::sInstance = phys_renderer.get();
 }
 
 BodyInterface &Phys::getBodyInterface() { return Phys::phys_system->GetBodyInterface(); }
@@ -273,18 +277,22 @@ JPH::Body *Phys::createBodyFromJson(const json &data) {
 	// when using AddShape(), the offsets and rotations are relative to the compound shape
 	// I could also apply them when creating the shapes themselves
 	// for now I'll leave it in AddShape
+
+	// TODO vec3
 	float position_x, position_y, position_z;
-	float rotation_x, rotation_y, rotation_z, rotation_w;
+	JPH::Quat rotation;
 
 	for (const auto &shape_data : data) {
 		position_x = shape_data["position"][0].get<float>();
 		position_y = shape_data["position"][1].get<float>();
 		position_z = shape_data["position"][2].get<float>();
 
-		rotation_x = shape_data["rotation"][0].get<float>();
-		rotation_y = shape_data["rotation"][1].get<float>();
-		rotation_z = shape_data["rotation"][2].get<float>();
-		rotation_w = shape_data["rotation"][3].get<float>();
+		rotation = JPH::Quat(
+			shape_data["rotation"][0].get<float>(),
+			shape_data["rotation"][1].get<float>(),
+			shape_data["rotation"][2].get<float>(),
+			shape_data["rotation"][3].get<float>()
+		).Normalized();
 
 		// use shapes or shape settings?????????????????
 		const std::string type = shape_data["type"].get<std::string>();
@@ -299,7 +307,7 @@ JPH::Body *Phys::createBodyFromJson(const json &data) {
 
 			compound_shape->AddShape(
 				Vec3(position_x, position_y, position_z),
-				Quat(rotation_x, rotation_y, rotation_z, rotation_w),
+				rotation,
 				new BoxShape(Vec3(scale_x, scale_y, scale_z))
 			);
 		} else if (type == "sphere") {
@@ -307,7 +315,7 @@ JPH::Body *Phys::createBodyFromJson(const json &data) {
 
 			compound_shape->AddShape(
 				Vec3(position_x, position_y, position_z),
-				Quat(rotation_x, rotation_y, rotation_z, rotation_w),
+				rotation,
 				new SphereShape(radius)
 			);
 		} else if (type == "cylinder") {
@@ -316,7 +324,7 @@ JPH::Body *Phys::createBodyFromJson(const json &data) {
 
 			compound_shape->AddShape(
 				Vec3(position_x, position_y, position_z),
-				Quat(rotation_x, rotation_y, rotation_z, rotation_w),
+				rotation,
 				new CylinderShape(height, radius)
 			);
 		} else {
@@ -424,7 +432,9 @@ JobSystem *Phys::getJobSystem() {
 	return Phys::job_system.get();
 }
 
-
+PhysRenderer *Phys::getPhysRenderer() {
+	return Phys::phys_renderer.get();
+}
 
 // Callback for traces, connect this to your own trace function if you have one
 void TraceImpl(const char *inFMT, ...)
@@ -453,3 +463,32 @@ void TraceImpl(const char *inFMT, ...)
 	};
 
 #endif // JPH_ENABLE_ASSERTS
+
+void Phys::buildDebugVerts() {
+	JPH::BodyManager::DrawSettings settings = JPH::BodyManager::DrawSettings();
+	Phys::getPhysSystem()->DrawBodies(settings, Phys::getPhysRenderer());
+	// struct DrawSettings
+	// {
+	// 	bool						mDrawGetSupportFunction = false;				///< Draw the GetSupport() function, used for convex collision detection
+	// 	bool						mDrawSupportDirection = false;					///< When drawing the support function, also draw which direction mapped to a specific support point
+	// 	bool						mDrawGetSupportingFace = false;					///< Draw the faces that were found colliding during collision detection
+	// 	bool						mDrawShape = true;								///< Draw the shapes of all bodies
+	// 	bool						mDrawShapeWireframe = false;					///< When mDrawShape is true and this is true, the shapes will be drawn in wireframe instead of solid.
+	// 	EShapeColor					mDrawShapeColor = EShapeColor::MotionTypeColor; ///< Coloring scheme to use for shapes
+	// 	bool						mDrawBoundingBox = false;						///< Draw a bounding box per body
+	// 	bool						mDrawCenterOfMassTransform = false;				///< Draw the center of mass for each body
+	// 	bool						mDrawWorldTransform = false;					///< Draw the world transform (which can be different than the center of mass) for each body
+	// 	bool						mDrawVelocity = false;							///< Draw the velocity vector for each body
+	// 	bool						mDrawMassAndInertia = false;					///< Draw the mass and inertia (as the box equivalent) for each body
+	// 	bool						mDrawSleepStats = false;						///< Draw stats regarding the sleeping algorithm of each body
+	// 	bool						mDrawSoftBodyVertices = false;					///< Draw the vertices of soft bodies
+	// 	bool						mDrawSoftBodyVertexVelocities = false;			///< Draw the velocities of the vertices of soft bodies
+	// 	bool						mDrawSoftBodyEdgeConstraints = false;			///< Draw the edge constraints of soft bodies
+	// 	bool						mDrawSoftBodyBendConstraints = false;			///< Draw the bend constraints of soft bodies
+	// 	bool						mDrawSoftBodyVolumeConstraints = false;			///< Draw the volume constraints of soft bodies
+	// 	bool						mDrawSoftBodySkinConstraints = false;			///< Draw the skin constraints of soft bodies
+	// 	bool						mDrawSoftBodyLRAConstraints = false;			///< Draw the LRA constraints of soft bodies
+	// 	bool						mDrawSoftBodyPredictedBounds = false;			///< Draw the predicted bounds of soft bodies
+	// 	ESoftBodyConstraintColor	mDrawSoftBodyConstraintColor = ESoftBodyConstraintColor::ConstraintType; ///< Coloring scheme to use for soft body constraints
+	// };
+}

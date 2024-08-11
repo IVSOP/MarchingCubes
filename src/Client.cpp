@@ -8,11 +8,11 @@
 #define PLAYER_POS Position(glm::vec3(64, 16, 64))
 #define PLAYER_LOOKAT glm::vec3(0, 0, -1)
 
-Client::Client()
+Client::Client(PhysRenderer *phys_renderer)
 : windowManager(std::make_unique<WindowManager>(1920, 1080, this)),
   world(std::make_unique<World>()),
   player(std::make_unique<Player>(world->entt_registry)),
-  renderer(std::make_unique<Renderer>(1920, 1080)), // get these from window manager???
+  renderer(std::make_unique<Renderer>(1920, 1080, phys_renderer)), // get these from window manager???
   inputHandler(glfw_handleMouseMov_callback, glfw_handleMouseKey_callback) // funcs from window manager
 {
 
@@ -134,7 +134,7 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 void Client::mainloop() {
 
 	std::vector<GameObject> objs;
-	Importer::load("magujo-hitbox.glb", "magujo-hitbox.json", objs);
+	Importer::load("magujo.glb", "magujo-hitbox.json", objs);
 	for (GameObject &obj : objs) {
 		// obj.phys_body = Phys::createBody(obj.phys_triangles);
 		Phys::activateBody(obj.phys_body);

@@ -7,6 +7,7 @@
 #include "Material.hpp"
 #include "Camera.hpp"
 #include "Crash.hpp"
+#include "Logs.hpp"
 
 #include "Phys.hpp"
 
@@ -103,7 +104,7 @@ void Renderer::drawAxis(const glm::mat4 &model, const glm::mat4 &view, const glm
 	GLCall(glDrawArrays(GL_LINES, 0, 6)); // 6 pontos, 3 linhas
 }
 
-Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
+Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer *phys_renderer)
 : viewport_width(viewport_width), viewport_height(viewport_height), VAO(0), VBO(0),
   mainShader("shaders/lighting.vert", "shaders/lighting.frag"),
   axisShader("shaders/axis.vert", "shaders/axis.frag"),
@@ -111,7 +112,8 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
   blurShader("shaders/blur.vert", "shaders/blur.frag"),
   hdrBbloomMergeShader("shaders/hdrBloomMerge.vert", "shaders/hdrBloomMerge.frag"),
   pointshader("shaders/points.vert", "shaders/points.frag"),
-  modelShader("shaders/lighting_models.vert", "shaders/lighting_models.frag")
+  modelShader("shaders/lighting_models.vert", "shaders/lighting_models.frag"),
+  phys_renderer(phys_renderer)
 {
 	//////////////////////////// LOADING VAO ////////////////////////////
 	GLCall(glGenVertexArrays(1, &this->VAO));
@@ -154,12 +156,12 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height)
 	{
 		GLuint vertex_position_layout = 0;
 		GLCall(glEnableVertexAttribArray(vertex_position_layout));					// size appart				// offset
-		GLCall(glVertexAttribPointer(vertex_position_layout, 4, GL_FLOAT, GL_FALSE, sizeof(AxisVertex), (const void *)offsetof(AxisVertex, coords)));
+		GLCall(glVertexAttribPointer(vertex_position_layout, 3, GL_FLOAT, GL_FALSE, sizeof(AxisVertex), (const void *)offsetof(AxisVertex, coords)));
 		// GLCall(glVertexAttribDivisor(vertex_position_layout, 0)); // values are per vertex
 
 		GLuint vertex_color_layout = 1;
 		GLCall(glEnableVertexAttribArray(vertex_color_layout));					// size appart				// offset
-		GLCall(glVertexAttribPointer(vertex_color_layout, 3, GL_FLOAT, GL_FALSE, sizeof(AxisVertex), (const void *)offsetof(AxisVertex, color)));
+		GLCall(glVertexAttribPointer(vertex_color_layout, 4, GL_FLOAT, GL_FALSE, sizeof(AxisVertex), (const void *)offsetof(AxisVertex, color)));
 		// GLCall(glVertexAttribDivisor(vertex_color_layout, 0)); // values are per vertex
 	}
 
@@ -356,6 +358,9 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::Checkbox("Wireframe", &wireframe);
 	ImGui::SliderFloat("break_radius", &break_radius, 1.0f, 100.0f, "break_radius = %.3f");
 	ImGui::SliderFloat("break_range", &break_range, 1.0f, 500.0f, "break_range = %.3f");
+	ImGui::Checkbox("Render physics", &render_physics);
+	ImGui::Checkbox("Render", &render);
+	ImGui::Checkbox("Render models", &render_models);
 }
 
 void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view) {
@@ -515,9 +520,10 @@ void Renderer::drawLighting(const VertContainer<Vertex> &verts, const VertContai
 		GLCall(glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer));
 		GLCall(glBufferData(GL_DRAW_INDIRECT_BUFFER, indirect.size() * sizeof(IndirectData), indirect.data(), GL_DYNAMIC_DRAW));
 
-
-		// GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 3, verts.size()));
-		GLCall(glMultiDrawArraysIndirect(GL_TRIANGLES, (void *)0, indirect.size(), 0));
+		if (render) {
+			// GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 3, verts.size()));
+			GLCall(glMultiDrawArraysIndirect(GL_TRIANGLES, (void *)0, indirect.size(), 0));
+		}
 
 		// draw points
 		// NEED TO USE OTHER SHADER
@@ -658,6 +664,11 @@ void Renderer::draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, c
 	prepareFrame(verts.size(), pos, dir, mov, deltaTime, selectedInfo);
 	drawLighting(verts, points, indirect, chunkInfo, projection, view);
 	drawObjects(view, projection, objs);
+
+	if (render_physics) {
+		draw_phys(view, projection);
+	}
+
 	bloomBlur(this->bloomBlurPasses);
 	merge();
 
@@ -860,17 +871,39 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 	modelShader.setMat4("u_View", view);
 	modelShader.setMat4("u_Projection", projection);
 
-	glm::mat4 model;
-	for (const GameObject &obj : objs) {
-		// load vertices
-		GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj.verts.size(), obj.verts.data(), GL_STATIC_DRAW));
-		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * obj.indices.size(), obj.indices.data(), GL_STATIC_DRAW));
+	if (render_models) {
+		glm::mat4 model;
+		for (const GameObject &obj : objs) {
+			// load vertices
+			GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj.verts.size(), obj.verts.data(), GL_STATIC_DRAW));
+			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * obj.indices.size(), obj.indices.data(), GL_STATIC_DRAW));
 
-		model = Phys::getBodyTransform(obj.phys_body);
+			model = Phys::getBodyTransform(obj.phys_body);
 
-		modelShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * model))));
-		modelShader.setMat4("u_Model", model);
+			modelShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * model))));
+			modelShader.setMat4("u_Model", model);
 
-		GLCall(glDrawElements(GL_TRIANGLES, obj.indices.size(), GL_UNSIGNED_INT, 0));
+			GLCall(glDrawElements(GL_TRIANGLES, obj.indices.size(), GL_UNSIGNED_INT, 0));
+		}
 	}
+}
+
+void Renderer::draw_phys(const glm::mat4 &view, const glm::mat4 &projection) {
+	phys_renderer->clearVerts();
+	Phys::buildDebugVerts();
+	const std::vector<PhysVertex> &verts = phys_renderer->getVerts();
+
+	// cursed, but axis VAO and shader have exactly what I need so I'll just reuse it. currently PhysVertex == AxisVertex
+
+	// bind VAO, VBO
+	GLCall(glBindVertexArray(this->VAO_axis));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->vertexBuffer_axis));
+
+	// load vertices
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(PhysVertex) * verts.size(), verts.data(), GL_STATIC_DRAW));
+
+	axisShader.use();
+	axisShader.setMat4("u_MVP", projection * view);
+
+	GLCall(glDrawArrays(GL_TRIANGLES, 0, verts.size()));
 }

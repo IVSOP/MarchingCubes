@@ -13,6 +13,7 @@ class WindowManager;
 	#include <valgrind/callgrind.h>
 #endif
 
+#include "PhysRenderer.hpp"
 
 class Client {
 public:
@@ -25,7 +26,7 @@ public:
 	// get this out of here please
 	bool resize = false;
 
-	Client();
+	Client(PhysRenderer *phys_renderer);
 	~Client() = default;
 
 	// these are here so that windowManager can call them, since it only has the client

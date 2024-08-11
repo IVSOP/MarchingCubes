@@ -60,11 +60,13 @@ struct Vertex {
 };
 
 struct AxisVertex { // to draw the axis
-	glm::vec4 coords = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec3 coords = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	AxisVertex() = default;
-	AxisVertex(float x, float y, float z, float R, float G, float B) : coords(x, y, z, 1.0f), color(R, G, B, 1.0f) {}
+	AxisVertex(float x, float y, float z, float R, float G, float B) : coords(x, y, z), color(R, G, B, 1.0f) {}
+	AxisVertex(float x, float y, float z, float R, float G, float B, float A) : coords(x, y, z), color(R, G, B, A) {}
+	AxisVertex(const glm::vec3 &coords, const glm::vec4 &color) : coords(coords), color(color) {}
 };
 
 struct ViewportVertex { // if needed, to draw on the entire viewport
@@ -80,5 +82,14 @@ struct ModelVertex {
 	glm::vec2 uv;
 	ModelVertex(const glm::vec3 &coords, const glm::vec3 &normal, const glm::vec2 &uv) : coords(coords), normal(normal), uv(uv) {}
 };
+
+using PhysVertex = AxisVertex;
+
+// struct PhysVertex {
+// 	glm::vec3 coords = glm::vec3(0.0f);
+// 	glm::vec4 color = glm::vec4(1.0f);
+
+// 	PhysVertex(const glm::vec3 &coords, const glm::vec4 &color) : coords(coords),color(color) {}
+// };
 
 #endif //CG_VERTEX_H

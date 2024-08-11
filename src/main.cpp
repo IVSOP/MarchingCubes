@@ -21,7 +21,8 @@ int main(int argc, char **argv) {
 	// this is VERY BAD, REMOVE THIS, TEMPORARY
 	Phys::setup_phys();
 
-	Client client = Client();
+	// this is ALSO VERY BAD that is receives the debug renderer, TEMPORARY
+	Client client = Client(Phys::getPhysRenderer());
 	// client.loadWorldFrom("saves/first.world");
 	client.mainloop();
 	// client.saveWorldTo("saves/first.world");

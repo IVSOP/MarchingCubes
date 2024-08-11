@@ -22,6 +22,9 @@
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
+
+#include "PhysRenderer.hpp"
+
 JPH_SUPPRESS_WARNINGS
 
 // JPH_NAMESPACE_BEGIN
@@ -137,8 +140,12 @@ private:
 	static std::unique_ptr<JPH::PhysicsSystem> phys_system;
 	static std::unique_ptr<JPH::TempAllocatorImpl> temp_allocator;
 	static std::unique_ptr<JPH::JobSystem> job_system;
+	static std::unique_ptr<PhysRenderer> phys_renderer;
+
 public:
 	static void setup_phys();
+	static PhysRenderer *getPhysRenderer();
+	static void buildDebugVerts();
 
 	static JPH::BodyInterface &getBodyInterface();
 

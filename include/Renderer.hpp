@@ -7,16 +7,18 @@
 #include "TextureArray.hpp"
 #include <memory>
 #include "Components.hpp"
-
 #include <vector>
-
 #include "Assets.hpp"
+
+#include "PhysRenderer.hpp"
+
+#include "Phys.hpp" // cursed, to call Phys::buildDebugVerts();
 
 // TODO many things are not deleted (ex: all related to models)
 class Renderer {
 public:
 	Renderer() = delete;
-	Renderer(GLsizei viewport_width, GLsizei viewport_height);
+	Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer *phys_renderer);
 	~Renderer();
 
 	GLsizei viewport_width, viewport_height;
@@ -70,8 +72,14 @@ public:
 
 	std::unique_ptr<TextureArray> textureArray = nullptr; // pointer since it starts as null and gets initialized later. unique_ptr so it always gets deleted
 
+	PhysRenderer *phys_renderer;
+	bool render_physics = false;
+	bool render = true;
+	bool render_models = true;
+
 	void draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const std::vector<GameObject> &objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo); // const
 	void drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<GameObject> &objs);
+	void draw_phys(const glm::mat4 &view, const glm::mat4 &projection);
 
 	void loadTextures();
 	void resizeViewport(GLsizei viewport_width, GLsizei viewport_height);
