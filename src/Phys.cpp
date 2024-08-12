@@ -465,6 +465,7 @@ void TraceImpl(const char *inFMT, ...)
 #endif // JPH_ENABLE_ASSERTS
 
 void Phys::buildDebugVerts() {
+	// TODO call SetCameraPos on the debug renderer
 	JPH::BodyManager::DrawSettings settings = JPH::BodyManager::DrawSettings();
 	Phys::getPhysSystem()->DrawBodies(settings, Phys::getPhysRenderer());
 	// struct DrawSettings
