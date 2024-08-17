@@ -86,6 +86,7 @@
 		"stdfloat": "cpp",
 		"text_encoding": "cpp",
 		"hash_map": "cpp",
-		"hash_set": "cpp"
+		"hash_set": "cpp",
+		"expected": "cpp"
 	}
 }

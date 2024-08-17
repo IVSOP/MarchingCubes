@@ -68,37 +68,40 @@ struct Movement {
 };
 
 struct Physics {
-	glm::vec3 vel;
-	glm::vec3 force;
-	GLfloat mass = 1.0f;
+	JPH::Body *body;
 
-	Physics()
-		: vel(0.0f), force(0.0f) {}
+	Physics() : body(nullptr) {}
+	Physics(JPH::Body *body) : body(body) {}
 
-	Physics(const glm::vec3 &vel, const glm::vec3 &force)
-		: vel(vel), force(force) {}
-
-	constexpr void addGravity() {
-		force += mass * glm::vec3(0.0f, -9.8f, 0.0f);
+	~Physics() {
+		Phys::destroyBody(body);
 	}
 
-	constexpr void applyToPosition(glm::vec3 &position, GLfloat deltatime) {
-		vel += (force / mass) * deltatime;
-		position += vel * deltatime;
-		// position += deltatime * (vel + deltatime * accel * 0.5f);
-
-		force = glm::vec3(0.0f);
-	}
-
-	// constexpr void applyFriction(GLfloat coeff) {
-		// got lazy, needed to calculate x and z force components etc
-		// force -= coeff * glm::vec3();
-	// }
-
-	constexpr void slowDown(GLfloat coeff, GLfloat deltatime) {
-		vel -= (vel * coeff) * deltatime;
-		// force -= (force * coeff) * deltatime;
+	// TODO consider only sending rotation and translation to the gpu
+	glm::mat4 getTransform() {
+		return Phys::getBodyTransform(body);
 	}
 };
+
+// to render, info is obtained using this ID
+// TODO this is more flexible, but if it is too slow will have to restructure the entire pipeline again to make a faster way of getting all entities of the same id
+struct Render {
+	uint32_t object_id;
+
+	Render() = delete;
+	Render(uint32_t object_id) : object_id(object_id) {}
+	~Render() = default;
+};
+
+// this is bad since many entities share this exact thing, no reason to do this
+// struct Render {
+// 	// this is a bit of a hack, info actually comes from Assets, these are just references
+// 	const VertContainer<ModelVertex> &verts;
+// 	const std::vector<GLuint> &indices;
+
+// 	Render() = delete;
+// 	Render(const VertContainer<ModelVertex> &verts, const std::vector<GLuint> &indices) : verts(verts), indices(indices) {}
+// 	~Render() = default;
+// };
 
 #endif

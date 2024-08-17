@@ -9,10 +9,14 @@
 
 #include <entt.hpp>
 #include "Phys.hpp"
+#include <unordered_map>
+#include "Assets.hpp"
+
 
 // #include "zlib/zlib.h"
 
-struct World {
+class World {
+public:
 	Chunk chunks[WORLD_SIZE_X][WORLD_SIZE_Y][WORLD_SIZE_Z]; // this order can be changed, need to test it for performance
 
 	VertContainer<Vertex> verts; // so I dont have to constantly alloc and free
@@ -139,6 +143,23 @@ struct World {
 	void breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius);
 
 	void loadHeightMap(const std::string &path);
+
+	// loads model and stores its info, returning the object_id
+	uint32_t loadModel(const std::string &name, const std::string &hitbox_name);
+	// creates a renderable physics entity internally, given an object_id
+	void spawn(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation);
+
+private:
+	// while I do have an ECS, it is dumb to have N entities share 1 model and make them have a component with the vertices or something
+	// I want to render all entities of the same model all at once using instancing
+	// I need a fast way to get all entities that share some model, but I have no ideas that aren't messy
+	// while it is still early I'll go for a compromise that adds some flexibility, by making them have an ID that says what model they have to render
+	// TODO if it turns out to be too slow will need to think of something else
+	std::vector<GameObject> objects_info;
+
+	// // to allow spawning entities using the model name instead of the ID, but will be slower
+	// std::unordered_map<std::string, uint32_t> name_to_id;
+
 };
 
 

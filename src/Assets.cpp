@@ -54,36 +54,43 @@ void recursive_add_verts(const aiScene* scene, const aiNode *node, GameObject *o
 	}
 }
 
-std::unique_ptr<GameObject> Importer::load(const std::string &name, const std::string &hitbox) {
-	Assimp::Importer importer;
+// const GameObject *Assets::load(const std::string &name, const std::string &hitbox) {
+// 	Assimp::Importer importer;
 
-	const aiScene* scene = importer.ReadFile(ASSETS_FOLDER + name, POST_PROCESS);
+// 	const aiScene* scene = importer.ReadFile(ASSETS_FOLDER + name, POST_PROCESS);
 
-	 // If the import failed, report it
-	CRASH_IF(scene == nullptr, std::string("Failed to import asset from ") + ASSETS_FOLDER + name);
+// 	 // If the import failed, report it
+// 	CRASH_IF(scene == nullptr, std::string("Failed to import asset from ") + ASSETS_FOLDER + name);
 
-	// importer destructor will clean everything up!!!!!!
+// 	// importer destructor will clean everything up!!!!!!
 
-	// scene has nodes
-	// nodes have num meshes, and an array of indices to meshes
-	// these indices are for an array in the scene itself
+// 	// scene has nodes
+// 	// nodes have num meshes, and an array of indices to meshes
+// 	// these indices are for an array in the scene itself
 
-	// need to iterate over the nodes recursively and add up the vertices that make up their meshes
-	// TODO test this vs iterating over things already in scene
+// 	// need to iterate over the nodes recursively and add up the vertices that make up their meshes
+// 	// TODO test this vs iterating over things already in scene
 
-	std::unique_ptr<GameObject> obj = std::make_unique<GameObject>(1); // getNextPowerOfTwo(mesh->mNumVertices));
+// 	// getNextPowerOfTwo(mesh->mNumVertices));
+// 	// cursed, and pretty unsafe since iterators can get invalidated, but we ball
+// 	// I refuse to live in fear of the segfault
+// 	GameObject *obj = &(Assets::objects.emplace(
+// 		std::piecewise_construct,
+// 		std::forward_as_tuple(name),
+// 		std::forward_as_tuple()
+// 	).first->second);
 
-	aiNode *node = scene->mRootNode;
+// 	aiNode *node = scene->mRootNode;
 
-	recursive_add_verts(scene, node, obj.get());
+// 	recursive_add_verts(scene, node, obj);
 
-	FileHandler hitbox_file = FileHandler(ASSETS_FOLDER + hitbox);
-	obj->phys_body = Phys::createBodyFromJson(hitbox_file.readjson());
+// 	FileHandler hitbox_file = FileHandler(ASSETS_FOLDER + hitbox);
+// 	obj->phys_shape = Phys::createShapeFromJson(hitbox_file.readjson());
 
-	return obj;
-}
+// 	return obj;
+// }
 
-void Importer::load(const std::string &name, const std::string &hitbox, std::vector<GameObject> &objs) {
+void Assets::load(const std::string &name, const std::string &hitbox, std::vector<GameObject> &objs) {
 	Assimp::Importer importer;
 
 	const aiScene* scene = importer.ReadFile(ASSETS_FOLDER + name, POST_PROCESS);
@@ -107,9 +114,7 @@ void Importer::load(const std::string &name, const std::string &hitbox, std::vec
 	recursive_add_verts(scene, node, &objs.back());
 
 	FileHandler hitbox_file = FileHandler(ASSETS_FOLDER + hitbox);
-	(&objs.back())->phys_body = Phys::createBodyFromJson(hitbox_file.readjson());
-
-	// objs.push_back(obj);
+	(&objs.back())->phys_shape = Phys::createShapeFromJson(hitbox_file.readjson());
 }
 
 void recursive_dump_metadata(const aiNode *node) {
@@ -176,7 +181,7 @@ void recursive_dump_metadata(const aiNode *node) {
 	}
 }
 
-void Importer::dumpMetadata(const std::string &name) {
+void Assets::dumpMetadata(const std::string &name) {
 	Assimp::Importer importer;
 
 	const aiScene* scene = importer.ReadFile(ASSETS_FOLDER + name, POST_PROCESS);

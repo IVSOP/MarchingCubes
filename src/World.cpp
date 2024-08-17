@@ -9,15 +9,18 @@
 #include "Logs.hpp"
 #include "Crash.hpp"
 
+#include "Components.hpp"
+
+
 /*
 DESIGN CHOICES:
 
 I concluded that having the chunks be dumb and the world managing them was the best way to do things
 Before, doing addVertsTo() would rebuild the vertices if necessary
 But, now that I have physics and need to update the triangles that make up the body's mesh,
-I needed to have the chunk itself set its own triangles to its own body, which feels ver messy
+I needed to have the chunk itself set its own triangles to its own body, which feels very messy
 So I shifted control into here, and here we check if the triangles need to be rebuilt or not and do things according to that
-However, the chunk is still able to upload its phys triangles and generate its body, so that the body and triangles never have to leave it
+However, the chunk is still the one that uploads its phys triangles and generate its body, so that the body and triangles never have to leave it,
 But this is never done automatically and only done when the world tells it to
 Kind of a mess but I can easily change it when I have to
 */
@@ -346,4 +349,24 @@ void World::loadHeightMap(const std::string &path) {
 	}
 
 	free(buffer);
+}
+
+uint32_t World::loadModel(const std::string &name, const std::string &hitbox_name) {
+	uint32_t size = this->objects_info.size();
+	Assets::load(name, hitbox_name, this->objects_info);
+	return size;
+}
+
+void World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
+	// create a body (not activated)
+	JPH::RefConst<JPH::Shape> shape = this->objects_info[render_id].phys_shape;
+	JPH::Body *body = Phys::createBodyFromShape(shape, translation, rotation);
+
+	// add to entt
+	entt::entity entity = entt_registry.create();
+	entt_registry.emplace<Physics>(entity, body);
+	entt_registry.emplace<Render>(entity, render_id);
+
+	// activate body
+	Phys::activateBody(body);
 }

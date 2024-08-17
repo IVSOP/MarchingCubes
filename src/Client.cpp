@@ -133,12 +133,14 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 
 void Client::mainloop() {
 
+	uint32_t id = world->loadModel("magujo.glb", "magujo-hitbox.json");
+	world->spawn(id, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
+
 	std::vector<GameObject> objs;
-	Importer::load("magujo.glb", "magujo-hitbox.json", objs);
-	for (GameObject &obj : objs) {
-		// obj.phys_body = Phys::createBody(obj.phys_triangles);
-		Phys::activateBody(obj.phys_body);
-	}
+	// for (GameObject &obj : objs) {
+	// 	// obj.phys_body = Phys::createBody(obj.phys_triangles);
+	// 	Phys::activateBody(obj.phys_body);
+	// }
 
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep
     while (!glfwWindowShouldClose(windowManager.get()->window)) {
@@ -162,6 +164,11 @@ void Client::mainloop() {
         // std::unique_lock<std::mutex> lock = std::unique_lock<std::mutex>(mtx);
         // renderer.get()->draw(draw_quads, projection, *camera.get(), window, deltaTime);
     	world.get()->buildData();
+
+
+		// get drawable physics entities	
+
+
 
 		glm::mat4 view = player->getViewMatrix();
 		renderer->draw(

@@ -269,7 +269,10 @@ JPH::Body *Phys::createBody(const TriangleList &triangles, const glm::vec3 &coor
 
 
 
-JPH::Body *Phys::createBodyFromJson(const json &data) {
+// TODO when using AddShape I use new since that is what the example did
+// does it ever get freed???????????????? wtf is going on here
+// TODO return compound shape?
+RefConst<JPH::Shape> Phys::createShapeFromJson(const json &data) {
 
 	JPH::Ref<JPH::StaticCompoundShapeSettings> compound_shape = new JPH::StaticCompoundShapeSettings;
 
@@ -332,12 +335,25 @@ JPH::Body *Phys::createBodyFromJson(const json &data) {
 		}
 	}
 
-	BodyCreationSettings bodySettings(compound_shape, Vec3::sZero(), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
+	const ShapeSettings::ShapeResult shapeResult = compound_shape->Create();
+
+    // Step 4: Check for errors during shape creation
+    CRASH_IF(shapeResult.HasError(), "Error creating compound shape: " + std::string(shapeResult.GetError()));
+
+	// RefConst<JPH::Shape> res = shapeResult.Get();
+	return shapeResult.Get();
+
+	// BodyCreationSettings bodySettings(compound_shape, Vec3::sZero(), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
+	// BodyInterface &bodyInterface = getBodyInterface();
+	// Body* body = bodyInterface.CreateBody(bodySettings);
+	// bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
+}
+
+JPH::Body *Phys::createBodyFromShape(JPH::RefConst<JPH::Shape> shape, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
+	BodyCreationSettings bodySettings(shape, translation, rotation, EMotionType::Dynamic, Layers::MOVING);
 	BodyInterface &bodyInterface = getBodyInterface();
 	Body* body = bodyInterface.CreateBody(bodySettings);
 	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
-
-
 	return body;
 }
 
@@ -353,6 +369,7 @@ void Phys::addBodyToSystem(const JPH::Body *body) {
 	bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
 }
 
+// TODO consider just using GetWorldTransform()
 glm::mat4 Phys::getBodyTransform(const JPH::Body *body) {
 	JPH::RVec3 position = body->GetPosition();
 	JPH::Quat rotation = body->GetRotation();
