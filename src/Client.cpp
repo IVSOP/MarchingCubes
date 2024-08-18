@@ -138,9 +138,22 @@ void Client::mainloop() {
 	world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
 	// uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
-	// uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx", "magujo/magujo-hitbox.json");
 	// world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
+	// uint32_t idsenna = world->loadModel("senna/senna.fbx");
+	// world->spawn(idsenna, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
+
+	// uint32_t idcottage = world->loadModel("cottage/cottage_fbx.fbx");
+	// world->spawn(idcottage, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
+
+	// uint32_t idearth = world->loadModel("earth/earth.fbx");
+	// world->spawn(idearth, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
+
+	// uint32_t iddragon = world->loadModel("dragon/dragon.glb");
+	// world->spawn(iddragon, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
+
+	// uint32_t idbuilding = world->loadModel("buildings/fbx/Residential Buildings 001.fbx");
+	// world->spawn(idbuilding, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
 
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep
     while (!glfwWindowShouldClose(windowManager.get()->window)) {
