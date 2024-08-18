@@ -78,7 +78,7 @@ struct Physics {
 	}
 
 	// TODO consider only sending rotation and translation to the gpu
-	glm::mat4 getTransform() {
+	glm::mat4 getTransform() const {
 		return Phys::getBodyTransform(body);
 	}
 };

@@ -370,3 +370,24 @@ void World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Q
 	// activate body
 	Phys::activateBody(body);
 }
+
+// TODO this should be const, cant make a const group. make components themselves const???
+// TODO group vs view???? different types of group ownership?????? was calling ~Physics() and messing everything up
+const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEntitiesToDraw() {
+	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res(objects_info.size());
+
+	auto group = entt_registry.group<Render>(entt::get<Physics>);
+	for (const auto entity : group) {
+		const Physics &phys = group.get<Physics>(entity);
+		const Render &render = group.get<Render>(entity);
+
+		res[render.object_id].second.emplace_back(phys.getTransform());
+	}
+
+	for (unsigned int i = 0; i < res.size(); i++) {
+		res[i].first = &objects_info[i];
+	}
+
+	// TODO is everything getting deep copied??????
+	return res;
+}

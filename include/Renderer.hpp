@@ -77,8 +77,8 @@ public:
 	bool render = true;
 	bool render_models = true;
 
-	void draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const std::vector<GameObject> &objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo); // const
-	void drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<GameObject> &objs);
+	void draw(const glm::mat4 &view, const VertContainer<Vertex> &verts, const VertContainer<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo); // const
+	void drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs);
 	void draw_phys(const glm::mat4 &view, const glm::mat4 &projection);
 
 	void loadTextures();

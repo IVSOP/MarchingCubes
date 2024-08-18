@@ -135,12 +135,8 @@ void Client::mainloop() {
 
 	uint32_t id = world->loadModel("magujo.glb", "magujo-hitbox.json");
 	world->spawn(id, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
+	world->spawn(id, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
-	std::vector<GameObject> objs;
-	// for (GameObject &obj : objs) {
-	// 	// obj.phys_body = Phys::createBody(obj.phys_triangles);
-	// 	Phys::activateBody(obj.phys_body);
-	// }
 
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep
     while (!glfwWindowShouldClose(windowManager.get()->window)) {
@@ -159,27 +155,24 @@ void Client::mainloop() {
 			world.get(),
 			selectedBlock,
 			renderer->break_radius,
-			player.get(), windowManager.get()->windowWidth, windowManager.get()->windowHeight, static_cast<GLfloat>(deltaTime));
+			player.get(), windowManager->windowWidth, windowManager->windowHeight, static_cast<GLfloat>(deltaTime));
 
         // std::unique_lock<std::mutex> lock = std::unique_lock<std::mutex>(mtx);
         // renderer.get()->draw(draw_quads, projection, *camera.get(), window, deltaTime);
-    	world.get()->buildData();
-
-
-		// get drawable physics entities	
+    	world->buildData();
 
 
 
 		glm::mat4 view = player->getViewMatrix();
 		renderer->draw(
 			view,
-			world.get()->getVerts(),
-			world.get()->getPoints(),
-			world.get()->getIndirect(),
-			world.get()->getInfo(),
-			objs,
-			windowManager.get()->projection,
-			windowManager.get()->window, deltaTime,
+			world->getVerts(),
+			world->getPoints(),
+			world->getIndirect(),
+			world->getInfo(),
+			world->getEntitiesToDraw(),
+			windowManager->projection,
+			windowManager->window, deltaTime,
 			pos,
 			dir,
 			mov,

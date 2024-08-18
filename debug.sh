@@ -10,7 +10,9 @@ if cmake -DCMAKE_BUILD_TYPE=Debug -S . -B $DIR; then
 		# gdb -ex=r --args $@
 	else
 		printf ">> build failed\n"
+		exit 1
 	fi
 else
 	printf ">> configure failed\n"
+	exit 1
 fi

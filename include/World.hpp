@@ -149,12 +149,14 @@ public:
 	// creates a renderable physics entity internally, given an object_id
 	void spawn(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation);
 
+	// vector of pair<render info for a single instance, array of transforms of all entities to be drawn>
+	const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> getEntitiesToDraw();
+
 private:
 	// while I do have an ECS, it is dumb to have N entities share 1 model and make them have a component with the vertices or something
 	// I want to render all entities of the same model all at once using instancing
-	// I need a fast way to get all entities that share some model, but I have no ideas that aren't messy
-	// while it is still early I'll go for a compromise that adds some flexibility, by making them have an ID that says what model they have to render
-	// TODO if it turns out to be too slow will need to think of something else
+	// I need a fast way to get all entities that share some model, but this is kind of incompatible with an ECS system
+	// TODO improve this, for now every single frame I loop over ALL entities and group them by their object_id, cannot come up with a good solution right now
 	std::vector<GameObject> objects_info;
 
 	// // to allow spawning entities using the model name instead of the ID, but will be slower
