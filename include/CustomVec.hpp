@@ -1,7 +1,8 @@
 #ifndef CUSTOMVEC_H
 #define CUSTOMVEC_H
 
-#include "common.hpp"
+#include "stdlib.hpp"
+#include "types.hpp"
 #include <vector>
 
 // specialized structure, since a vector was too slow. I want to be able to memcpy lots of data, not build/emplace one by one (compiler usually does it when I don't want to)

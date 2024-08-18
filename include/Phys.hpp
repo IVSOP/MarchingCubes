@@ -4,6 +4,7 @@
 #include "types.hpp"
 #include "stdlib.hpp"
 #include "Json.hpp"
+#include "CustomVec.hpp"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/RegisterTypes.h>
@@ -20,6 +21,7 @@
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/CylinderShape.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
+#include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
 #include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
 
@@ -159,6 +161,7 @@ public:
 	static JPH::Body *createBody(const JPH::TriangleList &triangles, const glm::vec3 &coords);
 	// read the shapes from the json and make them into a compound shape, then create a body with it
 	static JPH::RefConst<JPH::Shape> createShapeFromJson(const json &data);
+	static JPH::RefConst<JPH::Shape> createConvexHull(const CustomVec<ModelVertex> &verts, const std::vector<GLuint> &indices);
 	static JPH::Body *createBodyFromShape(JPH::RefConst<JPH::Shape> shape, const JPH::Vec3 &translation, const JPH::Quat &rotation);
 	static void activateBody(const JPH::Body *body);
 	static void addBodyToSystem(const JPH::Body *body);

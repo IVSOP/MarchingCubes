@@ -9,7 +9,6 @@
 #define CHUNK_SIZE_CORNERS_FLOAT static_cast<GLfloat>(CHUNK_SIZE_CORNERS)
 
 #include <vector>
-#include "CustomVec.hpp"
 #include "Bitmap.hpp"
 
 #include "Vertex.hpp"

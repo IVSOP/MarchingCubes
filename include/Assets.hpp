@@ -42,7 +42,7 @@ public:
 	// adds object to vector of other objects
 	static void load(const std::string &model, const std::string &hitbox, CustomVec<GameObject> &objs);
 	// TODO make this, and make it create a convex hull from all the points
-	static void load(const std::string &model, CustomVec<GameObject> &objs) { }
+	static void load(const std::string &model, CustomVec<GameObject> &objs);
 
 	// for debug
 	static void dumpMetadata(const std::string &name);

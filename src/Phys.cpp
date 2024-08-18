@@ -337,7 +337,6 @@ RefConst<JPH::Shape> Phys::createShapeFromJson(const json &data) {
 
 	const ShapeSettings::ShapeResult shapeResult = compound_shape->Create();
 
-    // Step 4: Check for errors during shape creation
     CRASH_IF(shapeResult.HasError(), "Error creating compound shape: " + std::string(shapeResult.GetError()));
 
 	// RefConst<JPH::Shape> res = shapeResult.Get();
@@ -347,6 +346,24 @@ RefConst<JPH::Shape> Phys::createShapeFromJson(const json &data) {
 	// BodyInterface &bodyInterface = getBodyInterface();
 	// Body* body = bodyInterface.CreateBody(bodySettings);
 	// bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
+}
+
+JPH::RefConst<JPH::Shape> Phys::createConvexHull(const CustomVec<ModelVertex> &verts, const std::vector<GLuint> &indices) {
+	// TODO optimize this
+	JPH::Array<JPH::Vec3> jph_verts;
+	for (unsigned int i = 0; i < indices.size(); i++) {
+		// why not reference??
+		const glm::vec3 &vert = verts[indices[i]].coords;
+		jph_verts.emplace_back(JPH::Vec3(vert.x, vert.y, vert.z));
+	}
+
+	JPH::Ref<JPH::ConvexHullShapeSettings> convex_hull = new JPH::ConvexHullShapeSettings(jph_verts);
+	const ShapeSettings::ShapeResult shapeResult = convex_hull->Create();
+
+    CRASH_IF(shapeResult.HasError(), "Error creating convex hull shape: " + std::string(shapeResult.GetError()));
+
+	// RefConst<JPH::Shape> res = shapeResult.Get();
+	return shapeResult.Get();
 }
 
 JPH::Body *Phys::createBodyFromShape(JPH::RefConst<JPH::Shape> shape, const JPH::Vec3 &translation, const JPH::Quat &rotation) {

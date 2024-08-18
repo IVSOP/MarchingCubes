@@ -138,8 +138,8 @@ void Client::mainloop() {
 	world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
 	// uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
-	uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx", "magujo/magujo-hitbox.json");
-	world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
+	// uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx", "magujo/magujo-hitbox.json");
+	// world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
 
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep
