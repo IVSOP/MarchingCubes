@@ -133,9 +133,13 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 
 void Client::mainloop() {
 
-	uint32_t id = world->loadModel("magujo.glb", "magujo-hitbox.json");
-	world->spawn(id, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
-	world->spawn(id, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
+	uint32_t idmagujo = world->loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
+	world->spawn(idmagujo, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
+	world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
+
+	// uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
+	uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx", "magujo/magujo-hitbox.json");
+	world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
 
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep

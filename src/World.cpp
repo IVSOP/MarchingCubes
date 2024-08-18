@@ -357,6 +357,12 @@ uint32_t World::loadModel(const std::string &name, const std::string &hitbox_nam
 	return size;
 }
 
+uint32_t World::loadModel(const std::string &name) {
+	uint32_t size = this->objects_info.size();
+	Assets::load(name, this->objects_info);
+	return size;
+}
+
 void World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
 	// create a body (not activated)
 	JPH::RefConst<JPH::Shape> shape = this->objects_info[render_id].phys_shape;

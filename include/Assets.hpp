@@ -3,7 +3,7 @@
 
 #include "common.hpp"
 #include "Vertex.hpp"
-#include "VertContainer.hpp"
+#include "CustomVec.hpp"
 #include "Phys.hpp"
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
@@ -16,37 +16,33 @@
 
 // info about an object, allowing to render it and make its physics object
 struct GameObject {
-	VertContainer<ModelVertex> verts;
-	std::vector<GLuint> indices; // TODO use vertcontainer???
+	CustomVec<ModelVertex> verts;
+	std::vector<GLuint> indices; // TODO use CustomVec???
 
-	// TODO keep this in the stack or delete the body if kept this way
-	// also don't forget to remove it from phys system
 	JPH::RefConst<JPH::Shape> phys_shape;
 
 	GameObject() : verts(1) {} // cursed
 	GameObject(std::size_t vert_cap) : verts(vert_cap) {}
-	GameObject(VertContainer<ModelVertex> verts, std::vector<GLuint> indices) : verts(verts), indices(indices) {}
-	~GameObject() = default; // TODO
+																			 // can I do this??? what happens to the underlying data
+	// GameObject(CustomVec<ModelVertex> verts, std::vector<GLuint> indices) : verts(verts), indices(indices) {}
+	~GameObject() = default;
 };
 
 // uses assimp to import things
 class Assets {
 public:
 
-	// the two load functions receive a hitbox file as input
-	// for now since I don't have an editor I need a human readable format so I'll use json
+	// for now since I don't have an editor I need a human readable format so I'll use json for the hitboxes
 	// vecs are represented like a list of floats
 	// see Phys
 	// blender uses wxyz, I use xyzw
 	// blender has y-up
 	// basically I need to do treat blender abcd as bdca
 
-	// https://stackoverflow.com/questions/62253972/is-it-safe-to-reference-a-value-in-unordered-map
-	// pray that this is true for pointers as well
-	// static const GameObject *load(const std::string &model, const std::string &hitbox);
-
 	// adds object to vector of other objects
-	static void load(const std::string &model, const std::string &hitbox, std::vector<GameObject> &objs);
+	static void load(const std::string &model, const std::string &hitbox, CustomVec<GameObject> &objs);
+	// TODO make this, and make it create a convex hull from all the points
+	static void load(const std::string &model, CustomVec<GameObject> &objs) { }
 
 	// for debug
 	static void dumpMetadata(const std::string &name);

@@ -90,7 +90,7 @@ void recursive_add_verts(const aiScene* scene, const aiNode *node, GameObject *o
 // 	return obj;
 // }
 
-void Assets::load(const std::string &name, const std::string &hitbox, std::vector<GameObject> &objs) {
+void Assets::load(const std::string &name, const std::string &hitbox, CustomVec<GameObject> &objs) {
 	Assimp::Importer importer;
 
 	const aiScene* scene = importer.ReadFile(ASSETS_FOLDER + name, POST_PROCESS);
@@ -111,10 +111,10 @@ void Assets::load(const std::string &name, const std::string &hitbox, std::vecto
 
 	aiNode *node = scene->mRootNode;
 
-	recursive_add_verts(scene, node, &objs.back());
+	recursive_add_verts(scene, node, objs.getBackPointer());
 
 	FileHandler hitbox_file = FileHandler(ASSETS_FOLDER + hitbox);
-	(&objs.back())->phys_shape = Phys::createShapeFromJson(hitbox_file.readjson());
+	(objs.getBackPointer())->phys_shape = Phys::createShapeFromJson(hitbox_file.readjson());
 }
 
 void recursive_dump_metadata(const aiNode *node) {

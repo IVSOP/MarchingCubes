@@ -9,7 +9,7 @@
 #define CHUNK_SIZE_CORNERS_FLOAT static_cast<GLfloat>(CHUNK_SIZE_CORNERS)
 
 #include <vector>
-#include "VertContainer.hpp"
+#include "CustomVec.hpp"
 #include "Bitmap.hpp"
 
 #include "Vertex.hpp"
@@ -211,7 +211,7 @@ struct Chunk {
 	}
 
 	// returns how much was added
-	constexpr GLuint addVertsTo(VertContainer<Vertex> &_verts) {
+	constexpr GLuint addVertsTo(CustomVec<Vertex> &_verts) {
 		// if (vertsHaveChanged) {
 		// 	rebuildVerts();
 		// }
@@ -219,7 +219,7 @@ struct Chunk {
 		return verts.size();
 	}
 
-	constexpr GLuint addPointsTo(VertContainer<Point> &_points) {
+	constexpr GLuint addPointsTo(CustomVec<Point> &_points) {
 		// if (vertsHaveChanged) {
 		// 	rebuildVerts();
 		// }

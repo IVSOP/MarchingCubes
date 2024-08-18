@@ -19,8 +19,8 @@ class World {
 public:
 	Chunk chunks[WORLD_SIZE_X][WORLD_SIZE_Y][WORLD_SIZE_Z]; // this order can be changed, need to test it for performance
 
-	VertContainer<Vertex> verts; // so I dont have to constantly alloc and free
-	VertContainer<Point> debug_points;
+	CustomVec<Vertex> verts; // so I dont have to constantly alloc and free
+	CustomVec<Point> debug_points;
 	std::vector<IndirectData> indirect;
 	std::vector<ChunkInfo> info;
 	entt::registry entt_registry;
@@ -30,11 +30,11 @@ public:
 		return chunks[position.x][position.y][position.z];
 	}
 
-	VertContainer<Vertex> &getVerts() {
+	CustomVec<Vertex> &getVerts() {
 		return verts;
 	}
 
-	VertContainer<Point> &getPoints() {
+	CustomVec<Point> &getPoints() {
 		return debug_points;
 	}
 
@@ -146,6 +146,7 @@ public:
 
 	// loads model and stores its info, returning the object_id
 	uint32_t loadModel(const std::string &name, const std::string &hitbox_name);
+	uint32_t loadModel(const std::string &name);
 	// creates a renderable physics entity internally, given an object_id
 	void spawn(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation);
 
@@ -157,7 +158,8 @@ private:
 	// I want to render all entities of the same model all at once using instancing
 	// I need a fast way to get all entities that share some model, but this is kind of incompatible with an ECS system
 	// TODO improve this, for now every single frame I loop over ALL entities and group them by their object_id, cannot come up with a good solution right now
-	std::vector<GameObject> objects_info;
+	// !!!!!!!!!! DO NOT USE std::vector AS IT CALLS DESTRUCTOR WHEN DOING REALLOCATIONS
+	CustomVec<GameObject> objects_info = CustomVec<GameObject>(1);
 
 	// // to allow spawning entities using the model name instead of the ID, but will be slower
 	// std::unordered_map<std::string, uint32_t> name_to_id;

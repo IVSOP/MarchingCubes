@@ -1,25 +1,26 @@
-#ifndef VERTCONTAINER_H
-#define VERTCONTAINER_H
+#ifndef CUSTOMVEC_H
+#define CUSTOMVEC_H
 
 #include "common.hpp"
 #include <vector>
 
 // specialized structure, since a vector was too slow. I want to be able to memcpy lots of data, not build/emplace one by one (compiler usually does it when I don't want to)
 // it is meant to be very unsafe, minimal and fast. no constructors for the objects are used, and they are never empty-initialized
+// getting a pointer and adding things will absolutely destroy invalidate and eat that pointer
 template <typename T>
-class VertContainer {
+class CustomVec {
 public:
-	VertContainer() = delete; // for max performance you have to decide on an initial size > 0
+	CustomVec() = delete; // for max performance you have to decide on an initial size > 0
 	
 	// !!!!!cap > 0 otherwise when doubling size it gets stuck at 0
 	// didnt know a better way to check this at the time
-	VertContainer(std::size_t cap)
+	CustomVec(std::size_t cap)
 	: _sp(0), _capacity(cap)
 	{
 		_data = reinterpret_cast<T *>(std::malloc(sizeof(T) * cap));
 	}
 
-	~VertContainer() {
+	~CustomVec() {
 		free(_data);
 	}
 
@@ -48,7 +49,10 @@ public:
 		if (_sp == _capacity) {
 			grow();
 		}
-		_data[_sp] = T(std::forward<Args>(args)...);
+		// bad, calls operator=
+		// _data[_sp] = T(std::forward<Args>(args)...);
+		// WHAT THE FUCK??????
+		new (_data + _sp) T(std::forward<Args>(args)...);
 		_sp ++;
 	}
 
@@ -63,9 +67,13 @@ public:
 	constexpr T * data() const { return _data; }
 	constexpr std::size_t size() const { return _sp; }
 	constexpr std::size_t capacity() const { return _capacity; }
+
+	// a bit cursed but makes it clear that the pointer is returned and not the object
+	// compiler will optimize this
+	constexpr T *getBackPointer() const { return &_data[_sp - 1]; }
 private:
 	std::size_t _sp; // stack pointer (num elements)
-	std::size_t _capacity; // capacity of underlying data structure. for max speed, starts at 
+	std::size_t _capacity; // capacity of underlying data structure. for max speed, starts at > 0
 
 	T * _data;
 
