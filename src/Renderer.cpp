@@ -20,6 +20,8 @@
 #define DIRLIGHT_TEXTURE_BUFFER_SLOT 5
 #define SPOTLIGHT_TEXTURE_BUFFER_SLOT 6
 #define CHUNKINFO_TEXTURE_BUFFER_SLOT 7
+#define MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT 8
+#define MODELS_NORMALMAT_TEXTURE_BUFFER_SLOT 9
 
 #define MAX_MATERIALS 8
 #define MAX_LIGHTS 8
@@ -210,6 +212,12 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer
 		GLCall(glEnableVertexAttribArray(vertex_uv_layout));					// size appart				// offset
 		GLCall(glVertexAttribPointer(vertex_uv_layout, 2, GL_FLOAT, GL_FALSE, sizeof(ModelVertex), (const void *)offsetof(ModelVertex, uv)));
 	}
+
+	GLCall(glGenBuffers(1, &TBO_models_buffer));
+	GLCall(glBindBuffer(GL_TEXTURE_BUFFER, TBO_models_buffer));
+	GLCall(glGenTextures(1, &TBO_models));
+	GLCall(glBindTexture(GL_TEXTURE_BUFFER, TBO_models));
+	GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, TBO_models_buffer)); // bind the buffer to the texture
 
 	//////////////////////////// INDIRECT BUFFER ////////////////////////////
 	GLCall(glGenBuffers(1, &this->indirectBuffer));
@@ -751,10 +759,13 @@ void Renderer::checkFrameBuffer() {
 void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs) {
 	modelShader.use();
 
-	// bind VAO, VBO
+	// bind VAO, VBO, TBO
 	GLCall(glBindVertexArray(this->VAO_models));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO_models));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO_models));
+	modelShader.setInt("u_TransformTBO", MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT);
+	// modelShader.setInt("u_NormalMatTBO", MODELS_NORMALMAT_TEXTURE_BUFFER_SLOT);
+
 
 	// TODO clean this up, same initialization as main shader
 	modelShader.setFloat("u_BloomThreshold", bloomThreshold);
@@ -879,13 +890,21 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 			GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj->verts.size(), obj->verts.data(), GL_STATIC_DRAW));
 			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * obj->indices.size(), obj->indices.data(), GL_STATIC_DRAW));
 
-			for (const glm::mat4 &transform : pair.second) {
+			// TODO use a VBO instead?
+			GLCall(glBindBuffer(GL_TEXTURE_BUFFER, TBO_models_buffer));
+			GLCall(glBufferData(GL_TEXTURE_BUFFER, pair.second.size() * sizeof(glm::mat4), pair.second.data(), GL_STATIC_DRAW));
+			GLCall(glActiveTexture(GL_TEXTURE0 + MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT)); // TODO call this only once?
+			GLCall(glBindTexture(GL_TEXTURE_BUFFER, TBO_models));
 
-				modelShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * transform))));
-				modelShader.setMat4("u_Model", transform);
+			// TODO compute normal matrices here on the cpu?
 
-				GLCall(glDrawElements(GL_TRIANGLES, obj->indices.size(), GL_UNSIGNED_INT, 0));
-			}
+			GLCall(glDrawElementsInstanced(GL_TRIANGLES, obj->indices.size(), GL_UNSIGNED_INT, 0, pair.second.size()));
+
+
+				// modelShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * transform))));
+				// modelShader.setMat4("u_Model", transform);
+
+				// GLCall(glDrawElements(GL_TRIANGLES, obj->indices.size(), GL_UNSIGNED_INT, 0));
 		}
 	}
 }

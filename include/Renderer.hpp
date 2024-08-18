@@ -68,6 +68,7 @@ public:
 	Shader modelShader;
 	GLuint VAO_models;
 	GLuint VBO_models;
+	GLuint TBO_models_buffer, TBO_models;
 	GLuint IBO_models;
 
 	std::unique_ptr<TextureArray> textureArray = nullptr; // pointer since it starts as null and gets initialized later. unique_ptr so it always gets deleted
