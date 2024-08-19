@@ -96,6 +96,10 @@ if (WIN32)
 		file(COPY external/steamworks/sdk/redistributable_bin/win64/steam_api64.dll DESTINATION ${CMAKE_BINARY_DIR})
 	endif()
 
+	if (NOT EXISTS ${CMAKE_BINARY_DIR}/phonon.dll)
+		file(COPY external/steamaudio/lib/windows-x64/phonon.dll DESTINATION ${CMAKE_BINARY_DIR})
+	endif()
+
 	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/assimp.dll)
 	# 	file(COPY external/assimp_windows/bin/assimp.dll DESTINATION ${CMAKE_BINARY_DIR})
 	# endif()
@@ -105,6 +109,7 @@ if (WIN32)
 		external/glew/lib/Release/x64/
 		# external/glew/bin/Release/x64/
 		external/steamworks/sdk/redistributable_bin/win64/
+		external/steamaudio/lib/windows-x64/
 		# external/assimp_windows/lib/
 		${CMAKE_BINARY_DIR}/
 	)
@@ -114,6 +119,10 @@ else (WIN32) # linux
 
 	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libsteam_api.so)
 		file(COPY external/steamworks/sdk/redistributable_bin/linux64/libsteam_api.so DESTINATION ${CMAKE_BINARY_DIR})
+	endif()
+
+	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libphonon.so)
+		file(COPY external/steamaudio/lib/linux-x64/libphonon.so DESTINATION ${CMAKE_BINARY_DIR})
 	endif()
 
 	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/libassimp.so)
@@ -151,6 +160,8 @@ include_directories(external/tracy/public/tracy)
 
 include_directories(external/steamworks/sdk/public/)
 
+include_directories(external/steamaudio/include/)
+
 # set(BUILD_SHARED_LIBS ON)
 # TODO if doing this as shared lib, copy the .so/.dll to build/buildWin
 add_subdirectory(external/assimp)
@@ -176,6 +187,7 @@ if (WIN32)
 		Tracy::TracyClient
 		assimp
 		nlohmann_json::nlohmann_json
+		phonon
 	)
 
 else (WIN32) # linux
@@ -189,6 +201,7 @@ else (WIN32) # linux
 		Tracy::TracyClient
 		assimp
 		nlohmann_json::nlohmann_json
+		phonon
 	)
 
 endif (WIN32)
