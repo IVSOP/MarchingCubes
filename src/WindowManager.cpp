@@ -1,5 +1,6 @@
 #include "WindowManager.hpp"
 #include "Crash.hpp"
+#include "Settings.hpp"
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
@@ -20,7 +21,7 @@ void WindowManager::resizeViewport(int windowWidth, int windowHeight) {
     GLfloat aspectRatio = static_cast<GLfloat>(windowWidth) / static_cast<GLfloat>(windowHeight);
 
     // Set perspective
-    this->projection = glm::perspective(glm::radians(static_cast<GLfloat>(windowFov)), static_cast<GLfloat>(aspectRatio), static_cast<GLfloat>(windowZNear), static_cast<GLfloat>(windowZFar));
+    this->projection = glm::perspective(glm::radians(static_cast<GLfloat>(Settings::fov)), static_cast<GLfloat>(aspectRatio), static_cast<GLfloat>(Settings::znear), static_cast<GLfloat>(Settings::zfar));
 
     // Set viewport to be the entire window
     glViewport(0, 0, windowWidth, windowHeight);
@@ -63,7 +64,7 @@ void glfw_handleFileDrop_callback(GLFWwindow* window, int count, const char** pa
 }
 
 WindowManager::WindowManager(int windowWidth, int windowHeight, Client *client)
-: windowFov(90.0), windowZNear(0.1), windowZFar(10000.0), windowWidth(windowWidth), windowHeight(windowHeight)
+: windowWidth(windowWidth), windowHeight(windowHeight)
 {
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit()) {

@@ -213,7 +213,7 @@ void Client::mainloop() {
 		// }
 
 		const int collisionSteps = 1;
-		Phys::getPhysSystem()->Update(deltaTime, collisionSteps, Phys::getTempAllocator(), Phys::getJobSystem());
+		Phys::update(deltaTime, collisionSteps);
 
 		player->postTick();
 

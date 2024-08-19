@@ -20,10 +20,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp> // distance2
 
-
-#include <tracy/Tracy.hpp>
-// TracyOpenGL.hpp
-
 // normal {
 // 	0 - y (bottom)
 // 	1 + y (top)

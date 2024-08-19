@@ -1,5 +1,6 @@
 #include "Phys.hpp"
 #include "Crash.hpp"
+#include "Profiling.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -526,4 +527,9 @@ void Phys::buildDebugVerts() {
 	// 	bool						mDrawSoftBodyPredictedBounds = false;			///< Draw the predicted bounds of soft bodies
 	// 	ESoftBodyConstraintColor	mDrawSoftBodyConstraintColor = ESoftBodyConstraintColor::ConstraintType; ///< Coloring scheme to use for soft body constraints
 	// };
+}
+
+void Phys::update(GLfloat deltaTime, int collisionSteps) {
+	ZoneScoped;
+	Phys::getPhysSystem()->Update(deltaTime, collisionSteps, Phys::getTempAllocator(), Phys::getJobSystem());
 }

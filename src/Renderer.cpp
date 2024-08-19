@@ -8,8 +8,9 @@
 #include "Camera.hpp"
 #include "Crash.hpp"
 #include "Logs.hpp"
-
+#include "Profiling.hpp"
 #include "Phys.hpp"
+#include "Settings.hpp"
 
 // I know full well how cursed this is
 #define TEX_ARRAY_SLOT 0
@@ -355,6 +356,9 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::SliderFloat("##Camera_speed", &mov.speed, 0.0f, 1000.0f, "Camera speed = %.3f");
 	ImGui::SameLine();
 	ImGui::InputFloat("Camera speed", &mov.speed, 1.0f, 10.0f);
+	float fov = Settings::fov;
+	ImGui::SliderFloat("FOV", &fov, 0.0f, 140.0f, "fov = %.3f");
+	Settings::setFov(static_cast<GLdouble>(fov));
 	ImGui::SliderFloat("gamma", &gamma, 0.0f, 10.0f, "gamma = %.3f");
 	ImGui::SliderFloat("exposure", &exposure, 0.0f, 10.0f, "exposure = %.3f");
 	ImGui::InputInt("bloomPasses", &bloomBlurPasses, 1, 1); if (bloomBlurPasses < 0) bloomBlurPasses = 0;
@@ -670,6 +674,8 @@ void Renderer::endFrame(GLFWwindow * window) {
 }
 
 void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo) {
+	ZoneScoped;
+	
 	prepareFrame(verts.size(), pos, dir, mov, deltaTime, selectedInfo);
 	drawLighting(verts, points, indirect, chunkInfo, projection, view);
 	drawObjects(view, projection, objs);

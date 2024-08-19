@@ -11,11 +11,6 @@ void glfw_handleMouseKey_callback(GLFWwindow* window, int button, int action, in
 
 class WindowManager {
 public:
-
-	GLdouble windowFov;
-	GLdouble windowZNear;
-	GLdouble windowZFar;
-
 	int windowWidth;
 	int windowHeight;
 

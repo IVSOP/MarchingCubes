@@ -174,6 +174,8 @@ public:
 	static JPH::PhysicsSystem *getPhysSystem();
 	static JPH::TempAllocatorImpl *getTempAllocator();
 	static JPH::JobSystem *getJobSystem();
+
+	static void update(GLfloat deltaTime, int collisionSteps);
 };
 
 

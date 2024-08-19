@@ -30,6 +30,7 @@ add_executable(MarchingCubes
 		src/Assets.cpp
 		src/Files.cpp
 		src/PhysRenderer.cpp
+		src/Settings.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp

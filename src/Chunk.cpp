@@ -1,4 +1,5 @@
 #include "Chunk.hpp"
+#include "Profiling.hpp"
 
 void Chunk::generateVoxelTriangles(GLuint x, GLuint y, GLuint z) {
 	

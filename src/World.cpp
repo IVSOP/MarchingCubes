@@ -10,7 +10,7 @@
 #include "Crash.hpp"
 
 #include "Components.hpp"
-
+#include "Profiling.hpp"
 
 /*
 DESIGN CHOICES:
@@ -25,6 +25,7 @@ But this is never done automatically and only done when the world tells it to
 Kind of a mess but I can easily change it when I have to
 */
 void World::buildData() {
+	ZoneScoped;
 	verts.clear();
 	debug_points.clear();
 	indirect.clear();

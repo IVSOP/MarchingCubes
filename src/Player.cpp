@@ -49,7 +49,8 @@ void Player::setupPhys(const Position &position, const glm::vec3 &lookatPoint) {
 		settings->mUp = JPH::Vec3(0.0f, 1.0f, 0.0f); // TODO do not hardcode this
 		settings->mFriction = 0.5f;
 		settings->mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(), -playerRadius); // Accept contacts that touch the lower sphere of the capsule
-		// TODO the player direction here is wrong, but fine on the camera. player needs to have direction from jolt and not entt
+		// TODO the player direction here is wrong, but fine on the camera. player needs to have direction from jolt and not entt // it already does, remove this?
+		// TODO set this rotation so that player looks to some point
 		physCharacter = new JPH::Character(settings, JPH::Vec3(position.pos.x, position.pos.y, position.pos.z), JPH::Quat::sIdentity(), 0, Phys::getPhysSystem());
 		physCharacter->AddToPhysicsSystem(JPH::EActivation::Activate);
 	}
