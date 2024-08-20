@@ -12,6 +12,49 @@
 #include "Components.hpp"
 #include "Profiling.hpp"
 
+
+constexpr bool isChunkInFrustum(const Frustum &frustum, const glm::vec3 &minCorner) {
+	const glm::vec3 maxCorner = minCorner + glm::vec3(CHUNK_SIZE_CORNERS_FLOAT);
+
+	// for (const auto &plane : frustum.planes) {
+    //     glm::vec3 positiveVertex = minCorner;
+    //     glm::vec3 negativeVertex = maxCorner;
+
+    //     if (plane.normal.x >= 0) {
+    //         positiveVertex.x = maxCorner.x;
+    //         negativeVertex.x = minCorner.x;
+    //     }
+    //     if (plane.normal.y >= 0) {
+    //         positiveVertex.y = maxCorner.y;
+    //         negativeVertex.y = minCorner.y;
+    //     }
+    //     if (plane.normal.z >= 0) {
+    //         positiveVertex.z = maxCorner.z;
+    //         negativeVertex.z = minCorner.z;
+    //     }
+
+	// 	if (plane.distanceToPoint(positiveVertex) < 0) {
+    //         return false;
+    //     }
+	// }
+
+	glm::vec3 p;
+	for (const Plane &plane : frustum.planes) {
+
+        // Calculate the positive vertex
+        p.x = (plane.normal.x > 0) ? maxCorner.x : minCorner.x;
+        p.y = (plane.normal.y > 0) ? maxCorner.y : minCorner.y;
+        p.z = (plane.normal.z > 0) ? maxCorner.z : minCorner.z;
+
+        // If positive vertex is outside, the entire box is outside
+        if (plane.distanceToPoint(p) < 0) {
+            return false;
+        }
+    }
+
+	return true;
+}
+
 /*
 DESIGN CHOICES:
 
@@ -24,7 +67,8 @@ However, the chunk is still the one that uploads its phys triangles and generate
 But this is never done automatically and only done when the world tells it to
 Kind of a mess but I can easily change it when I have to
 */
-void World::buildData() {
+void World::buildData(const Frustum &frustum) {
+
 	ZoneScoped;
 	verts.clear();
 	debug_points.clear();
@@ -38,21 +82,26 @@ void World::buildData() {
 			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
 
 				const glm::vec3 coords = getChunkCoordsFloat(x, y, z);
-	
 				Chunk &chunk = chunks[x][y][z];
 
+				// even if we dont see the chunk, physics are still needed
 				if (chunk.vertsHaveChanged == true) {
 					chunk.rebuildVerts();
 					chunk.rebuildBody(getChunkCoordsFloat(x, y, z)); // I need to offset the phys body, make the world give the chunk its coords
 				}
 
-				end_index += chunks[x][y][z].addVertsTo(verts);
-				(void)chunks[x][y][z].addPointsTo(debug_points);
+				// only display the chunk if inside frustum
+				if (isChunkInFrustum(frustum, coords)) {
 
-				indirect.emplace_back(start_index, end_index - start_index);
-				info.emplace_back(coords);
 
-				start_index = end_index;
+					end_index += chunks[x][y][z].addVertsTo(verts);
+					(void)chunks[x][y][z].addPointsTo(debug_points);
+
+					indirect.emplace_back(start_index, end_index - start_index);
+					info.emplace_back(coords);
+
+					start_index = end_index;
+				}
 			}
 		}
 	}

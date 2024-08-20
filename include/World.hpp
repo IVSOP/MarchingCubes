@@ -11,7 +11,7 @@
 #include "Phys.hpp"
 #include <unordered_map>
 #include "Assets.hpp"
-
+#include "Frustum.hpp"
 
 // #include "zlib/zlib.h"
 
@@ -46,7 +46,7 @@ public:
 		return info;
 	}
 
-	void buildData();
+	void buildData(const Frustum &frustum);
 
 	constexpr GLuint getChunkID(GLuint x, GLuint y, GLuint z) {
 		return (&chunks[x][y][z] - &chunks[0][0][0]);
@@ -163,7 +163,6 @@ private:
 
 	// // to allow spawning entities using the model name instead of the ID, but will be slower
 	// std::unordered_map<std::string, uint32_t> name_to_id;
-
 };
 
 

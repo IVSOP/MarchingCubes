@@ -9,6 +9,7 @@ struct Position {
 
 	Position(const glm::vec3 &pos)
 		: pos(pos) {}
+	~Position() = default;
 };
 
 // TODO break into other components, only done this way for now as a test to use camera more easily

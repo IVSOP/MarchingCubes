@@ -49,14 +49,17 @@ public:
 	glm::mat4 getViewMatrix();
 	void speedUp(bool speedup);
 
-	Position  getPos(); // not a reference for complicated reasons
+	// most of these are only valid after postick is called!!!!!
+	Position  getPos() const; // not a reference for complicated reasons
+	// this is only valid after postick is called!!!!!
 	Direction &getDir();
 	Movement  &getMov();
+	glm::vec3 getRotation() const;
+	glm::vec3 getUpVector(); // TODO make this const
 
 	// Player(std::ifstream &file);
 	// void saveTo(std::ofstream &file) const;
 private:
-	glm::vec3 getRotation() const;
 };
 
 #endif

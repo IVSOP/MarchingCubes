@@ -5,6 +5,8 @@
 
 #include "Assets.hpp"
 
+#include "Settings.hpp"
+
 #define PLAYER_POS Position(glm::vec3(64, 16, 64))
 #define PLAYER_LOOKAT glm::vec3(0, 0, -1)
 
@@ -98,10 +100,14 @@ Client::Client(PhysRenderer *phys_renderer)
 
 	// Phys::loadTerrain(world->getPhysTerrain());
 
-	world->buildData();
-
-
 	player->setupPhys(PLAYER_POS, PLAYER_LOOKAT);
+	Frustum frustum = Frustum(
+		player->getPos().pos, player->getRotation(), player->getUpVector(),
+		static_cast<GLfloat>(Settings::fov), windowManager->aspectRatio, static_cast<GLfloat>(Settings::znear), static_cast<GLfloat>(Settings::zfar)
+	);
+	world->buildData(frustum);
+
+
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {
@@ -131,6 +137,7 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 	inputHandler.pressMouseKey(window, button, action, mods);
 }
 
+// TODO order of input processing, rendering and phys updating probaby makes things feel off by 1 frame, consider making phys update right after processing inputs
 void Client::mainloop() {
 
 	uint32_t idmagujo = world->loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
@@ -176,7 +183,11 @@ void Client::mainloop() {
 
         // std::unique_lock<std::mutex> lock = std::unique_lock<std::mutex>(mtx);
         // renderer.get()->draw(draw_quads, projection, *camera.get(), window, deltaTime);
-    	world->buildData();
+		Frustum frustum = Frustum(
+			player->getPos().pos, player->getRotation(), player->getUpVector(),
+			static_cast<GLfloat>(Settings::fov), windowManager->aspectRatio, static_cast<GLfloat>(Settings::znear), static_cast<GLfloat>(Settings::zfar)
+		);
+    	world->buildData(frustum);
 
 
 

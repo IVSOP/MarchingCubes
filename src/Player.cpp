@@ -190,14 +190,12 @@ void Player::speedUp(bool speedup) {
 }
 
 glm::mat4 Player::getViewMatrix() {
-	JPH::Vec3 pos_jph = physCharacter->GetPosition();
-	// add the height otherwise camera is on the floor
-	const glm::vec3 pos(pos_jph.GetX(), pos_jph.GetY() + this->playerHeight, pos_jph.GetZ());
+	const glm::vec3 pos = getPos().pos;
 
 	return glm::lookAt(pos, pos + dir.front, dir.worldup);
 }
 
-Position Player::getPos() {
+Position Player::getPos() const {
 	// return registry.get<Position>(player_entity);
 	JPH::Vec3 pos_jph = physCharacter->GetPosition();
 	const glm::vec3 res = glm::vec3(pos_jph.GetX(), pos_jph.GetY(), pos_jph.GetZ());
@@ -217,6 +215,11 @@ glm::vec3 Player::getRotation() const {
 
 	return glm::vec3(rot_jph.GetX(), rot_jph.GetY(), rot_jph.GetZ());
 }
+
+glm::vec3 Player::getUpVector() {
+	return getDir().up;
+}
+
 
 // Player::Player(std::ifstream &file)
 // : camera(file)

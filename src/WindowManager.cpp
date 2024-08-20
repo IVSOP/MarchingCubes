@@ -18,10 +18,10 @@ void glfw_resizeViewport_callback(GLFWwindow* window, int windowWidth, int windo
 
 void WindowManager::resizeViewport(int windowWidth, int windowHeight) {
     // Compute window's ration
-    GLfloat aspectRatio = static_cast<GLfloat>(windowWidth) / static_cast<GLfloat>(windowHeight);
+    this->aspectRatio = static_cast<GLfloat>(windowWidth) / static_cast<GLfloat>(windowHeight);
 
     // Set perspective
-    this->projection = glm::perspective(glm::radians(static_cast<GLfloat>(Settings::fov)), static_cast<GLfloat>(aspectRatio), static_cast<GLfloat>(Settings::znear), static_cast<GLfloat>(Settings::zfar));
+    this->projection = glm::perspective(glm::radians(static_cast<GLfloat>(Settings::fov)), static_cast<GLfloat>(this->aspectRatio), static_cast<GLfloat>(Settings::znear), static_cast<GLfloat>(Settings::zfar));
 
     // Set viewport to be the entire window
     glViewport(0, 0, windowWidth, windowHeight);

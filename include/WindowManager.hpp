@@ -13,6 +13,7 @@ class WindowManager {
 public:
 	int windowWidth;
 	int windowHeight;
+	GLfloat aspectRatio = 1.0f;
 
 	// std::mutex mtx;
 	GLFWwindow *window = nullptr;
