@@ -181,6 +181,13 @@ void Client::mainloop() {
 			renderer->break_radius,
 			player.get(), windowManager->windowWidth, windowManager->windowHeight, static_cast<GLfloat>(deltaTime));
 
+
+		const int collisionSteps = 1;
+		Phys::update(deltaTime, collisionSteps);
+
+		player->postTick();
+
+
         // std::unique_lock<std::mutex> lock = std::unique_lock<std::mutex>(mtx);
         // renderer.get()->draw(draw_quads, projection, *camera.get(), window, deltaTime);
 		Frustum frustum = Frustum(
@@ -222,11 +229,6 @@ void Client::mainloop() {
 
 		// 	phys.applyToPosition(phys_pos_view.get<Position>(entity).pos, static_cast<GLfloat>(deltaTime));
 		// }
-
-		const int collisionSteps = 1;
-		Phys::update(deltaTime, collisionSteps);
-
-		player->postTick();
 
         currentFrameTime = glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;
