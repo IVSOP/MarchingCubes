@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include "Assets.hpp"
 #include "Frustum.hpp"
+#include "Files.hpp"
 
 // #include "zlib/zlib.h"
 
@@ -152,6 +153,8 @@ public:
 
 	// vector of pair<render info for a single instance, array of transforms of all entities to be drawn>
 	const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> getEntitiesToDraw();
+
+	void save(FileHandler &file) const;
 
 private:
 	// while I do have an ECS, it is dumb to have N entities share 1 model and make them have a component with the vertices or something

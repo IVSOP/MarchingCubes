@@ -135,7 +135,7 @@ else (WIN32) # linux
 
 endif (WIN32)
 
-# find_package(ZLIB)
+find_package(zstd REQUIRED)
 
 add_subdirectory(external/glm)
 include_directories(external/glm)
@@ -188,6 +188,7 @@ if (WIN32)
 		assimp
 		nlohmann_json::nlohmann_json
 		phonon
+		zstd
 	)
 
 else (WIN32) # linux
@@ -202,6 +203,7 @@ else (WIN32) # linux
 		assimp
 		nlohmann_json::nlohmann_json
 		phonon
+		zstd
 	)
 
 endif (WIN32)

@@ -12,6 +12,8 @@
 #include "Components.hpp"
 #include "Profiling.hpp"
 
+#include "Compression.hpp"
+
 
 constexpr bool isChunkInFrustum(const Frustum &frustum, const glm::vec3 &minCorner) {
 	const glm::vec3 maxCorner = minCorner + glm::vec3(CHUNK_SIZE_CORNERS_FLOAT);
@@ -447,3 +449,31 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEnt
 	// TODO is everything getting deep copied??????
 	return res;
 }
+
+// TODO compare saving everything all at once vs in blocks
+// for now everything is compressed at like 2 really bit steps since I have the world as a flat array
+void World::save(FileHandler &file) const {
+	// chunk info
+	constexpr size_t corners_len = sizeof(Chunk::corners) * WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z;
+	constexpr size_t materials_len = sizeof(Chunk::materials) * WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z;
+
+	CompressionData corners(std::malloc(corners_len), corners_len);
+	CompressionData materials(std::malloc(materials_len), materials_len);
+
+	Compressor compressor;
+
+	CompressionData corners_res = compressor.compress(corners); std::free(corners.data);
+	CompressionData materials_res = compressor.compress(materials); std::free(materials.data);
+
+	printf("corners is %.3lf%% smaller (%lu vs %lu), materials %.3lf%% (%lu vs %lu)\n",
+		100.0 - (static_cast<double>(corners_res.len) * 100.0) / static_cast<double>(corners.len), corners.len, corners_res.len,
+		100.0 - (static_cast<double>(materials_res.len) * 100.0) / static_cast<double>(materials.len), materials.len, materials_res.len
+	);
+
+	exit(1);
+
+}
+
+// void World::load(FileHandler &file) {
+
+// }

@@ -162,6 +162,9 @@ void Client::mainloop() {
 	// uint32_t idbuilding = world->loadModel("buildings/fbx/Residential Buildings 001.fbx");
 	// world->spawn(idbuilding, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
 
+	FileHandler savefile(Settings::saves_dir + "1.bin", FileModes::Write | FileModes::Bin | FileModes::Trunc);
+	world->save(savefile);
+
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep
     while (!glfwWindowShouldClose(windowManager.get()->window)) {
         glfwPollEvents(); // at the start due to imgui (??) test moving it to after the unlock()
