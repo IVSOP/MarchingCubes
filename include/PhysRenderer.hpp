@@ -26,9 +26,9 @@
 #include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
 
 // TODO disable debug rendering on final build
-#ifndef JPH_DEBUG_RENDERER
-#define JPH_DEBUG_RENDERER
-#endif
+// #ifndef JPH_DEBUG_RENDERER
+// #define JPH_DEBUG_RENDERER
+// #endif
 #include <Jolt/Renderer/DebugRendererSimple.h>
 
 JPH_SUPPRESS_WARNINGS

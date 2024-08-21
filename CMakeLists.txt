@@ -135,6 +135,8 @@ else (WIN32) # linux
 
 endif (WIN32)
 
+set(JPH_DEBUG_RENDERER ON)
+
 find_package(zstd REQUIRED)
 
 add_subdirectory(external/glm)

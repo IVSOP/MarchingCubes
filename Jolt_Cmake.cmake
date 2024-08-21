@@ -1,3 +1,9 @@
+#TAKEN FROM https://github.com/jrouwe/JoltPhysicsHelloWorld/blob/main/Build/CMakeLists.txt
+# cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+
+set(CPP_EXCEPTIONS_ENABLED OFF)
+set(CPP_RTTI_ENABLED OFF)
+
 # The configurations we support
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Distribution")
 
@@ -34,7 +40,12 @@ set(USE_TZCNT ON)
 set(USE_F16C ON)
 set(USE_FMADD ON)
 
-if (MSVC) # TODO LOOK AT THIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# # Requires C++ 17
+# set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(CMAKE_CXX_EXTENSIONS OFF)
+
+if (MSVC) # TODO LOOK AT THIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	# 64 bit architecture
 	set(CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE "x64")
 
@@ -95,6 +106,16 @@ else()
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffp-contract=off")
 		endif()
 	endif()
+
+	# # Set compiler flags for various configurations
+	# set(CMAKE_CXX_FLAGS_DEBUG "")
+	# set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+	# set(CMAKE_CXX_FLAGS_DISTRIBUTION "-O3")
+
+	# # Set linker flags
+	# if (NOT ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows"))
+	# 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
+	# endif()
 endif()
 
 # Set linker flags
