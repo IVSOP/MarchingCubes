@@ -14,6 +14,7 @@
 
 #include "Compression.hpp"
 
+#include "Archive.hpp"
 
 constexpr bool isChunkInFrustum(const Frustum &frustum, const glm::vec3 &minCorner) {
 	const glm::vec3 maxCorner = minCorner + glm::vec3(CHUNK_SIZE_CORNERS_FLOAT);
@@ -465,13 +466,21 @@ void World::save(FileHandler &file) const {
 	CompressionData corners_res = compressor.compress(corners); std::free(corners.data);
 	CompressionData materials_res = compressor.compress(materials); std::free(materials.data);
 
-	printf("corners is %.3lf%% smaller (%lu vs %lu), materials %.3lf%% (%lu vs %lu)\n",
+
+	CustomArchive entity_archive;
+	entity_archive.serializeIntoBuffer<entt::registry>(entt_registry);
+
+	CompressionData entities(entity_archive.getData()._data, entity_archive.getData()._sp); // no need to free, buffers belong to archive and get freed automatically
+	CompressionData entities_res = compressor.compress(entities);
+
+	printf("corners is %.3lf%% smaller (%lu vs %lu), materials %.3lf%% (%lu vs %lu), entities %.3lf%% (%lu vs %lu)\n",
 		100.0 - (static_cast<double>(corners_res.len) * 100.0) / static_cast<double>(corners.len), corners.len, corners_res.len,
-		100.0 - (static_cast<double>(materials_res.len) * 100.0) / static_cast<double>(materials.len), materials.len, materials_res.len
+		100.0 - (static_cast<double>(materials_res.len) * 100.0) / static_cast<double>(materials.len), materials.len, materials_res.len,
+		100.0 - (static_cast<double>(entities_res.len) * 100.0) / static_cast<double>(entities.len), entities.len, entities_res.len
 	);
 
-	exit(1);
-
+	// TODO error checking
+	// (void)file.write()
 }
 
 // void World::load(FileHandler &file) {

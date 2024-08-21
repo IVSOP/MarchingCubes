@@ -31,6 +31,7 @@ add_executable(MarchingCubes
 		src/Files.cpp
 		src/PhysRenderer.cpp
 		src/Settings.cpp
+		src/Archive.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp
@@ -176,6 +177,9 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 # find_package(nlohmann_json 3.2.0 REQUIRED)
 add_subdirectory(external/json)
 
+# cmake_policy(SET CMP0167 NEW) # why the fuck did cmake include something specific for the boost lib, what the actual fuck
+# find_package(Boost REQUIRED COMPONENTS serialization)
+# include_directories(${Boost_INCLUDE_DIRS})
 
 if (WIN32)
 	target_link_libraries(MarchingCubes
@@ -191,6 +195,7 @@ if (WIN32)
 		nlohmann_json::nlohmann_json
 		phonon
 		zstd
+		# ${Boost_LIBRARIES}
 	)
 
 else (WIN32) # linux
@@ -206,6 +211,7 @@ else (WIN32) # linux
 		nlohmann_json::nlohmann_json
 		phonon
 		zstd
+		# ${Boost_LIBRARIES}
 	)
 
 endif (WIN32)

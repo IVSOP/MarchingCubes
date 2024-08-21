@@ -1,6 +1,18 @@
 #ifndef CUSTOMVEC_H
 #define CUSTOMVEC_H
 
+
+
+
+
+
+
+// !!!!!!!!!!!!! SEGFAULT GENERATOR AHEAD!!!!!!!!!!!! READ EVERYTHING CAREFULLY !!!!!!!!!!!
+
+
+
+
+
 #include "stdlib.hpp"
 #include "types.hpp"
 #include <vector>
@@ -72,7 +84,26 @@ public:
 	// a bit cursed but makes it clear that the pointer is returned and not the object
 	// compiler will optimize this
 	constexpr T *getBackPointer() const { return &_data[_sp - 1]; }
-private:
+
+	// makes sure at least len elements can be written with no realloc
+	constexpr void reserve(size_t len) { 
+		while (_sp + len > _capacity) grow();
+	}
+
+	// copy bytes into here, no questions asked, does not even resize if needed, only use if sizeof(T) == 1, will make this better in the future TODO
+	// !!!!!!!!!!!!! actually just straight up assumes that T is a byte
+	constexpr void copy_bytes(const void *buff, size_t len) {
+		std::memcpy(reinterpret_cast<uint8_t *>(_data) + _sp, buff, len);
+		_sp += len;
+	}
+
+	// also assumes T is a byte TODO
+	// write bytes at [offset], no questions asked, again
+	constexpr void write_bytes_at(const void *buff, size_t len, size_t offset) {
+		std::memcpy(reinterpret_cast<uint8_t *>(_data) + offset, buff, len);
+	}
+
+// private:
 	std::size_t _sp; // stack pointer (num elements)
 	std::size_t _capacity; // capacity of underlying data structure. for max speed, starts at > 0
 

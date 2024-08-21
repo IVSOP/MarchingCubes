@@ -4,6 +4,15 @@
 #include "common.hpp"
 #include "Phys.hpp"
 
+// TODO make this whole thing including serialization not suck, lots of hardcoded values and strings
+enum class Component : uint32_t {
+	Position = 0,
+	Direction = 1,
+	Movement = 2,
+	Physics = 3,
+	Render = 4
+};
+
 struct Position {
 	glm::vec3 pos;
 

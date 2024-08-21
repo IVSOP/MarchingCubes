@@ -1,8 +1,7 @@
 #include "Player.hpp"
 
-Player::Player(entt::registry &registry)
-						// register the player entity
-	: registry(registry), player_entity(registry.create()), dir()
+Player::Player()
+	: dir(), mov(10.0f, false)
 {
 	// TODO what a mess
 	dir.up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -11,7 +10,7 @@ Player::Player(entt::registry &registry)
 	// register the needed components
 	// registry.emplace<Position>(player_entity, position); // in physics
 	// registry.emplace<Direction>(player_entity, Direction::lookat(position.pos, glm::vec3(0.0f, 1.0f, 0.0f), lookatPoint));
-	registry.emplace<Movement>(player_entity, 10.0f, false);
+	// registry.emplace<Movement>(player_entity, 10.0f, false);
 	// registry.emplace<Physics>(player_entity);
 }
 
@@ -90,7 +89,7 @@ void Player::setupPhys(const Position &position, const glm::vec3 &lookatPoint) {
 
 void Player::move(Camera_Movement direction, float deltaTime) {
 	// movement speed
-	const Movement &mov = registry.get<Movement>(player_entity);
+	// const Movement &mov = registry.get<Movement>(player_entity);
 
 	// JPH::Vec3 velocity;
 	// // if on ground, do nothing
@@ -186,7 +185,8 @@ void Player::look(float xoffset, float yoffset) {
 }
 
 void Player::speedUp(bool speedup) {
-	registry.get<Movement>(player_entity).speedup = speedup;
+	// registry.get<Movement>(player_entity).speedup = speedup;
+	mov.speedup = speedup;
 }
 
 glm::mat4 Player::getViewMatrix() {
@@ -206,8 +206,9 @@ Direction &Player::getDir() {
 	return dir;
 }
 
-Movement  &Player::getMov() {
-	return registry.get<Movement>(player_entity);
+Movement &Player::getMov() {
+	// return registry.get<Movement>(player_entity);
+	return mov;
 }
 
 glm::vec3 Player::getRotation() const {

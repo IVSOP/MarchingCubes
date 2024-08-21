@@ -13,7 +13,7 @@
 Client::Client(PhysRenderer *phys_renderer)
 : windowManager(std::make_unique<WindowManager>(1920, 1080, this)),
   world(std::make_unique<World>()),
-  player(std::make_unique<Player>(world->entt_registry)),
+  player(std::make_unique<Player>()),
   renderer(std::make_unique<Renderer>(1920, 1080, phys_renderer)), // get these from window manager???
   inputHandler(glfw_handleMouseMov_callback, glfw_handleMouseKey_callback) // funcs from window manager
 {
@@ -68,8 +68,6 @@ Client::Client(PhysRenderer *phys_renderer)
 	world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
 	// world.get()->loadHeightMap("textures/Height Map.png");
 
-
-	// Phys::setup_phys();
 
 	// flat terrain for testing
 	// JPH::TriangleList flat_terrain;
@@ -164,6 +162,7 @@ void Client::mainloop() {
 
 	FileHandler savefile(Settings::saves_dir + "1.bin", FileModes::Write | FileModes::Bin | FileModes::Trunc);
 	world->save(savefile);
+	exit(1);
 
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep
     while (!glfwWindowShouldClose(windowManager.get()->window)) {
