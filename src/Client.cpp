@@ -98,11 +98,11 @@ Client::Client(PhysRenderer *phys_renderer)
 	// Phys::loadTerrain(world->getPhysTerrain());
 	
 	
-		// world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
+		world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
 
 
-	FileHandler savefile = FileHandler(Settings::saves_dir + "1.bin", FileModes::Read | FileModes::Bin);
-	world = std::make_unique<World>(savefile);
+	// FileHandler savefile = FileHandler(Settings::saves_dir + "1.bin", FileModes::Read | FileModes::Bin);
+	// world = std::make_unique<World>(savefile);
 
 
 	player->setupPhys(PLAYER_POS, PLAYER_LOOKAT);
@@ -144,9 +144,9 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 void Client::mainloop() {
 
 	// // uint32_t idmagujo = world->loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
-	// uint32_t idmagujo = 0;
-	// world->spawn(idmagujo, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
-	// world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
+	uint32_t idmagujo = 0;
+	world->spawn(idmagujo, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
+	world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
 	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
 	// // world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());

@@ -7,6 +7,7 @@
 #include <entt.hpp>
 #include "Components.hpp"
 #include "Files.hpp"
+#include "Compression.hpp"
 
 
 
@@ -29,38 +30,27 @@ so, the render_id will be used to load their bodies as needed (outside this clas
 class CustomArchive {
 public:
 	CustomArchive() : data(1) {}
-	CustomArchive(FileHandler &file);
+	// CustomArchive(FileHandler &file);
 	~CustomArchive() = default;
 
 	// serialize into internal buffer
 	template<typename T>
 	void serializeIntoBuffer(const T &t);
 
-	// registry should already exist, so I made this exceptionally
-	void deserializeIntoRegistry(entt::registry &registry) const;
-
-	// yes this is absolute shit but whatever, I assume file uses some internal buffer when reading small bits of data
-	template<typename T>
-	void deserializeFromFile(FileHandler &file, T *buff);
-
 	constexpr CustomVec<uint8_t> &getData() { return data; }
-	size_t read_sp = 0; // a hack since I need to know where I am when reading
 
 	constexpr void clear() { data.clear(); }
+
+	///////////// ????????????? why tf are these even templates instead of just overloads
+
+	template<typename T>
+	static void serializeIntoFile(FileHandler &file, T &t);
+
+	template<typename T>
+	static void deserializeFromFile(FileHandler &file, T &t);
+
 private:
 	CustomVec<uint8_t> data;
 };
-
-// template<>
-// void CustomArchive::serializeIntoBuffer<uint32_t>(uint32_t &val);
-
-// template<>
-// void CustomArchive::serializeIntoBuffer<glm::vec3>(glm::vec3 &vec);
-
-// template<>
-// void CustomArchive::serializeIntoBuffer<Position>(Position &pos);
-
-// template<>
-// void CustomArchive::serializeIntoBuffer<entt::registry>(entt::registry &registry);
 
 #endif

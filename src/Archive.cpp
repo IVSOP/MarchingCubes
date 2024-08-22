@@ -1,20 +1,20 @@
 #include "Archive.hpp"
 
-// reads size_t from file with the total size,
-// reads N bytes from file using that values as the number of bytes
-// places everything in this->data
-CustomArchive::CustomArchive(FileHandler &file)
-: data(1)
-{
-	size_t len;
-	file.read(&len, sizeof(size_t));
-	data.reserve(len);
-	void *buf = std::malloc(len);
-	// TODO
-	(void)file.read(buf, len);
-	data.copy_bytes(buf, len);
-	free(buf);
-}
+// // reads size_t from file with the total size,
+// // reads N bytes from file using that values as the number of bytes
+// // places everything in this->data
+// CustomArchive::CustomArchive(FileHandler &file)
+// : data(1)
+// {
+// 	size_t len;
+// 	file.read(&len, sizeof(size_t));
+// 	data.reserve(len);
+// 	void *buf = std::malloc(len);
+// 	// TODO
+// 	(void)file.read(buf, len);
+// 	data.copy_bytes(buf, len);
+// 	free(buf);
+// }
 
 template<>
 void CustomArchive::serializeIntoBuffer<uint32_t>(const uint32_t &val) { // reference is cursed here but whatever
@@ -139,11 +139,16 @@ void CustomArchive::serializeIntoBuffer<entt::registry>(const entt::registry &re
 	data.write_bytes_at(&num_entities, sizeof(size_t), sp_num_entities);
 }
 
-// void CustomArchive::deSerializeIntoRegistry(entt::registry registry) const {
-
-// }
 
 template<>
-void CustomArchive::deserializeFromFile<size_t>(FileHandler &file, size_t *buff) {
-	(void)file.read(&buff, sizeof(size_t));
+void CustomArchive::serializeIntoFile<CompressionData>(FileHandler &file, CompressionData &data) {
+	(void)file.write(&data.len, sizeof(data.len));
+	(void)file.write(data.data, data.len);
+}
+
+template<>
+void CustomArchive::deserializeFromFile<CompressionData>(FileHandler &file, CompressionData &data) {
+	(void)file.read(&data.len, sizeof(data.len));
+	data.data = std::malloc(data.len);
+	(void)file.read(data.data, data.len);
 }

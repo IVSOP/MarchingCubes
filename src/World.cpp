@@ -459,15 +459,28 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEnt
 void World::save(FileHandler &file) const {
 	Compressor compressor;
 
-	// chunk info
 	constexpr size_t corners_len = sizeof(Chunk::corners) * WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z;
-	constexpr size_t materials_len = sizeof(Chunk::materials) * WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z;
-
 	CompressionData corners(std::malloc(corners_len), corners_len);
+	constexpr size_t materials_len = sizeof(Chunk::materials) * WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z;
 	CompressionData materials(std::malloc(materials_len), materials_len);
 
-	CompressionData corners_res = compressor.compress(corners); std::free(corners.data);
+	unsigned int i = 0;
+	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
+		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
+			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
+				const Chunk &chunk = chunks[x][y][z];
+
+				// wtf is chunk.corners enough for it to get the pointer??????
+				std::memcpy(reinterpret_cast<uint8_t *>(corners.data) + (i * sizeof(Chunk::corners)), &chunk.corners[0][0], sizeof(Chunk::corners));
+				std::memcpy(reinterpret_cast<uint8_t *>(materials.data) + (i * sizeof(Chunk::materials)), &chunk.materials[0][0][0], sizeof(Chunk::materials));
+				i++;
+			}
+		}
+	}
+
+
 	CompressionData materials_res = compressor.compress(materials); std::free(materials.data);
+	CompressionData corners_res = compressor.compress(corners); std::free(corners.data);
 
 	CustomArchive entity_archive;
 	entity_archive.serializeIntoBuffer<entt::registry>(entt_registry);
@@ -481,9 +494,9 @@ void World::save(FileHandler &file) const {
 	);
 
 	// TODO error checking
-	(void)file.write(corners_res.data, corners_res.len); free(corners_res.data);
-	(void)file.write(materials_res.data, materials_res.len); free(materials_res.data);
-	(void)file.write(entities_res.data, entities_res.len); free(entities_res.data);
+	CustomArchive::serializeIntoFile<CompressionData>(file, corners_res); free(corners_res.data);
+	CustomArchive::serializeIntoFile<CompressionData>(file, materials_res); free(materials_res.data);
+	CustomArchive::serializeIntoFile<CompressionData>(file, entities_res); free(entities_res.data);
 }
 
 // void World::load(FileHandler &file) {
@@ -498,18 +511,32 @@ void World::loadModels() {
 World::World(FileHandler &file)
 : verts(1 << 10), debug_points(1 << 10), indirect(1 << 10), info(1 << 10)
 {
+	loadModels();
+
 	Decompressor decompressor;
-	CustomArchive archive;
 
-	// loading chunk corners
-	// read compressed len from file
-	size_t corners_compressed_len;
-	archive.deserializeFromFile<size_t>(file, &corners_compressed_len);
-	CompressionData corners_compressed = CompressionData(std::malloc(corners_compressed_len), corners_compressed_len);
-	(void)file.read(corners_compressed.data, corners_compressed.len);
-	CompressionData corners_res = decompressor.decompress(corners_compressed);
+	CompressionData corners_compressed;
+	CustomArchive::deserializeFromFile<CompressionData>(file, corners_compressed);
+	CompressionData corners_res = decompressor.decompress(corners_compressed); std::free(corners_compressed.data);
 
-	exit(1);
+	CompressionData materials_compressed;
+	CustomArchive::deserializeFromFile<CompressionData>(file, materials_compressed);
+	CompressionData materials_res = decompressor.decompress(materials_compressed); std::free(materials_compressed.data);
 
-	// loading chunk materials
+	unsigned int i = 0;
+	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
+		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
+			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
+				Chunk &chunk = chunks[x][y][z];
+
+				// wtf is chunk.corners enough for it to get the pointer??????
+				std::memcpy(&chunk.corners[0][0], reinterpret_cast<uint8_t *>(corners_res.data) + (i * sizeof(Chunk::corners)), sizeof(Chunk::corners));
+				std::memcpy(&chunk.materials[0][0][0], reinterpret_cast<uint8_t *>(materials_res.data) + (i * sizeof(Chunk::materials)), sizeof(Chunk::materials));
+				i++;
+			}
+		}
+	}
+
+	std::free(corners_res.data);
+	std::free(materials_res.data);
 }
