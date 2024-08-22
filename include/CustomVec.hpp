@@ -52,7 +52,7 @@ public:
 		// std::copy(vec.begin(), vec.end(), _data + og_sp); // like 1 fps worse (because I dont have LTO?????)
 	}
 
-	void clear() {
+	constexpr void clear() {
 		_sp = 0;
 	}
 

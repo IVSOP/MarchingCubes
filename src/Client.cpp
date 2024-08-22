@@ -65,7 +65,6 @@ Client::Client(PhysRenderer *phys_renderer)
 	// world.get()->loadHeightMap("textures/iceland_heightmap.png");
 	// world.get()->loadHeightMap("textures/terreno.jpg");
 	// world.get()->loadHeightMap("textures/Ridge Through Terrain Height Map.png");
-	world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
 	// world.get()->loadHeightMap("textures/Height Map.png");
 
 
@@ -97,6 +96,14 @@ Client::Client(PhysRenderer *phys_renderer)
 	// flat_terrain.push_back(b);
 
 	// Phys::loadTerrain(world->getPhysTerrain());
+	
+	
+		// world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
+
+
+	FileHandler savefile = FileHandler(Settings::saves_dir + "1.bin", FileModes::Read | FileModes::Bin);
+	world = std::make_unique<World>(savefile);
+
 
 	player->setupPhys(PLAYER_POS, PLAYER_LOOKAT);
 	Frustum frustum = Frustum(
@@ -104,8 +111,6 @@ Client::Client(PhysRenderer *phys_renderer)
 		static_cast<GLfloat>(Settings::fov), windowManager->aspectRatio, static_cast<GLfloat>(Settings::znear), static_cast<GLfloat>(Settings::zfar)
 	);
 	world->buildData(frustum);
-
-
 }
 
 void Client::resizeViewport(int windowWidth, int windowHeight) {
@@ -138,31 +143,34 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 // TODO order of input processing, rendering and phys updating probaby makes things feel off by 1 frame, consider making phys update right after processing inputs
 void Client::mainloop() {
 
-	uint32_t idmagujo = world->loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
-	world->spawn(idmagujo, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
-	world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
+	// // uint32_t idmagujo = world->loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
+	// uint32_t idmagujo = 0;
+	// world->spawn(idmagujo, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
+	// world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
-	// uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
-	// world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
+	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
+	// // world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
-	// uint32_t idsenna = world->loadModel("senna/senna.fbx");
-	// world->spawn(idsenna, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
+	// // uint32_t idsenna = world->loadModel("senna/senna.fbx");
+	// // world->spawn(idsenna, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
 
-	// uint32_t idcottage = world->loadModel("cottage/cottage_fbx.fbx");
-	// world->spawn(idcottage, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
+	// // uint32_t idcottage = world->loadModel("cottage/cottage_fbx.fbx");
+	// // world->spawn(idcottage, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
 
-	// uint32_t idearth = world->loadModel("earth/earth.fbx");
-	// world->spawn(idearth, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
+	// // uint32_t idearth = world->loadModel("earth/earth.fbx");
+	// // world->spawn(idearth, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
 
-	// uint32_t iddragon = world->loadModel("dragon/dragon.glb");
-	// world->spawn(iddragon, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
+	// // uint32_t iddragon = world->loadModel("dragon/dragon.glb");
+	// // world->spawn(iddragon, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
 
-	// uint32_t idbuilding = world->loadModel("buildings/fbx/Residential Buildings 001.fbx");
-	// world->spawn(idbuilding, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
+	// // uint32_t idbuilding = world->loadModel("buildings/fbx/Residential Buildings 001.fbx");
+	// // world->spawn(idbuilding, JPH::Vec3(0.0f, 100.0f, 0.0f), JPH::Quat::sIdentity());
 
-	FileHandler savefile(Settings::saves_dir + "1.bin", FileModes::Write | FileModes::Bin | FileModes::Trunc);
-	world->save(savefile);
-	exit(1);
+	// {
+	// 	FileHandler savefile(Settings::saves_dir + "1.bin", FileModes::Write | FileModes::Bin | FileModes::Trunc);
+	// 	world->save(savefile);
+	// }
+	// exit(1);
 
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep
     while (!glfwWindowShouldClose(windowManager.get()->window)) {

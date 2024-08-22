@@ -23,6 +23,12 @@ void CustomArchive::serializeIntoBuffer<uint32_t>(const uint32_t &val) { // refe
 }
 
 template<>
+void CustomArchive::serializeIntoBuffer<size_t>(const size_t &val) { // reference is cursed here but whatever
+	data.reserve(sizeof(size_t));
+	data.copy_bytes(&val, sizeof(size_t));
+}
+
+template<>
 void CustomArchive::serializeIntoBuffer<Component>(const Component &val) { // reference is cursed here but whatever
 	data.reserve(sizeof(Component));
 	data.copy_bytes(&val, sizeof(Component));
@@ -83,42 +89,61 @@ void CustomArchive::serializeIntoBuffer<Render>(const Render &render) {
 
 
 // PHYSICS IS NOT SERIALIZED!!!!!! it has no useful information, needs to be parsed separately
-// render_id + other info can the uesd for that
+// render_id + other info can the used for that
 template<>
 void CustomArchive::serializeIntoBuffer<entt::registry>(const entt::registry &registry) {
-	size_t sp, sp_total;
+	size_t sp_num_entities, sp_num_models, num_components, num_entities = 0;
+
 	auto view = registry.view<entt::entity>();
+
+	// number of entities
+	// could not for the life of me find a function that returned it so I'll write it when I'm done
+	sp_num_entities = data._sp;
+	data.reserve(sizeof(size_t)); // reserve space (does not move its internal sp)
+	data.copy_bytes(&num_entities, sizeof(size_t)); // to move its internal sp
+
 	for(const auto entity : view) {
 		// test speed of any_of vs all_of
+		num_components = 0;
 
 		// save the current sp
-		sp = data._sp;
+		sp_num_models = data._sp;
 
 		// pretend to push a size_t into the data, to be overwritten later
-		data.reserve(sizeof(size_t));
-		data.copy_bytes(&sp, sizeof(size_t));
+		data.reserve(sizeof(size_t)); // reserve space (does not move its internal sp)
+		data.copy_bytes(&num_components, sizeof(size_t)); // to move its internal sp
 
 		if (registry.any_of<Position>(entity)) {
 			serializeIntoBuffer<Position>(registry.get<Position>(entity));
+			num_components++;
 		}
 		if (registry.any_of<Direction>(entity)) {
 			serializeIntoBuffer<Direction>(registry.get<Direction>(entity));
+			num_components++;
 		}
 		if (registry.any_of<Movement>(entity)) {
 			serializeIntoBuffer<Movement>(registry.get<Movement>(entity));
+			num_components++;
 		}
 		if (registry.any_of<Render>(entity)) {
 			serializeIntoBuffer<Render>(registry.get<Render>(entity));
+			num_components++;
 		}
 
-		// now check sp again
-		sp_total = data._sp - sp;
 
-		// now we know how many bytes this entity took
-		data.write_bytes_at(&sp_total, sizeof(size_t), sp);
+		data.write_bytes_at(&num_components, sizeof(size_t), sp_num_models);
+
+		num_entities++;
 	}
+
+	data.write_bytes_at(&num_entities, sizeof(size_t), sp_num_entities);
 }
 
 // void CustomArchive::deSerializeIntoRegistry(entt::registry registry) const {
 
 // }
+
+template<>
+void CustomArchive::deserializeFromFile<size_t>(FileHandler &file, size_t *buff) {
+	(void)file.read(&buff, sizeof(size_t));
+}

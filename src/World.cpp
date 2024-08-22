@@ -407,12 +407,15 @@ void World::loadHeightMap(const std::string &path) {
 uint32_t World::loadModel(const std::string &name, const std::string &hitbox_name) {
 	uint32_t size = this->objects_info.size();
 	Assets::load(name, hitbox_name, this->objects_info);
+	id_to_model.emplace(size, name);
+	id_to_hitbox.emplace(size, hitbox_name);
 	return size;
 }
 
 uint32_t World::loadModel(const std::string &name) {
 	uint32_t size = this->objects_info.size();
 	Assets::load(name, this->objects_info);
+	id_to_model.emplace(size, name);
 	return size;
 }
 
@@ -454,6 +457,8 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEnt
 // TODO compare saving everything all at once vs in blocks
 // for now everything is compressed at like 2 really bit steps since I have the world as a flat array
 void World::save(FileHandler &file) const {
+	Compressor compressor;
+
 	// chunk info
 	constexpr size_t corners_len = sizeof(Chunk::corners) * WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z;
 	constexpr size_t materials_len = sizeof(Chunk::materials) * WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z;
@@ -461,17 +466,13 @@ void World::save(FileHandler &file) const {
 	CompressionData corners(std::malloc(corners_len), corners_len);
 	CompressionData materials(std::malloc(materials_len), materials_len);
 
-	Compressor compressor;
-
 	CompressionData corners_res = compressor.compress(corners); std::free(corners.data);
 	CompressionData materials_res = compressor.compress(materials); std::free(materials.data);
 
-
 	CustomArchive entity_archive;
 	entity_archive.serializeIntoBuffer<entt::registry>(entt_registry);
-
-	CompressionData entities(entity_archive.getData()._data, entity_archive.getData()._sp); // no need to free, buffers belong to archive and get freed automatically
-	CompressionData entities_res = compressor.compress(entities);
+	CompressionData entities(entity_archive.getData()._data, entity_archive.getData()._sp);
+	CompressionData entities_res = compressor.compress(entities); // no need to entities.data, buffer belongs to archive and gets freed automatically
 
 	printf("corners is %.3lf%% smaller (%lu vs %lu), materials %.3lf%% (%lu vs %lu), entities %.3lf%% (%lu vs %lu)\n",
 		100.0 - (static_cast<double>(corners_res.len) * 100.0) / static_cast<double>(corners.len), corners.len, corners_res.len,
@@ -480,9 +481,35 @@ void World::save(FileHandler &file) const {
 	);
 
 	// TODO error checking
-	// (void)file.write()
+	(void)file.write(corners_res.data, corners_res.len); free(corners_res.data);
+	(void)file.write(materials_res.data, materials_res.len); free(materials_res.data);
+	(void)file.write(entities_res.data, entities_res.len); free(entities_res.data);
 }
 
 // void World::load(FileHandler &file) {
 
 // }
+
+void World::loadModels() {
+	// uint32_t idmagujo = 
+	(void)loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
+}
+
+World::World(FileHandler &file)
+: verts(1 << 10), debug_points(1 << 10), indirect(1 << 10), info(1 << 10)
+{
+	Decompressor decompressor;
+	CustomArchive archive;
+
+	// loading chunk corners
+	// read compressed len from file
+	size_t corners_compressed_len;
+	archive.deserializeFromFile<size_t>(file, &corners_compressed_len);
+	CompressionData corners_compressed = CompressionData(std::malloc(corners_compressed_len), corners_compressed_len);
+	(void)file.read(corners_compressed.data, corners_compressed.len);
+	CompressionData corners_res = decompressor.decompress(corners_compressed);
+
+	exit(1);
+
+	// loading chunk materials
+}

@@ -32,20 +32,21 @@ public:
 	CustomArchive(FileHandler &file);
 	~CustomArchive() = default;
 
+	// serialize into internal buffer
 	template<typename T>
 	void serializeIntoBuffer(const T &t);
 
 	// registry should already exist, so I made this exceptionally
-	void deSerializeIntoRegistry(entt::registry &registry) const;
+	void deserializeIntoRegistry(entt::registry &registry) const;
 
-	// TODO!!!!!!!!!!!!! this will call copy constructor, how to prevent this??
+	// yes this is absolute shit but whatever, I assume file uses some internal buffer when reading small bits of data
 	template<typename T>
-	T deSerializeFromBuffer();
+	void deserializeFromFile(FileHandler &file, T *buff);
 
-	const CustomVec<uint8_t> &getData() { return data; }
+	constexpr CustomVec<uint8_t> &getData() { return data; }
 	size_t read_sp = 0; // a hack since I need to know where I am when reading
 
-
+	constexpr void clear() { data.clear(); }
 private:
 	CustomVec<uint8_t> data;
 };

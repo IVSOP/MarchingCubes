@@ -1,0 +1,30 @@
+chunk corners {
+	size_t uncompressed_len
+	size_t compressed_len
+	byte[compressed_len] {
+		compressed array of the bitmap<32>[32][32] of every chunk
+	}
+}
+chunk materials {
+	size_t uncompressed_len
+	size_t compressed_len
+	byte[compressed_len] {
+		compressed array of the materials[32][32][32] of every chunk
+	}
+}
+entities {
+	size_t uncompressed_len
+	size_t compressed_len
+	byte[compressed_len] {
+		compressed array with entities:
+			size_t num_entities
+			enities[num_entities] {
+				per entity:
+					size_t num_components
+					all components serialized
+					per component:
+						uint32_t component identifier
+						data (component specific)
+			}
+	}
+}

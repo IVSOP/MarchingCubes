@@ -62,9 +62,12 @@ public:
 	World()
 	: verts(1 << 10), debug_points(1 << 10), indirect(1 << 10), info(1 << 10) // why tf is 2e10 == 20000000000?????????????
 	{
+		loadModels();
 		// the default constructor of each chunk creates an empty body
 		// or it would if that was possible
 	}
+
+	World(FileHandler &file);
 
 	void copyChunkTo(const Chunk &chunk, const glm::uvec3 position) {
 		chunks[position.x][position.y][position.z] = chunk;
@@ -156,6 +159,9 @@ public:
 
 	void save(FileHandler &file) const;
 
+	// loads all models needed, TODO change this
+	void loadModels();
+
 private:
 	// while I do have an ECS, it is dumb to have N entities share 1 model and make them have a component with the vertices or something
 	// I want to render all entities of the same model all at once using instancing
@@ -166,6 +172,13 @@ private:
 
 	// // to allow spawning entities using the model name instead of the ID, but will be slower
 	// std::unordered_map<std::string, uint32_t> name_to_id;
+
+	// ordered on purpose!!!
+	// these are used when loading entities, to enable loading them through the names of their model
+	// entities that need to be loaded while the game is running will do so through their ID, which is completely independent from their name
+	// if needed I'll then map name -> id or something
+	std::map<uint32_t, std::string> id_to_model;
+	std::map<uint32_t, std::string> id_to_hitbox;
 };
 
 

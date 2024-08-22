@@ -42,16 +42,35 @@ private:
 	ZSTD_CCtx* ctx;
 };
 
-// class Decompressor {
-// public:
-// 	Decompressor() : ctx(ZSTD_createDCtx()) {}
-// 	~Decompressor() { ZSTD_freeDCtx(ctx); }
+class Decompressor {
+public:
+	Decompressor() : ctx(ZSTD_createDCtx()) {}
+	~Decompressor() { ZSTD_freeDCtx(ctx); }
 
-// 	size_t decompress()
+	CompressionData decompress(const CompressionData &inData) {
+		unsigned long long len = ZSTD_getFrameContentSize(inData.data, inData.len);
 
-// private:
-// 	ZSTD_DCtx *ctx;
-// };
+		if (ZSTD_isError(len)) {
+			// TODO
+		}
+
+		CompressionData res = CompressionData(std::malloc(len), len);
+		size_t decompressed_len = ZSTD_decompressDCtx(ctx, res.data, res.len, inData.data, inData.len);
+
+		if (ZSTD_isError(decompressed_len)) {
+			// TODO
+		}
+
+		if (len != decompressed_len) {
+			// TODO
+		}
+
+		return res;
+	}
+
+private:
+	ZSTD_DCtx *ctx;
+};
 
 
 #endif
