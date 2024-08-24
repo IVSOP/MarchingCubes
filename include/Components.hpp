@@ -93,6 +93,17 @@ struct Physics {
 	glm::mat4 getTransform() const {
 		return Phys::getBodyTransform(body);
 	}
+
+	JPH::Vec3 getPosition() const {
+		return body->GetPosition();
+	}
+	JPH::Quat getRotation() const {
+		return body->GetRotation();
+	}
+
+	void activate() {
+		Phys::activateBody(body);
+	}
 };
 
 // to render, info is obtained using this ID

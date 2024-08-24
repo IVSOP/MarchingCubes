@@ -151,13 +151,14 @@ public:
 	// loads model and stores its info, returning the object_id
 	uint32_t loadModel(const std::string &name, const std::string &hitbox_name);
 	uint32_t loadModel(const std::string &name);
+	JPH::Body *createBodyFromID(uint32_t id, const JPH::Vec3 &position, const JPH::Quat &rotation);
 	// creates a renderable physics entity internally, given an object_id
 	void spawn(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation);
 
 	// vector of pair<render info for a single instance, array of transforms of all entities to be drawn>
 	const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> getEntitiesToDraw();
 
-	void save(FileHandler &file) const;
+	void save(FileHandler &file);
 
 	// loads all models needed, TODO change this
 	void loadModels();

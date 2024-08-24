@@ -419,10 +419,14 @@ uint32_t World::loadModel(const std::string &name) {
 	return size;
 }
 
+JPH::Body *World::createBodyFromID(uint32_t id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
+	JPH::RefConst<JPH::Shape> shape = this->objects_info[id].phys_shape;
+	return Phys::createBodyFromShape(shape, translation, rotation);
+}
+
 void World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
 	// create a body (not activated)
-	JPH::RefConst<JPH::Shape> shape = this->objects_info[render_id].phys_shape;
-	JPH::Body *body = Phys::createBodyFromShape(shape, translation, rotation);
+	JPH::Body *body = createBodyFromID(render_id, translation, rotation);
 
 	// add to entt
 	entt::entity entity = entt_registry.create();
@@ -454,9 +458,9 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEnt
 	return res;
 }
 
-// TODO compare saving everything all at once vs in blocks
-// for now everything is compressed at like 2 really bit steps since I have the world as a flat array
-void World::save(FileHandler &file) const {
+// TODO compare saving/compressing everything all at once vs in blocks
+// TODO cant make a const group, so this func cant be const (but it should be)
+void World::save(FileHandler &file) {
 	Compressor compressor;
 
 	constexpr size_t corners_len = sizeof(Chunk::corners) * WORLD_SIZE_X * WORLD_SIZE_Y * WORLD_SIZE_Z;
@@ -479,24 +483,36 @@ void World::save(FileHandler &file) const {
 	}
 
 
-	CompressionData materials_res = compressor.compress(materials); std::free(materials.data);
 	CompressionData corners_res = compressor.compress(corners); std::free(corners.data);
+	CustomArchive::serializeIntoFile<CompressionData>(file, corners_res); free(corners_res.data);
+	CompressionData materials_res = compressor.compress(materials); std::free(materials.data);
+	CustomArchive::serializeIntoFile<CompressionData>(file, materials_res); free(materials_res.data);
 
 	CustomArchive entity_archive;
 	entity_archive.serializeIntoBuffer<entt::registry>(entt_registry);
 	CompressionData entities(entity_archive.getData()._data, entity_archive.getData()._sp);
 	CompressionData entities_res = compressor.compress(entities); // no need to entities.data, buffer belongs to archive and gets freed automatically
+	CustomArchive::serializeIntoFile<CompressionData>(file, entities_res); free(entities_res.data);
 
-	printf("corners is %.3lf%% smaller (%lu vs %lu), materials %.3lf%% (%lu vs %lu), entities %.3lf%% (%lu vs %lu)\n",
+	CustomArchive entity_phys_archive;
+	const auto phys_group = entt_registry.group<>(entt::get<const Physics>);
+	// size_t num_phys_entities = phys_group.size();
+	// entity_phys_archive.serializeIntoBuffer<size_t>(num_phys_entities);
+	for (const auto entity : phys_group) {
+		const Physics &phys = phys_group.get<Physics>(entity);
+		entity_phys_archive.serializeIntoBuffer<JPH::Vec3>(phys.getPosition());
+		entity_phys_archive.serializeIntoBuffer<JPH::Quat>(phys.getRotation());
+	}
+	CompressionData entity_phys = CompressionData(entity_phys_archive.getData()._data, entity_phys_archive.getData()._sp); // no need to entity_phys.data, buffer belongs to archive and gets freed automatically
+	CompressionData entity_phys_res = compressor.compress(entity_phys);
+	CustomArchive::serializeIntoFile<CompressionData>(file, entity_phys_res); free(entity_phys_res.data);
+
+	printf("corners is %.3lf%% smaller (%lu vs %lu), materials %.3lf%% (%lu vs %lu), entities %.3lf%% (%lu vs %lu), entity phys info %.3lf%% (%lu vs %lu)\n",
 		100.0 - (static_cast<double>(corners_res.len) * 100.0) / static_cast<double>(corners.len), corners.len, corners_res.len,
 		100.0 - (static_cast<double>(materials_res.len) * 100.0) / static_cast<double>(materials.len), materials.len, materials_res.len,
-		100.0 - (static_cast<double>(entities_res.len) * 100.0) / static_cast<double>(entities.len), entities.len, entities_res.len
+		100.0 - (static_cast<double>(entities_res.len) * 100.0) / static_cast<double>(entities.len), entities.len, entities_res.len,
+		100.0 - (static_cast<double>(entity_phys_res.len) * 100.0) / static_cast<double>(entity_phys.len), entity_phys.len, entity_phys_res.len
 	);
-
-	// TODO error checking
-	CustomArchive::serializeIntoFile<CompressionData>(file, corners_res); free(corners_res.data);
-	CustomArchive::serializeIntoFile<CompressionData>(file, materials_res); free(materials_res.data);
-	CustomArchive::serializeIntoFile<CompressionData>(file, entities_res); free(entities_res.data);
 }
 
 // void World::load(FileHandler &file) {
@@ -548,4 +564,21 @@ World::World(FileHandler &file)
 	entities_archive.setBuffer(entities_res.data, entities_res.len); // entities_res.data now belongs to archive, do not free
 	entities_archive.deserializeFromBuffer<entt::registry>(entt_registry);
 
+	// pray that the iteration order here is the exact same TODO somehow do not rely on this
+	CompressionData entities_phys_compressed;
+	CustomArchive::deserializeFromFile<CompressionData>(file, entities_phys_compressed);
+	CompressionData entities_phys_res = decompressor.decompress(entities_phys_compressed); std::free(entities_phys_compressed.data);
+	entities_archive.setBuffer(entities_phys_res.data, entities_phys_res.len); // just reuse it, whatever
+
+	const auto group = entt_registry.group<>(entt::get<const Physics, const Render>);
+	for (const auto entity : group) {
+		const Render& render = group.get<Render>(entity);
+		JPH::Vec3 position;
+		entities_archive.deserializeFromBuffer<JPH::Vec3>(position);
+		JPH::Quat rotation;
+		entities_archive.deserializeFromBuffer<JPH::Quat>(rotation);
+		JPH::Body *body = createBodyFromID(render.object_id, position, rotation);
+		entt_registry.replace<Physics>(entity, body);
+		Phys::activateBody(body);
+	}
 }
