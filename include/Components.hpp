@@ -16,6 +16,8 @@ enum class Component : uint32_t {
 struct Position {
 	glm::vec3 pos;
 
+	Position() : pos(0.0f) {}
+
 	Position(const glm::vec3 &pos)
 		: pos(pos) {}
 	~Position() = default;
@@ -98,7 +100,7 @@ struct Physics {
 struct Render {
 	uint32_t object_id;
 
-	Render() = delete;
+	Render() : object_id(0) {};
 	Render(uint32_t object_id) : object_id(object_id) {}
 	~Render() = default;
 };

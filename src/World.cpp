@@ -407,15 +407,15 @@ void World::loadHeightMap(const std::string &path) {
 uint32_t World::loadModel(const std::string &name, const std::string &hitbox_name) {
 	uint32_t size = this->objects_info.size();
 	Assets::load(name, hitbox_name, this->objects_info);
-	id_to_model.emplace(size, name);
-	id_to_hitbox.emplace(size, hitbox_name);
+	// 	id_to_model.emplace(size, name);
+	// id_to_hitbox.emplace(size, hitbox_name);
 	return size;
 }
 
 uint32_t World::loadModel(const std::string &name) {
 	uint32_t size = this->objects_info.size();
 	Assets::load(name, this->objects_info);
-	id_to_model.emplace(size, name);
+	// id_to_model.emplace(size, name);
 	return size;
 }
 
@@ -539,4 +539,13 @@ World::World(FileHandler &file)
 
 	std::free(corners_res.data);
 	std::free(materials_res.data);
+
+	CompressionData entities_compressed;
+	CustomArchive::deserializeFromFile<CompressionData>(file, entities_compressed);
+	CompressionData entities_res = decompressor.decompress(entities_compressed); std::free(entities_compressed.data);
+
+	CustomArchive entities_archive;
+	entities_archive.setBuffer(entities_res.data, entities_res.len); // entities_res.data now belongs to archive, do not free
+	entities_archive.deserializeFromBuffer<entt::registry>(entt_registry);
+
 }

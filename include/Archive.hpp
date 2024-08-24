@@ -9,22 +9,6 @@
 #include "Files.hpp"
 #include "Compression.hpp"
 
-
-
-
-/*
-this is a mess i know
-for whatever reason this is what I decided:
-
-entites can be serialized with this, by passing in the entire registry
-however, physics bodies are not so easy to serialize
-so, the render_id will be used to load their bodies as needed (outside this class)
-*/
-
-
-
-
-
 // TODO consider using boost archives instead of doing everything by hand
 // TODO look into entt snapshots, I couldn't be bothered so I did everything by hand even if it is slower
 class CustomArchive {
@@ -49,8 +33,23 @@ public:
 	template<typename T>
 	static void deserializeFromFile(FileHandler &file, T &t);
 
+	// cant make this constexpr due to the reinterpret_cast, wtf??????????
+	void setBuffer(void *newdata, size_t len) {
+		data.clear();
+		data.reserve(len);
+		data.free_internal_buff();
+
+		data._data = reinterpret_cast<uint8_t *>(newdata);
+		data._sp = len;
+		read_sp = 0;
+	}
+
+	template<typename T>
+	void deserializeFromBuffer(T &t);
+
 private:
 	CustomVec<uint8_t> data;
+	size_t read_sp = 0; // TODO make a serialize archive and a deserialize archive
 };
 
 #endif

@@ -10,6 +10,8 @@
 // !!!!!!!!!!!!! SEGFAULT GENERATOR AHEAD!!!!!!!!!!!! READ EVERYTHING CAREFULLY !!!!!!!!!!!
 
 
+// TODO add __restricts or something
+
 
 
 
@@ -85,7 +87,7 @@ public:
 	// compiler will optimize this
 	constexpr T *getBackPointer() const { return &_data[_sp - 1]; }
 
-	// makes sure at least len elements can be written with no realloc
+	// makes sure at least len elements can be written at the end of the current array, with no realloc
 	constexpr void reserve(size_t len) { 
 		while (_sp + len > _capacity) grow();
 	}
@@ -101,6 +103,17 @@ public:
 	// write bytes at [offset], no questions asked, again
 	constexpr void write_bytes_at(const void *buff, size_t len, size_t offset) {
 		std::memcpy(reinterpret_cast<uint8_t *>(_data) + offset, buff, len);
+	}
+
+	// reads bytes from internal buffer into provided buffer, starting at an offset
+	constexpr void extract_bytes(void *buff, size_t num_bytes, size_t offset) {
+		std::memcpy(buff, reinterpret_cast<uint8_t *>(_data) + offset, num_bytes);
+	}
+
+	// why the fuck did I even have a need for this
+	// segfault generator
+	constexpr void free_internal_buff() {
+		std::free(_data);
 	}
 
 // private:

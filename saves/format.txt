@@ -24,4 +24,11 @@ entities {
 						data (component specific)
 			}
 	}
+	size_t compressed_len
+	byte[compressed_len] {
+		array of {
+			JPH::Vec3
+			JPH::Quat
+		}, representing the position and rotation of the entities
+	}
 }

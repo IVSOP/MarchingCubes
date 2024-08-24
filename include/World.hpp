@@ -172,13 +172,6 @@ private:
 
 	// // to allow spawning entities using the model name instead of the ID, but will be slower
 	// std::unordered_map<std::string, uint32_t> name_to_id;
-
-	// ordered on purpose!!!
-	// these are used when loading entities, to enable loading them through the names of their model
-	// entities that need to be loaded while the game is running will do so through their ID, which is completely independent from their name
-	// if needed I'll then map name -> id or something
-	std::map<uint32_t, std::string> id_to_model;
-	std::map<uint32_t, std::string> id_to_hitbox;
 };
 
 

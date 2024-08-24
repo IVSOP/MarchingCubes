@@ -16,6 +16,8 @@
 // 	free(buf);
 // }
 
+#include "Logs.hpp"
+
 template<>
 void CustomArchive::serializeIntoBuffer<uint32_t>(const uint32_t &val) { // reference is cursed here but whatever
 	data.reserve(sizeof(uint32_t));
@@ -151,4 +153,120 @@ void CustomArchive::deserializeFromFile<CompressionData>(FileHandler &file, Comp
 	(void)file.read(&data.len, sizeof(data.len));
 	data.data = std::malloc(data.len);
 	(void)file.read(data.data, data.len);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<size_t>(size_t &val) {
+	data.extract_bytes(&val, sizeof(size_t), read_sp);
+	read_sp += sizeof(size_t);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<Component>(Component &val) {
+	data.extract_bytes(&val, sizeof(Component), read_sp);
+	read_sp += sizeof(Component);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<uint32_t>(uint32_t &val) {
+	data.extract_bytes(&val, sizeof(uint32_t), read_sp);
+	read_sp += sizeof(uint32_t);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<GLfloat>(GLfloat &val) {
+	data.extract_bytes(&val, sizeof(GLfloat), read_sp);
+	read_sp += sizeof(GLfloat);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<bool>(bool &val) {
+	data.extract_bytes(&val, sizeof(bool), read_sp);
+	read_sp += sizeof(bool);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<glm::vec3>(glm::vec3 &val) {
+	deserializeFromBuffer<GLfloat>(val.x);
+	deserializeFromBuffer<GLfloat>(val.y);
+	deserializeFromBuffer<GLfloat>(val.z);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<Position>(Position &pos) {
+	deserializeFromBuffer<glm::vec3>(pos.pos);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<Direction>(Direction &dir) {
+	deserializeFromBuffer<GLfloat>(dir.pitch);
+	deserializeFromBuffer<GLfloat>(dir.yaw);
+	deserializeFromBuffer<glm::vec3>(dir.front);
+	deserializeFromBuffer<glm::vec3>(dir.worldup);
+	deserializeFromBuffer<glm::vec3>(dir.up);
+	deserializeFromBuffer<glm::vec3>(dir.right);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<Movement>(Movement &mov) {
+	deserializeFromBuffer<GLfloat>(mov.speed);
+	deserializeFromBuffer<bool>(mov.speedup);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<Render>(Render &render) {
+	deserializeFromBuffer<uint32_t>(render.object_id);
+}
+
+template<>
+void CustomArchive::deserializeFromBuffer<entt::registry>(entt::registry &registry) {
+	size_t num_entities;
+	deserializeFromBuffer<size_t>(num_entities);
+
+	size_t num_components;
+	Component component_id;
+	for (size_t i = 0; i < num_entities; i++) {
+		entt::entity entity = registry.create();
+		deserializeFromBuffer<size_t>(num_components);
+		for (size_t c = 0; c < num_components; c++) {
+			deserializeFromBuffer<Component>(component_id);
+			// cursed but doing things like Position &position = registry.emplace<Position>(entity); doesnt work for some reason
+			switch (component_id) {
+				case Component::Position:
+					{
+
+						Position position;
+						deserializeFromBuffer<Position>(position);
+						registry.emplace<Position>(entity, position.pos);
+					}
+					break;
+				case Component::Direction:
+					{
+						Direction direction;
+						deserializeFromBuffer<Direction>(direction);
+						registry.emplace<Direction>(entity, direction.pitch, direction.yaw, direction.front, direction.worldup, direction.up, direction.right);
+					}
+					break;
+				case Component::Movement:
+					{
+						Movement movement;
+						deserializeFromBuffer<Movement>(movement);
+						registry.emplace<Movement>(entity, movement.speed, movement.speedup);
+					}
+					break;
+				// case Component::Physics:
+				// 	break;
+				case Component::Render:
+					{
+						Render render;
+						deserializeFromBuffer<Render>(render);
+						registry.emplace<Render>(entity, render.object_id);
+					}
+					break;
+				default:
+					print_error("Error loading component: ID " + std::to_string(static_cast<uint32_t>(component_id)) + " not recognized");
+					exit(1);
+			}
+		}
+	}
 }

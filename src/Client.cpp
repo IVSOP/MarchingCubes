@@ -98,11 +98,11 @@ Client::Client(PhysRenderer *phys_renderer)
 	// Phys::loadTerrain(world->getPhysTerrain());
 	
 	
-		world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
+		// world.get()->loadHeightMap("textures/Rolling Hills Height Map.png");
 
 
-	// FileHandler savefile = FileHandler(Settings::saves_dir + "1.bin", FileModes::Read | FileModes::Bin);
-	// world = std::make_unique<World>(savefile);
+	FileHandler savefile = FileHandler(Settings::saves_dir + "1.bin", FileModes::Read | FileModes::Bin);
+	world = std::make_unique<World>(savefile);
 
 
 	player->setupPhys(PLAYER_POS, PLAYER_LOOKAT);
