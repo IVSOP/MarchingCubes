@@ -108,6 +108,8 @@ if (WIN32)
 	# 	file(COPY external/assimp_windows/bin/assimp.dll DESTINATION ${CMAKE_BINARY_DIR})
 	# endif()
 
+	include_directories(external/zstd-v1.5.6-win64/include/)
+
 	# lib files are used at compile time only, so I don't copy them and link them directly
 	target_link_directories(MarchingCubes PRIVATE
 		external/glew/lib/Release/x64/
@@ -115,11 +117,13 @@ if (WIN32)
 		external/steamworks/sdk/redistributable_bin/win64/
 		external/steamaudio/lib/windows-x64/
 		# external/assimp_windows/lib/
+		external/zstd-v1.5.6-win64/static/
 		${CMAKE_BINARY_DIR}/
 	)
 
 else (WIN32) # linux
 	find_package(GLEW REQUIRED)
+	find_package(zstd REQUIRED)
 
 	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libsteam_api.so)
 		file(COPY external/steamworks/sdk/redistributable_bin/linux64/libsteam_api.so DESTINATION ${CMAKE_BINARY_DIR})
@@ -140,8 +144,6 @@ else (WIN32) # linux
 endif (WIN32)
 
 set(JPH_DEBUG_RENDERER ON)
-
-find_package(zstd REQUIRED)
 
 add_subdirectory(external/glm)
 include_directories(external/glm)
@@ -197,7 +199,7 @@ if (WIN32)
 		assimp
 		nlohmann_json::nlohmann_json
 		phonon
-		zstd
+		libzstd_static
 		# ${Boost_LIBRARIES}
 	)
 
