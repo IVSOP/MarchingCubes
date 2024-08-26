@@ -24,6 +24,8 @@
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
 #include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
+#include <Jolt/Physics/Character/Character.h>
+#include <Jolt/Physics/Character/CharacterVirtual.h>
 
 #include "PhysRenderer.hpp"
 
@@ -167,6 +169,7 @@ public:
 	static void addBodyToSystem(const JPH::Body *body);
 
 	static glm::mat4 getBodyTransform(const JPH::Body *body);
+	static glm::mat4 getCharacterTransform(const JPH::Ref<JPH::Character> character);
 
 	static void destroyBody(JPH::Body *body);
 	static void setBodyMeshShape(JPH::Body *body, const JPH::TriangleList &triangles);

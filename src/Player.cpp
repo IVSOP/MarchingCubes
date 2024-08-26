@@ -19,6 +19,10 @@ Player::~Player() {
 }
 
 void Player::postTick() {
+
+	// TODO
+	// physCharacter->PostSimulation();
+
 	dir.front = getRotation();
 	dir.updateVectors();
 

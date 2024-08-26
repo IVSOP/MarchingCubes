@@ -145,8 +145,11 @@ void Client::mainloop() {
 
 	// // uint32_t idmagujo = world->loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
 	uint32_t idmagujo = 0;
-	world->spawn(idmagujo, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
+	// world->spawn(idmagujo, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
 	world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
+
+	uint32_t idmagujonpc = 1;
+	world->spawnCharacter(idmagujonpc, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
 
 	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
 	// // world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());

@@ -399,6 +399,17 @@ glm::mat4 Phys::getBodyTransform(const JPH::Body *body) {
 	return translationMatrix * rotationMatrix;
 }
 
+glm::mat4 Phys::getCharacterTransform(const JPH::Ref<JPH::Character> character) {
+	JPH::RVec3 position = character->GetPosition();
+	JPH::Quat rotation = character->GetRotation();
+
+	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(position.GetX(), position.GetY(), position.GetZ()));
+	glm::quat glmQuat(rotation.GetW(), rotation.GetX(), rotation.GetY(), rotation.GetZ());
+	glm::mat4 rotationMatrix = glm::toMat4(glmQuat); // TODO use glm::rotate instead???
+
+	return translationMatrix * rotationMatrix;
+}
+
 // // THIS SEGFAULTS , DO NOT USE
 // // pretty sure there is no way to make it ever work
 // JPH::Body *Phys::createEmptyBody() {

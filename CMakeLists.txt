@@ -56,6 +56,9 @@ set(GLFW_BUILD_DOCS off)
 set(TRACY_ENABLE on)
 set(TRACY_ONLY_LOCALHOST on)
 set(TRACY_NO_CRASH_HANDLER on)
+set(ENTT_NOEXCEPTION) # set on??
+# 	set(ENTT_DISABLE_ASSERT on)
+
 
 if (WIN32)
 

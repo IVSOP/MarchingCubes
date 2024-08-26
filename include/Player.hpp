@@ -4,8 +4,6 @@
 #include <entt.hpp>
 #include "Components.hpp"
 #include "Phys.hpp"
-#include <Jolt/Physics/Character/Character.h>
-#include <Jolt/Physics/Character/CharacterVirtual.h>
 
 // I will store a reference to the registry for simplicity, idk If I like this
 class Player {

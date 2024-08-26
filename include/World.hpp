@@ -154,6 +154,7 @@ public:
 	JPH::Body *createBodyFromID(uint32_t id, const JPH::Vec3 &position, const JPH::Quat &rotation);
 	// creates a renderable physics entity internally, given an object_id
 	void spawn(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation);
+	void spawnCharacter(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation);
 
 	// vector of pair<render info for a single instance, array of transforms of all entities to be drawn>
 	const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> getEntitiesToDraw();

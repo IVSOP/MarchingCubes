@@ -9,7 +9,9 @@
 void process_mesh(const aiMesh *mesh, GameObject *obj) {
 	GLuint index_offset = obj->verts.size();
 
-	// go over all vertices of the mesh
+	// const GLuint material_id = mesh->mMaterialIndex;
+
+	// go over all vertices of the mesh (they are not necessarily in any order)
 	if (mesh->HasNormals() && mesh->HasTextureCoords(0)) { // 0 here cursed too
 		for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
 			const aiVector3D &pos = mesh->mVertices[v];
@@ -21,7 +23,8 @@ void process_mesh(const aiMesh *mesh, GameObject *obj) {
 		Log::log(LOG_TYPE::ERR, std::string(__PRETTY_FUNCTION__), "Mesh does not have normals, not loading anything for now");
 	}
 
-	// go over all faces of the mesh
+	// go over all faces of the mesh, giving me the indices
+	// now I can actually get the vertices in the order they are modeled by using their index, so I can make the phys mesh
 	for(unsigned int f = 0; f < mesh->mNumFaces; f++)
 	{
 		const aiFace face = mesh->mFaces[f];
@@ -31,8 +34,8 @@ void process_mesh(const aiMesh *mesh, GameObject *obj) {
 
 		for(unsigned int j = 0; j < face.mNumIndices; j++) {
 			obj->indices.emplace_back(face.mIndices[j] + index_offset);
-			const aiVector3D &triangle = mesh->mVertices[face.mIndices[j]];
-			phys_verts[j] = JPH::Vec3(triangle.x, triangle.y, triangle.z);
+			const aiVector3D &pos = mesh->mVertices[face.mIndices[j]];
+			phys_verts[j] = JPH::Vec3(pos.x, pos.y, pos.z);
 		}
 		// obj->phys_triangles.emplace_back(phys_verts[0], phys_verts[1], phys_verts[2]);
 	}

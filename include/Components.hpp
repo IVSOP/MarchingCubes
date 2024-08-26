@@ -116,15 +116,66 @@ struct Render {
 	~Render() = default;
 };
 
-// this is bad since many entities share this exact thing, no reason to do this
-// struct Render {
-// 	// this is a bit of a hack, info actually comes from Assets, these are just references
-// 	const VertContainer<ModelVertex> &verts;
-// 	const std::vector<GLuint> &indices;
+// TODO lots of hardcoded things
+// also ref vs *
+// and const ref vs refconst
+struct PhysicsCharacter {
+	// body is in Physics component
+	// TODO can I just use pointers here??
+	JPH::Ref<JPH::Character> physCharacter;
+	const float maxSeparationDistance = 0.1f;
 
-// 	Render() = delete;
-// 	Render(const VertContainer<ModelVertex> &verts, const std::vector<GLuint> &indices) : verts(verts), indices(indices) {}
-// 	~Render() = default;
-// };
+	PhysicsCharacter(JPH::RefConst<JPH::Shape> shape, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
+		{
+			JPH::Ref<JPH::CharacterSettings> settings = new JPH::CharacterSettings();
+			settings->mMaxSlopeAngle = JPH::DegreesToRadians(45.0f);
+			settings->mLayer = Layers::MOVING;
+			settings->mShape = shape;
+			settings->mUp = JPH::Vec3(0.0f, 1.0f, 0.0f);
+			settings->mFriction = 0.5f;
+			settings->mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(), -0.5f); // Accept contacts that touch the lower sphere of the capsule
+			// TODO the player direction here is wrong, but fine on the camera. player needs to have direction from jolt and not entt // it already does, remove this?
+			// TODO set this rotation so that player looks to some point
+			physCharacter = new JPH::Character(settings, translation, rotation, 0, Phys::getPhysSystem());
+			physCharacter->AddToPhysicsSystem(JPH::EActivation::Activate);
+		}
+	}
+	~PhysicsCharacter() {
+		physCharacter->RemoveFromPhysicsSystem();
+	}
+
+	void postTick() {
+		physCharacter->PostSimulation(maxSeparationDistance);
+	}
+
+	glm::mat4 getTransform() const {
+		return Phys::getCharacterTransform(physCharacter);
+	}
+
+	JPH::Vec3 getPosition() const {
+		return physCharacter->GetPosition();
+	}
+	JPH::Quat getRotation() const {
+		return physCharacter->GetRotation();
+	}
+};
+
+
+	// standingShape = JPH::RotatedTranslatedShapeSettings(JPH::Vec3(0, 0.5f * playerHeight + playerRadius, 0), JPH::Quat::sIdentity(), new JPH::CapsuleShape(0.5f * playerHeight, playerRadius)).Create().Get();
+
+	// // Create Character
+	// {
+	// 	JPH::Ref<JPH::CharacterSettings> settings = new JPH::CharacterSettings(); // TODO also see this ref, seems bad
+	// 	settings->mMaxSlopeAngle = JPH::DegreesToRadians(45.0f);
+	// 	settings->mLayer = Layers::MOVING;
+	// 	settings->mShape = standingShape;
+	// 	settings->mUp = JPH::Vec3(0.0f, 1.0f, 0.0f); // TODO do not hardcode this
+	// 	settings->mFriction = 0.5f;
+	// 	settings->mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(), -playerRadius); // Accept contacts that touch the lower sphere of the capsule
+	// 	// TODO the player direction here is wrong, but fine on the camera. player needs to have direction from jolt and not entt // it already does, remove this?
+	// 	// TODO set this rotation so that player looks to some point
+	// 	physCharacter = new JPH::Character(settings, JPH::Vec3(position.pos.x, position.pos.y, position.pos.z), JPH::Quat::sIdentity(), 0, Phys::getPhysSystem());
+	// 	physCharacter->AddToPhysicsSystem(JPH::EActivation::Activate);
+	// }
 
 #endif

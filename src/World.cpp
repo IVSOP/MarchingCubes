@@ -424,6 +424,7 @@ JPH::Body *World::createBodyFromID(uint32_t id, const JPH::Vec3 &translation, co
 	return Phys::createBodyFromShape(shape, translation, rotation);
 }
 
+// TODO this is a bit of a mess, make the Physics itself able to activate the body
 void World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
 	// create a body (not activated)
 	JPH::Body *body = createBodyFromID(render_id, translation, rotation);
@@ -437,17 +438,53 @@ void World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Q
 	Phys::activateBody(body);
 }
 
+// same here, gets activated implicitly
+void World::spawnCharacter(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
+	// get shape
+	JPH::RefConst<JPH::Shape> shape = this->objects_info[object_id].phys_shape;
+
+	// add to entt
+	entt::entity entity = entt_registry.create();
+	entt_registry.emplace<PhysicsCharacter>(entity, shape, translation, rotation);
+	entt_registry.emplace<Render>(entity, object_id);
+
+}
+
 // TODO this should be const, cant make a const group. make components themselves const???
 // TODO group vs view???? different types of group ownership?????? was calling ~Physics() and messing everything up
+// TODO optimize this
+/*
+I tried to do
+
+auto group = entt_registry.group<Render>(entt::get<Physics>);
+auto group = entt_registry.group<Render>(entt::get<PhysicsCharacter>);
+
+but since Render belongs to both, I got an error
+
+solution was to make not even the Render be owned
+
+*/
 const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEntitiesToDraw() {
 	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res(objects_info.size());
 
-	auto group = entt_registry.group<Render>(entt::get<Physics>);
-	for (const auto entity : group) {
-		const Physics &phys = group.get<Physics>(entity);
-		const Render &render = group.get<Render>(entity);
+	{
+		auto group = entt_registry.group<>(entt::get<Render, Physics>);
+		for (const auto entity : group) {
+			const Physics &phys = group.get<Physics>(entity);
+			const Render &render = group.get<Render>(entity);
 
-		res[render.object_id].second.emplace_back(phys.getTransform());
+			res[render.object_id].second.emplace_back(phys.getTransform());
+		}
+	}
+
+	{
+		auto group = entt_registry.group<>(entt::get<Render, PhysicsCharacter>);
+		for (const auto entity : group) {
+			const PhysicsCharacter &physcharacter = group.get<PhysicsCharacter>(entity);
+			const Render &render = group.get<Render>(entity);
+
+			res[render.object_id].second.emplace_back(physcharacter.getTransform());
+		}
 	}
 
 	for (unsigned int i = 0; i < res.size(); i++) {
@@ -522,6 +559,7 @@ void World::save(FileHandler &file) {
 void World::loadModels() {
 	// uint32_t idmagujo = 
 	(void)loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
+	(void)loadModel("magujo/magujo.glb");
 }
 
 World::World(FileHandler &file)
