@@ -1,0 +1,13 @@
+assets/magujo
+shaders/
+saves/
+textures/terreno.jpg
+textures/birch_planks.png
+textures/black.png
+textures/Height Map.png
+textures/iceland_heightmap.png
+textures/missing_texture.png
+textures/redstone_block.png
+textures/Ridge Through Terrain Height Map.png
+textures/Rolling Hills Height Map.png
+textures/white.png

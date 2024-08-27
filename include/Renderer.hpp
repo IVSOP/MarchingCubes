@@ -51,17 +51,7 @@ public:
 	// GLuint vertexBuffer_viewport;
 	Shader hdrBbloomMergeShader;
 	// !! could have reused fbo and textures, but this is simpler and more flexible and less painful to manage
-	
 
-	GLfloat gamma = 2.2f, exposure = 1.0f, bloomThreshold = 1.0f, bloomOffset = 1.0f, explodeCoeff = 0.0f;
-	int bloomBlurPasses = 0; //5;
-	bool showAxis = true;
-	bool showNormals = false;
-	bool wireframe = false;
-	bool limitFPS = false;
-	double fps = 60.0f;
-	GLfloat break_radius = 5.0f;
-	GLfloat break_range = 10.0f;
 	Shader pointshader;
 
 	// for models
@@ -74,9 +64,6 @@ public:
 	std::unique_ptr<TextureArray> textureArray = nullptr; // pointer since it starts as null and gets initialized later. unique_ptr so it always gets deleted
 
 	PhysRenderer *phys_renderer;
-	bool render_physics = false;
-	bool render = true;
-	bool render_models = true;
 
 	void draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo); // const
 	void drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs);

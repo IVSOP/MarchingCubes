@@ -4,3 +4,19 @@ GLdouble Settings::fov = 90.0;
 GLdouble Settings::znear = 0.1;
 GLdouble Settings::zfar = 10000.0;
 std::string Settings::saves_dir = "saves/";
+
+GLfloat Settings::gamma = 2.2f;
+GLfloat Settings::exposure = 1.0f;
+int Settings::bloomBlurPasses = 0; // 5
+GLfloat Settings::bloomThreshold = 1.0f;
+GLfloat Settings::bloomOffset = 1.0f;
+GLfloat Settings::break_radius = 5.0f;
+GLfloat Settings::break_range = 10.0f;
+
+bool Settings::showAxis = true;
+bool Settings::showNormals = false;
+bool Settings::wireframe = false;
+bool Settings::wireframe_models = false;
+bool Settings::render_physics = false;
+bool Settings::render = true;
+bool Settings::render_models = true;

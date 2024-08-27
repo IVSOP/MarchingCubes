@@ -187,11 +187,11 @@ void Client::mainloop() {
 		Direction dir = player->getDir();
 		Movement  mov = player->getMov();
 
-		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(pos.pos, dir.front, renderer->break_range);
+		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(pos.pos, dir.front, Settings::break_range);
         inputHandler.applyInputs(
 			world.get(),
 			selectedBlock,
-			renderer->break_radius,
+			Settings::break_radius,
 			player.get(), windowManager->windowWidth, windowManager->windowHeight, static_cast<GLfloat>(deltaTime));
 
 

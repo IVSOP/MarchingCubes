@@ -356,24 +356,25 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::SliderFloat("##Camera_speed", &mov.speed, 0.0f, 1000.0f, "Camera speed = %.3f");
 	ImGui::SameLine();
 	ImGui::InputFloat("Camera speed", &mov.speed, 1.0f, 10.0f);
-	float fov = Settings::fov;
+	float fov = static_cast<GLfloat>(Settings::fov);
 	ImGui::SliderFloat("FOV", &fov, 0.0f, 140.0f, "fov = %.3f");
 	Settings::setFov(static_cast<GLdouble>(fov));
-	ImGui::SliderFloat("gamma", &gamma, 0.0f, 10.0f, "gamma = %.3f");
-	ImGui::SliderFloat("exposure", &exposure, 0.0f, 10.0f, "exposure = %.3f");
-	ImGui::InputInt("bloomPasses", &bloomBlurPasses, 1, 1); if (bloomBlurPasses < 0) bloomBlurPasses = 0;
+	ImGui::SliderFloat("gamma", &Settings::gamma, 0.0f, 10.0f, "gamma = %.3f");
+	ImGui::SliderFloat("exposure", &Settings::exposure, 0.0f, 10.0f, "exposure = %.3f");
+	ImGui::InputInt("bloomPasses", &Settings::bloomBlurPasses, 1, 1); if (Settings::bloomBlurPasses < 0) Settings::bloomBlurPasses = 0;
 	// ImGui::InputInt("bloomPasses", &bloomBlurPasses, 1, 1, "bloomPasses = %d");
-	ImGui::SliderFloat("bloomThreshold", &bloomThreshold, 0.0f, 5.0f);
+	ImGui::SliderFloat("bloomThreshold", &Settings::bloomThreshold, 0.0f, 5.0f);
 	// texOffsetCoeff = static_cast<GLfloat>(rand()) / static_cast<GLfloat>(RAND_MAX) * 10.0f;
-	ImGui::SliderFloat("bloomOffset", &bloomOffset, 0.0f, 10.0f, "bloomOffset = %.3f");
-	ImGui::Checkbox("Show axis", &showAxis);
-	ImGui::Checkbox("Show normals", &showNormals);
-	ImGui::Checkbox("Wireframe", &wireframe);
-	ImGui::SliderFloat("break_radius", &break_radius, 1.0f, 100.0f, "break_radius = %.3f");
-	ImGui::SliderFloat("break_range", &break_range, 1.0f, 500.0f, "break_range = %.3f");
-	ImGui::Checkbox("Render physics", &render_physics);
-	ImGui::Checkbox("Render", &render);
-	ImGui::Checkbox("Render models", &render_models);
+	ImGui::SliderFloat("bloomOffset", &Settings::bloomOffset, 0.0f, 10.0f, "bloomOffset = %.3f");
+	ImGui::Checkbox("Show axis", &Settings::showAxis);
+	ImGui::Checkbox("Show normals", &Settings::showNormals);
+	ImGui::Checkbox("Wireframe", &Settings::wireframe);
+	ImGui::Checkbox("Wireframe models", &Settings::wireframe_models);
+	ImGui::SliderFloat("break_radius", &Settings::break_radius, 1.0f, 100.0f, "break_radius = %.3f");
+	ImGui::SliderFloat("break_range", &Settings::break_range, 1.0f, 500.0f, "break_range = %.3f");
+	ImGui::Checkbox("Render physics", &Settings::render_physics);
+	ImGui::Checkbox("Render", &Settings::render);
+	ImGui::Checkbox("Render models", &Settings::render_models);
 }
 
 void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view) {
@@ -387,7 +388,7 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 	//////////////////////////////////////////////// he normal scene is drawn into the lighting framebuffer, where the bright colors are then separated
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, lightingFBO));
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		if (wireframe) {
+		if (Settings::wireframe) {
 			GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 		}
 		// glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -410,7 +411,7 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 		mainShader.setMat4("u_Projection", projection);
 		mainShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * model))));
 
-		mainShader.setFloat("u_BloomThreshold", bloomThreshold);
+		mainShader.setFloat("u_BloomThreshold", Settings::bloomThreshold);
 
 		// load UBO
 		Material materials[8];
@@ -533,7 +534,7 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 		GLCall(glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer));
 		GLCall(glBufferData(GL_DRAW_INDIRECT_BUFFER, indirect.size() * sizeof(IndirectData), indirect.data(), GL_DYNAMIC_DRAW));
 
-		if (render) {
+		if (Settings::render) {
 			// GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 3, verts.size()));
 			GLCall(glMultiDrawArraysIndirect(GL_TRIANGLES, (void *)0, indirect.size(), 0));
 		}
@@ -548,15 +549,15 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 		// GLCall(glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(Vertex), points.data(), GL_STATIC_DRAW));
 		// GLCall(glDrawArrays(GL_POINTS, 0, points.size()));
 
-		if (showAxis) {
+		if (Settings::showAxis) {
 			drawAxis(model, view, projection);
 		}
 
-		if (showNormals) {
+		if (Settings::showNormals) {
 			drawNormals(verts, indirect, model, view, projection);
 		}
 
-		if (wireframe) {
+		if (Settings::wireframe) {
 			GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 		}
 }
@@ -571,7 +572,7 @@ void Renderer::drawNormals(const CustomVec<Vertex> &verts, const std::vector<Ind
 	normalShader.setMat4("u_Model", model);
 	normalShader.setMat4("u_View", view);
 	normalShader.setMat4("u_Projection", projection);
-	normalShader.setFloat("u_BloomThreshold", bloomThreshold);
+	normalShader.setFloat("u_BloomThreshold", Settings::bloomThreshold);
 	normalShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * model))));
 	normalShader.setInt("u_ChunkInfoTBO", CHUNKINFO_TEXTURE_BUFFER_SLOT);
 
@@ -622,7 +623,7 @@ void Renderer::bloomBlur(int passes) {
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 
 	for (GLint i = 0; i < passes - 1; i++) {
-		blurShader.setFloat("u_TexOffsetCoeff", bloomOffset);
+		blurShader.setFloat("u_TexOffsetCoeff", Settings::bloomOffset);
 
 		// horizontal pass
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[0]));
@@ -659,8 +660,8 @@ void Renderer::merge() {
 
 		hdrBbloomMergeShader.setInt("u_SceneBuffer", SCENE_TEXTURE_SLOT);
 		hdrBbloomMergeShader.setInt("u_BrightBuffer", BRIGHT_TEXTURE_SLOT);
-		hdrBbloomMergeShader.setFloat("u_Gamma", gamma);
-		hdrBbloomMergeShader.setFloat("u_Exposure", exposure);
+		hdrBbloomMergeShader.setFloat("u_Gamma", Settings::gamma);
+		hdrBbloomMergeShader.setFloat("u_Exposure", Settings::exposure);
 
 		// hdrBbloomMergeShader.validate();
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
@@ -680,18 +681,18 @@ void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const
 	drawLighting(verts, points, indirect, chunkInfo, projection, view);
 	drawObjects(view, projection, objs);
 
-	if (render_physics) {
+	if (Settings::render_physics) {
 		draw_phys(view, projection);
 	}
 
-	bloomBlur(this->bloomBlurPasses);
+	bloomBlur(Settings::bloomBlurPasses);
 	merge();
 
-	ImGui::Checkbox("Limit FPS", &limitFPS);
-	if (limitFPS) {
-		const double f64_min = 0.0, f64_max = 240.0;
-		ImGui::SliderScalar("Target FPS", ImGuiDataType_Double, &fps, &f64_min, &f64_max, "Target FPS = %.0f");
-	}
+	// ImGui::Checkbox("Limit FPS", &limitFPS);
+	// if (limitFPS) {
+	// 	const double f64_min = 0.0, f64_max = 240.0;
+	// 	ImGui::SliderScalar("Target FPS", ImGuiDataType_Double, &fps, &f64_min, &f64_max, "Target FPS = %.0f");
+	// }
 
 
 	endFrame(window);
@@ -763,6 +764,10 @@ void Renderer::checkFrameBuffer() {
 
 // TODO optimize, for now 1 draw per object
 void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs) {
+	if (Settings::wireframe_models) {
+		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+	}
+	
 	modelShader.use();
 
 	// bind VAO, VBO, TBO
@@ -774,7 +779,7 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 
 
 	// TODO clean this up, same initialization as main shader
-	modelShader.setFloat("u_BloomThreshold", bloomThreshold);
+	modelShader.setFloat("u_BloomThreshold", Settings::bloomThreshold);
 
 	// // load UBO
 	// Material materials[8];
@@ -889,7 +894,7 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 	modelShader.setMat4("u_View", view);
 	modelShader.setMat4("u_Projection", projection);
 
-	if (render_models) {
+	if (Settings::render_models) {
 		for (const auto &pair : objs) {
 			// verts loaded once
 			const GameObject *obj = pair.first;
@@ -912,6 +917,10 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 
 				// GLCall(glDrawElements(GL_TRIANGLES, obj->indices.size(), GL_UNSIGNED_INT, 0));
 		}
+	}
+
+	if (Settings::wireframe_models) {
+		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 	}
 }
 
