@@ -2,7 +2,9 @@
 #define CHUNK_H
 #include <chrono>
 
+// num cubes
 #define CHUNK_SIZE 31
+// num corners
 #define CHUNK_SIZE_CORNERS (CHUNK_SIZE + 1)
 
 #define CHUNK_SIZE_FLOAT static_cast<GLfloat>(CHUNK_SIZE)
@@ -52,7 +54,8 @@ struct Chunk {
 
 	bool vertsHaveChanged = true;
 	// [i] corresponds to normal == i
-	std::vector<Vertex> verts; // I suspect that most chunks will have empty space so I use a vector. idk how bad this is, memory will be extremely sparse. maybe using a fixed size array here will be better, need to test
+	// TODO test this performance vs a vector
+	CustomVec<Vertex> verts; // I suspect that most chunks will have empty space so I use a vector. idk how bad this is, memory will be extremely sparse. maybe using a fixed size array here will be better, need to test
 	// std::vector<Point> debug_points;
 
 	// internaly, it seems like jolt turns triangles into a list of triangles with indices
@@ -63,10 +66,15 @@ struct Chunk {
 	JPH::Body *body;
 	bool destroyed; // TODO I don't like this
 
-	Chunk() {
+	Chunk()
+	: verts(1)
+	{
 		// create the physics body
 		body = nullptr;
 		destroyed = true;
+
+		(void)memset(corners, 0, sizeof(corners));
+		(void)memset(materials, 0, sizeof(materials));
 	}
 
 	~Chunk() {
@@ -75,6 +83,9 @@ struct Chunk {
 			Phys::destroyBody(body);
 		}
 	}
+
+
+	// destroyChunk and reviveChunk are pretty cursed but needed due to the way I manage chunks, they are slightly faster than destroying them
 
 	// destructor that can be called manually to clean things up
 	// WARNING will clear the std::vectors and their memory
@@ -86,8 +97,10 @@ struct Chunk {
 			body = nullptr; // for safety, I would rather get a segfault than weird bugs
 		}
 
-		verts.clear();
-		verts.shrink_to_fit();
+		// verts.reset();
+		// verts.clear();
+		// verts.shrink_to_fit();
+		verts.reset();
 		triangles.clear();
 		triangles.shrink_to_fit();
 
@@ -97,6 +110,12 @@ struct Chunk {
 		// needed??
 		(void)memset(materials, 0, sizeof(materials));
 		vertsHaveChanged = true;
+	}
+
+	void reviveChunk(const glm::vec3 &coords) {
+		destroyed = false;
+		vertsHaveChanged = false;
+		rebuildBody(coords);
 	}
 
 	// extremely shitty
@@ -184,6 +203,14 @@ struct Chunk {
 		vertsHaveChanged = true; // do not do this here since this gets called many times TODO
 	}
 
+	constexpr void addCornerAt(const glm::u8vec3 &pos, GLbyte material_id) {
+		corners[pos.y][pos.z].setBit(pos.x);
+
+		// TODO set material, CAREFULL this pos is < 32, materials are <31
+
+		vertsHaveChanged = true; // do not do this here since this gets called many times TODO
+	}
+
 	// constexpr void setVoxelValue(const glm::u8vec3 &pos, const Bitmap<8> &value) {
 	// 	voxels[pos.y][pos.z][pos.x].data = value;
 	// 	vertsHaveChanged = true;
@@ -198,7 +225,7 @@ struct Chunk {
 	// 	return ! isEmptyAt(x, y, z);
 	// }
 
-	constexpr std::vector<Vertex> &getVerts(GLuint normal) {
+	constexpr CustomVec<Vertex> &getVerts(GLuint normal) {
 		// if (vertsHaveChanged) {
 		// 	rebuildVerts();
 		// }
@@ -234,6 +261,7 @@ struct Chunk {
 
 	// TODO EXTREMELY unoptimized
 	void breakSphere(const glm::vec3 &center, GLfloat radius_squared, const glm::vec3 &offset);
+	void addSphere(const glm::vec3 &center, GLfloat radius_squared, const glm::vec3 &offset);
 
 	// TODO this is bad
 	void rebuildBody(const glm::vec3 &coords) {

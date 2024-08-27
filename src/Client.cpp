@@ -218,7 +218,7 @@ void Client::mainloop() {
 			world->getPoints(),
 			world->getIndirect(),
 			world->getInfo(),
-			world->getEntitiesToDraw(),
+			world->getEntitiesToDraw(frustum),
 			windowManager->projection,
 			windowManager->window, deltaTime,
 			pos,

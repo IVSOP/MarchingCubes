@@ -113,6 +113,10 @@ void InputHandler::applyInputs(World *world, const SelectedBlockInfo &selectedIn
 				// world->breakVoxelSphere(selectedInfo, 1.0f);
 			}
 		}
+	} else if ((&keys[GLFW_MOUSE_BUTTON_RIGHT])->last_action != GLFW_RELEASE) {
+		if (! selectedInfo.isEmpty()) {
+			world->addVoxelShpere(selectedInfo, break_radius);
+		}
 	}
 
 

@@ -35,8 +35,6 @@ void Chunk::generateVoxelTriangles(GLuint x, GLuint y, GLuint z) {
 	JPH::Float3 v1, v2, v3; // TODO fix this mess of conversions
 	// glm::vec3 normal;
 
-	Vertex vert;
-
 #ifdef OLD_MARCHING_CUBES
 	// for this configuration, get list of indices corresponding to 'activated' edges
 	const int8_t *edgeIndices = LookupTable::triTable[cubedata];
@@ -67,9 +65,7 @@ void Chunk::generateVoxelTriangles(GLuint x, GLuint y, GLuint z) {
 #endif
 
 		// TODO messy conversions
-		vert = Vertex(pos, glm::uvec3(edgeIndexA, edgeIndexB, edgeIndexC), materials[y][z][x]);
-
-		verts.push_back(vert);
+		verts.emplace_back(pos, glm::u8vec3(edgeIndexA, edgeIndexB, edgeIndexC), materials[y][z][x]);
 
 
 		// triangle for JPH
@@ -156,6 +152,25 @@ void Chunk::breakSphere(const glm::vec3 &center, GLfloat radius_squared, const g
 				if (glm::distance2(glm::vec3(x, y, z) + offset, center) <= radius_squared) {
 					// breakVoxelAt(glm::u8vec3(x, y, z));
 					breakCornerAt(glm::u8vec3(x, y, z));
+				}
+			}
+		}
+	}
+}
+
+void Chunk::addSphere(const glm::vec3 &center, GLfloat radius_squared, const glm::vec3 &offset) {
+	// GLint min_x = glm::clamp(static_cast<GLint>(center.x - radius), 0, CHUNK_SIZE),
+	//       max_x = glm::clamp(static_cast<GLint>(center.x + radius), 0, CHUNK_SIZE),
+	//       min_y = glm::clamp(static_cast<GLint>(center.y - radius), 0, CHUNK_SIZE),
+	//       max_y = glm::clamp(static_cast<GLint>(center.y + radius), 0, CHUNK_SIZE),
+	//       min_z = glm::clamp(static_cast<GLint>(center.z - radius), 0, CHUNK_SIZE),
+	//       max_z = glm::clamp(static_cast<GLint>(center.z + radius), 0, CHUNK_SIZE);
+
+	for (GLint x = 0; x < CHUNK_SIZE_CORNERS; x++) {
+		for (GLint y = 0; y < CHUNK_SIZE_CORNERS; y++) {
+			for (GLint z = 0; z < CHUNK_SIZE_CORNERS; z++) {
+				if (glm::distance2(glm::vec3(x, y, z) + offset, center) <= radius_squared) {
+					addCornerAt(glm::u8vec3(x, y, z), 1);
 				}
 			}
 		}

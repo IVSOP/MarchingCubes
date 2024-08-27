@@ -54,6 +54,23 @@ public:
 		// std::copy(vec.begin(), vec.end(), _data + og_sp); // like 1 fps worse (because I dont have LTO?????)
 	}
 
+	// same but using another customvec
+	constexpr void add(const CustomVec<T> &vec) {
+		std::size_t og_sp = _sp;
+		_sp += vec.size();
+		// nothing to add
+		if (og_sp == _sp) {
+			return;
+		}
+		// TODO make a grow_to() that is more efficient than this
+		while (_sp > _capacity) {
+			grow();
+		}
+		// how to force this into memcpy aligned???
+		std::memcpy(reinterpret_cast<void *>(_data + og_sp), reinterpret_cast<const void *>(vec.data()), sizeof(T) * (_sp - og_sp));
+		// std::copy(vec.begin(), vec.end(), _data + og_sp); // like 1 fps worse (because I dont have LTO?????)
+	}
+
 	constexpr void clear() {
 		_sp = 0;
 	}
@@ -114,6 +131,20 @@ public:
 	// segfault generator
 	constexpr void free_internal_buff() {
 		std::free(_data);
+	}
+
+	constexpr void reset() {
+		std::free(_data);
+		_sp = 0;
+		_capacity = 1;
+		_data = reinterpret_cast<T *>(std::malloc(sizeof(T) * _capacity));
+	}
+
+	constexpr void reset_to(std::size_t cap) {
+		std::free(_data);
+		_sp = 0;
+		_capacity = cap;
+		_data = reinterpret_cast<T *>(std::malloc(sizeof(T) * cap));
 	}
 
 // private:

@@ -145,6 +145,7 @@ public:
 	// also see https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 	// in the clamps, do +/- 1 to final result instead of using the small and big radius
 	void breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radius);
+	void addVoxelShpere(const SelectedBlockInfo &selectedInfo, GLfloat radius);
 
 	void loadHeightMap(const std::string &path);
 
@@ -157,7 +158,7 @@ public:
 	void spawnCharacter(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation);
 
 	// vector of pair<render info for a single instance, array of transforms of all entities to be drawn>
-	const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> getEntitiesToDraw();
+	const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> getEntitiesToDraw(const Frustum &frustum);
 
 	void save(FileHandler &file);
 

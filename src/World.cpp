@@ -359,6 +359,56 @@ void World::breakVoxelSphere(const SelectedBlockInfo &selectedInfo, GLfloat radi
 	// exit(1);
 }
 
+void World::addVoxelShpere(const SelectedBlockInfo &selectedInfo, GLfloat radius) {
+	const glm::vec3 center = glm::vec3(selectedInfo.world_pos);
+
+	constexpr GLfloat diagonal = 1.73205080757f;
+
+	const GLfloat big_radius   = radius + (diagonal * CHUNK_SIZE_FLOAT);
+	const GLfloat small_radius = radius - (diagonal * CHUNK_SIZE_FLOAT);
+
+
+	if (small_radius >= CHUNK_SIZE_FLOAT) {
+		// calculate the bounding box and destroy every chunk inside it
+		GLint min_x = glm::clamp(static_cast<GLint>(((center.x - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X - 1),
+		      max_x = glm::clamp(static_cast<GLint>(((center.x + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X - 1),
+			  min_y = glm::clamp(static_cast<GLint>(((center.y - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y - 1),
+			  max_y = glm::clamp(static_cast<GLint>(((center.y + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y - 1),
+			  min_z = glm::clamp(static_cast<GLint>(((center.z - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z - 1),
+			  max_z = glm::clamp(static_cast<GLint>(((center.z + small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z - 1);
+
+		for (GLint x = min_x; x <= max_x; x++) {
+			for (GLint y = min_y; y <= max_y; y++) {
+				for (GLint z = min_z; z <= max_z; z++) {
+					chunks[x][y][z].destroyChunk();
+				}
+			}
+		}
+	}
+
+	GLint min_x = glm::clamp(static_cast<GLint>(((center.x - big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X - 1),
+		  max_x = glm::clamp(static_cast<GLint>(((center.x + big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X - 1),
+		  min_y = glm::clamp(static_cast<GLint>(((center.y - big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y - 1),
+		  max_y = glm::clamp(static_cast<GLint>(((center.y + big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)), 0, WORLD_SIZE_Y - 1),
+		  min_z = glm::clamp(static_cast<GLint>(((center.z - big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z - 1),
+		  max_z = glm::clamp(static_cast<GLint>(((center.z + big_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)), 0, WORLD_SIZE_Z - 1);
+
+
+	for (GLint x = min_x; x <= max_x; x++) {
+		for (GLint y = min_y; y <= max_y; y++) {
+			for (GLint z = min_z; z <= max_z; z++) {
+				Chunk &chunk = chunks[x][y][z];
+				if (! chunk.isDestroyed()) {
+					chunk.addSphere(center, radius * radius, getChunkCoordsFloat(x, y, z));
+				} else {
+					chunk.reviveChunk(getChunkCoordsFloat(x, y, z));
+					chunk.addSphere(center, radius * radius, getChunkCoordsFloat(x, y, z));
+				}
+			}
+		}
+	}
+}
+
 // TODO not optimized
 void World::loadHeightMap(const std::string &path) {
 	stbi_set_flip_vertically_on_load(true);
@@ -464,7 +514,7 @@ but since Render belongs to both, I got an error
 solution was to make not even the Render be owned
 
 */
-const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEntitiesToDraw() {
+const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEntitiesToDraw(const Frustum &frustum) {
 	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res(objects_info.size());
 
 	{
