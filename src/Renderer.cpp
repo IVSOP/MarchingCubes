@@ -12,17 +12,25 @@
 #include "Phys.hpp"
 #include "Settings.hpp"
 
-// I know full well how cursed this is
-#define TEX_ARRAY_SLOT 0
-#define BRIGHT_TEXTURE_SLOT 1
-#define SCENE_TEXTURE_SLOT 2
-#define MATERIAL_TEXTURE_BUFFER_SLOT 3
-#define POINTLIGHT_TEXTURE_BUFFER_SLOT 4
-#define DIRLIGHT_TEXTURE_BUFFER_SLOT 5
-#define SPOTLIGHT_TEXTURE_BUFFER_SLOT 6
-#define CHUNKINFO_TEXTURE_BUFFER_SLOT 7
-#define MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT 8
-#define MODELS_NORMALMAT_TEXTURE_BUFFER_SLOT 9
+// TODO manage texture slots somewhere
+// I hate cpp enums so much, I can't I use enum class ... : int and have it convert to a fucking int
+// TODO when should I use GL_TEXTURE0???????????????????????????????????????
+struct TEXSLOTS {
+	// TODO abstract this. GL_TEXTURE0 + slot is needed only when using glActiveTexture, but not when calling glBindTexture
+	static constexpr GLint BASESLOT = GL_TEXTURE0;
+
+	static constexpr GLint TEX_ARRAY_SLOT = 0;
+	static constexpr GLint BRIGHT_TEXTURE_SLOT = 1;
+	static constexpr GLint SCENE_TEXTURE_SLOT = 2;
+	static constexpr GLint MATERIAL_TEXTURE_BUFFER_SLOT = 3;
+	static constexpr GLint POINTLIGHT_TEXTURE_BUFFER_SLOT = 4;
+	static constexpr GLint DIRLIGHT_TEXTURE_BUFFER_SLOT = 5;
+	static constexpr GLint SPOTLIGHT_TEXTURE_BUFFER_SLOT = 6;
+	static constexpr GLint CHUNKINFO_TEXTURE_BUFFER_SLOT = 7;
+	static constexpr GLint MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT = 8;
+	static constexpr GLint MODELS_NORMALMAT_TEXTURE_BUFFER_SLOT = 9;
+	static constexpr GLint MAXSLOT = 10;
+};
 
 #define MAX_MATERIALS 8
 #define MAX_LIGHTS 8
@@ -118,6 +126,11 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer
   modelShader("shaders/lighting_models.vert", "shaders/lighting_models.frag"),
   phys_renderer(phys_renderer)
 {
+	// TODO make a workaround for this
+	CRASH_IF(getMaxTextureUnits() < TEXSLOTS::MAXSLOT, "Not enough texture slots");
+	GLint maxTextureUnits = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+
 	//////////////////////////// LOADING VAO ////////////////////////////
 	GLCall(glGenVertexArrays(1, &this->VAO));
 	GLCall(glBindVertexArray(this->VAO));
@@ -226,13 +239,13 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer
 
 	//////////////////////////// LOADING SHADER UNIFORMS ///////////////////////////
 	mainShader.use();
-	mainShader.setInt("u_TextureArraySlot", TEX_ARRAY_SLOT);
+	mainShader.setInt("u_TextureArraySlot", TEXSLOTS::TEX_ARRAY_SLOT);
 	mainShader.setMat4("u_Model", glm::mat4(1.0f)); // load identity just for safety
 	mainShader.setMat4("u_View", glm::mat4(1.0f)); // load identity just for safety
 	mainShader.setMat4("u_Projection", glm::mat4(1.0f)); // load identity just for safety
 
 	modelShader.use();
-	modelShader.setInt("u_TextureArraySlot", TEX_ARRAY_SLOT);
+	modelShader.setInt("u_TextureArraySlot", TEXSLOTS::TEX_ARRAY_SLOT);
 
 
 	//////////////////////////// load textures with info on materials and lights and chunk info
@@ -337,7 +350,7 @@ void Renderer::loadTextures() {
 	tex->addTexture("textures/white.png"); // 2
 	tex->addTexture("textures/birch_planks.png"); // 3
 	tex->addTexture("textures/redstone_block.png"); // 4
-	tex->setTextureArrayToSlot(TEX_ARRAY_SLOT);
+	tex->setTextureArrayToSlot(TEXSLOTS::TEX_ARRAY_SLOT);
 }
 
 void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir, Movement &mov, GLfloat deltaTime, const SelectedBlockInfo &selectedInfo) {
@@ -404,8 +417,8 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 		mainShader.use();
 
 		// load MVP, texture array and view
-		// this->textureArray.get()->setTextureArrayToSlot(TEX_ARRAY_SLOT);
-		// mainShader.setInt("u_TextureArraySlot", TEX_ARRAY_SLOT);
+		// this->textureArray.get()->setTextureArrayToSlot(TEXSLOTS::TEX_ARRAY_SLOT);
+		// mainShader.setInt("u_TextureArraySlot", TEXSLOTS::TEX_ARRAY_SLOT);
 		mainShader.setMat4("u_Model", model);
 		mainShader.setMat4("u_View", view);
 		mainShader.setMat4("u_Projection", projection);
@@ -445,10 +458,10 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 
 		GLCall(glBindBuffer(GL_TEXTURE_BUFFER, materialBuffer));
 		GLCall(glBufferData(GL_TEXTURE_BUFFER, MAX_MATERIALS * sizeof(Material), materials, GL_STATIC_DRAW));
-		GLCall(glActiveTexture(GL_TEXTURE0 + MATERIAL_TEXTURE_BUFFER_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::MATERIAL_TEXTURE_BUFFER_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_BUFFER, materialTBO));
 		// GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, materialBuffer)); // bind the buffer to the texture (has been done while setting up)
-		mainShader.setInt("u_MaterialTBO", MATERIAL_TEXTURE_BUFFER_SLOT);
+		mainShader.setInt("u_MaterialTBO", TEXSLOTS::MATERIAL_TEXTURE_BUFFER_SLOT);
 
 		PointLight pointLights[MAX_LIGHTS];
 		pointLights[0] = {
@@ -464,10 +477,10 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 
 		GLCall(glBindBuffer(GL_TEXTURE_BUFFER, pointLightBuffer));
 		GLCall(glBufferData(GL_TEXTURE_BUFFER, MAX_LIGHTS * sizeof(PointLight), pointLights, GL_STATIC_DRAW));
-		GLCall(glActiveTexture(GL_TEXTURE0 + POINTLIGHT_TEXTURE_BUFFER_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::POINTLIGHT_TEXTURE_BUFFER_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_BUFFER, pointLightTBO));
 		// GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, pointLightBuffer)); // bind the buffer to the texture (has been done while setting up)
-		mainShader.setInt("u_PointLightTBO", POINTLIGHT_TEXTURE_BUFFER_SLOT);
+		mainShader.setInt("u_PointLightTBO", TEXSLOTS::POINTLIGHT_TEXTURE_BUFFER_SLOT);
 		mainShader.setInt("u_NumPointLights", 0);
 
 		DirLight dirLights[MAX_LIGHTS];
@@ -485,10 +498,10 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 
 		GLCall(glBindBuffer(GL_TEXTURE_BUFFER, dirLightBuffer));
 		GLCall(glBufferData(GL_TEXTURE_BUFFER, MAX_LIGHTS * sizeof(DirLight), dirLights, GL_STATIC_DRAW));
-		GLCall(glActiveTexture(GL_TEXTURE0 + DIRLIGHT_TEXTURE_BUFFER_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::DIRLIGHT_TEXTURE_BUFFER_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_BUFFER, dirLightTBO));
 		// GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, pointLightBuffer)); // bind the buffer to the texture (has been done while setting up)
-		mainShader.setInt("u_DirLightTBO", DIRLIGHT_TEXTURE_BUFFER_SLOT);
+		mainShader.setInt("u_DirLightTBO", TEXSLOTS::DIRLIGHT_TEXTURE_BUFFER_SLOT);
 		mainShader.setInt("u_NumDirLights", 1);
 
 		SpotLight spotLights[MAX_LIGHTS];
@@ -509,10 +522,10 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 
 		GLCall(glBindBuffer(GL_TEXTURE_BUFFER, spotLightBuffer));
 		GLCall(glBufferData(GL_TEXTURE_BUFFER, MAX_LIGHTS * sizeof(SpotLight), spotLights, GL_STATIC_DRAW));
-		GLCall(glActiveTexture(GL_TEXTURE0 + SPOTLIGHT_TEXTURE_BUFFER_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::SPOTLIGHT_TEXTURE_BUFFER_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_BUFFER, spotLightTBO));
 		// GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, spotLightBuffer)); // bind the buffer to the texture (has been done while setting up)
-		mainShader.setInt("u_SpotLightTBO", SPOTLIGHT_TEXTURE_BUFFER_SLOT);
+		mainShader.setInt("u_SpotLightTBO", TEXSLOTS::SPOTLIGHT_TEXTURE_BUFFER_SLOT);
 		mainShader.setInt("u_NumSpotLights", 0);
 
 		// bind the render buffer to this FBO (maybe this is missing actualy binding it, idk, but it gets regenerated automatically when screen is resized)
@@ -527,9 +540,9 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 		// info for indirect call
 		GLCall(glBindBuffer(GL_TEXTURE_BUFFER, chunkInfoBuffer));
 		GLCall(glBufferData(GL_TEXTURE_BUFFER, chunkInfo.size() * sizeof(ChunkInfo), chunkInfo.data(), GL_STATIC_DRAW));
-		GLCall(glActiveTexture(GL_TEXTURE0 + CHUNKINFO_TEXTURE_BUFFER_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::CHUNKINFO_TEXTURE_BUFFER_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_BUFFER, chunkInfoTBO));
-		mainShader.setInt("u_ChunkInfoTBO", CHUNKINFO_TEXTURE_BUFFER_SLOT);
+		mainShader.setInt("u_ChunkInfoTBO", TEXSLOTS::CHUNKINFO_TEXTURE_BUFFER_SLOT);
 
 		GLCall(glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer));
 		GLCall(glBufferData(GL_DRAW_INDIRECT_BUFFER, indirect.size() * sizeof(IndirectData), indirect.data(), GL_DYNAMIC_DRAW));
@@ -574,7 +587,7 @@ void Renderer::drawNormals(const CustomVec<Vertex> &verts, const std::vector<Ind
 	normalShader.setMat4("u_Projection", projection);
 	normalShader.setFloat("u_BloomThreshold", Settings::bloomThreshold);
 	normalShader.setMat3("u_NormalMatrix", glm::mat3(glm::transpose(glm::inverse(view * model))));
-	normalShader.setInt("u_ChunkInfoTBO", CHUNKINFO_TEXTURE_BUFFER_SLOT);
+	normalShader.setInt("u_ChunkInfoTBO", TEXSLOTS::CHUNKINFO_TEXTURE_BUFFER_SLOT);
 
 	// normalShader.validate();
 
@@ -593,10 +606,10 @@ void Renderer::bloomBlur(int passes) {
 		// if this happens, instead of switching verything just clear pingpongTextures[1], which will be used in merging the textures
 		// bind FBO, attach texture, clear color buffer
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[1]));
-		GLCall(glActiveTexture(GL_TEXTURE0 + BRIGHT_TEXTURE_SLOT));
-		GLCall(glActiveTexture(GL_TEXTURE0 + BRIGHT_TEXTURE_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::BRIGHT_TEXTURE_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::BRIGHT_TEXTURE_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_2D, pingpongTextures[1])); // use texture from pong
-		blurShader.setInt("u_BlurBuffer", BRIGHT_TEXTURE_SLOT);
+		blurShader.setInt("u_BlurBuffer", TEXSLOTS::BRIGHT_TEXTURE_SLOT);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		return;
@@ -608,18 +621,18 @@ void Renderer::bloomBlur(int passes) {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[0]));
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // isto devia ser chamado sequer???????????????????????????????????? acho que a imagem e 100% overwritten
 		blurShader.setInt("u_Horizontal", 0);
-		GLCall(glActiveTexture(GL_TEXTURE0 + BRIGHT_TEXTURE_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::BRIGHT_TEXTURE_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_2D, this->brightTexture)); // use texture from scene
-		blurShader.setInt("u_BlurBuffer", BRIGHT_TEXTURE_SLOT);
+		blurShader.setInt("u_BlurBuffer", TEXSLOTS::BRIGHT_TEXTURE_SLOT);
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 
 	// vertical pass
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[1]));
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		blurShader.setInt("u_Horizontal", 1);
-		GLCall(glActiveTexture(GL_TEXTURE0 + BRIGHT_TEXTURE_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::BRIGHT_TEXTURE_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_2D, pingpongTextures[0])); // use texture from ping
-		blurShader.setInt("u_BlurBuffer", BRIGHT_TEXTURE_SLOT);
+		blurShader.setInt("u_BlurBuffer", TEXSLOTS::BRIGHT_TEXTURE_SLOT);
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 
 	for (GLint i = 0; i < passes - 1; i++) {
@@ -628,17 +641,17 @@ void Renderer::bloomBlur(int passes) {
 		// horizontal pass
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[0]));
 			blurShader.setInt("u_Horizontal", 0);
-			GLCall(glActiveTexture(GL_TEXTURE0 + BRIGHT_TEXTURE_SLOT));
+			GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::BRIGHT_TEXTURE_SLOT));
 			GLCall(glBindTexture(GL_TEXTURE_2D, pingpongTextures[1])); // use texture from pong
-			blurShader.setInt("u_BlurBuffer", BRIGHT_TEXTURE_SLOT);
+			blurShader.setInt("u_BlurBuffer", TEXSLOTS::BRIGHT_TEXTURE_SLOT);
 			GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 
 		// vertical pass
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[1]));
 			blurShader.setInt("u_Horizontal", 1);
-			GLCall(glActiveTexture(GL_TEXTURE0 + BRIGHT_TEXTURE_SLOT));
+			GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::BRIGHT_TEXTURE_SLOT));
 			GLCall(glBindTexture(GL_TEXTURE_2D, pingpongTextures[0])); // use texture from ping
-			blurShader.setInt("u_BlurBuffer", BRIGHT_TEXTURE_SLOT);
+			blurShader.setInt("u_BlurBuffer", TEXSLOTS::BRIGHT_TEXTURE_SLOT);
 			GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 	}
 }
@@ -653,13 +666,13 @@ void Renderer::merge() {
 		// GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(viewportVertices), viewportVertices, GL_STATIC_DRAW));
 
 		hdrBbloomMergeShader.use();
-		GLCall(glActiveTexture(GL_TEXTURE0 + SCENE_TEXTURE_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::SCENE_TEXTURE_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_2D, this->lightingTexture));
-		GLCall(glActiveTexture(GL_TEXTURE0 + BRIGHT_TEXTURE_SLOT));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::BRIGHT_TEXTURE_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_2D, pingpongTextures[1]));
 
-		hdrBbloomMergeShader.setInt("u_SceneBuffer", SCENE_TEXTURE_SLOT);
-		hdrBbloomMergeShader.setInt("u_BrightBuffer", BRIGHT_TEXTURE_SLOT);
+		hdrBbloomMergeShader.setInt("u_SceneBuffer", TEXSLOTS::SCENE_TEXTURE_SLOT);
+		hdrBbloomMergeShader.setInt("u_BrightBuffer", TEXSLOTS::BRIGHT_TEXTURE_SLOT);
 		hdrBbloomMergeShader.setFloat("u_Gamma", Settings::gamma);
 		hdrBbloomMergeShader.setFloat("u_Exposure", Settings::exposure);
 
@@ -774,8 +787,8 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 	GLCall(glBindVertexArray(this->VAO_models));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO_models));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO_models));
-	modelShader.setInt("u_TransformTBO", MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT);
-	// modelShader.setInt("u_NormalMatTBO", MODELS_NORMALMAT_TEXTURE_BUFFER_SLOT);
+	modelShader.setInt("u_TransformTBO", TEXSLOTS::MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT);
+	// modelShader.setInt("u_NormalMatTBO", TEXSLOTS::MODELS_NORMALMAT_TEXTURE_BUFFER_SLOT);
 
 
 	// TODO clean this up, same initialization as main shader
@@ -813,10 +826,10 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 
 	// GLCall(glBindBuffer(GL_TEXTURE_BUFFER, materialBuffer));
 	// GLCall(glBufferData(GL_TEXTURE_BUFFER, MAX_MATERIALS * sizeof(Material), materials, GL_STATIC_DRAW));
-	// GLCall(glActiveTexture(GL_TEXTURE0 + MATERIAL_TEXTURE_BUFFER_SLOT));
+	// GLCall(glActiveTexture(TEXSLOTS::MATERIAL_TEXTURE_BUFFER_SLOT));
 	// GLCall(glBindTexture(GL_TEXTURE_BUFFER, materialTBO));
 	// GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, materialBuffer)); // bind the buffer to the texture (has been done while setting up)
-	modelShader.setInt("u_MaterialTBO", MATERIAL_TEXTURE_BUFFER_SLOT);
+	modelShader.setInt("u_MaterialTBO", TEXSLOTS::MATERIAL_TEXTURE_BUFFER_SLOT);
 
 	// PointLight pointLights[MAX_LIGHTS];
 	// pointLights[0] = {
@@ -832,10 +845,10 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 
 	// GLCall(glBindBuffer(GL_TEXTURE_BUFFER, pointLightBuffer));
 	// GLCall(glBufferData(GL_TEXTURE_BUFFER, MAX_LIGHTS * sizeof(PointLight), pointLights, GL_STATIC_DRAW));
-	// GLCall(glActiveTexture(GL_TEXTURE0 + POINTLIGHT_TEXTURE_BUFFER_SLOT));
+	// GLCall(glActiveTexture(TEXSLOTS::POINTLIGHT_TEXTURE_BUFFER_SLOT));
 	// GLCall(glBindTexture(GL_TEXTURE_BUFFER, pointLightTBO));
 	// GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, pointLightBuffer)); // bind the buffer to the texture (has been done while setting up)
-	modelShader.setInt("u_PointLightTBO", POINTLIGHT_TEXTURE_BUFFER_SLOT);
+	modelShader.setInt("u_PointLightTBO", TEXSLOTS::POINTLIGHT_TEXTURE_BUFFER_SLOT);
 	modelShader.setInt("u_NumPointLights", 0);
 
 	// DirLight dirLights[MAX_LIGHTS];
@@ -853,10 +866,10 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 
 	// GLCall(glBindBuffer(GL_TEXTURE_BUFFER, dirLightBuffer));
 	// GLCall(glBufferData(GL_TEXTURE_BUFFER, MAX_LIGHTS * sizeof(DirLight), dirLights, GL_STATIC_DRAW));
-	// GLCall(glActiveTexture(GL_TEXTURE0 + DIRLIGHT_TEXTURE_BUFFER_SLOT));
+	// GLCall(glActiveTexture(TEXSLOTS::DIRLIGHT_TEXTURE_BUFFER_SLOT));
 	// GLCall(glBindTexture(GL_TEXTURE_BUFFER, dirLightTBO));
 	// // GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, pointLightBuffer)); // bind the buffer to the texture (has been done while setting up)
-	modelShader.setInt("u_DirLightTBO", DIRLIGHT_TEXTURE_BUFFER_SLOT);
+	modelShader.setInt("u_DirLightTBO", TEXSLOTS::DIRLIGHT_TEXTURE_BUFFER_SLOT);
 	modelShader.setInt("u_NumDirLights", 1);
 
 	// SpotLight spotLights[MAX_LIGHTS];
@@ -877,10 +890,10 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 
 	// GLCall(glBindBuffer(GL_TEXTURE_BUFFER, spotLightBuffer));
 	// GLCall(glBufferData(GL_TEXTURE_BUFFER, MAX_LIGHTS * sizeof(SpotLight), spotLights, GL_STATIC_DRAW));
-	// GLCall(glActiveTexture(GL_TEXTURE0 + SPOTLIGHT_TEXTURE_BUFFER_SLOT));
+	// GLCall(glActiveTexture(TEXSLOTS::SPOTLIGHT_TEXTURE_BUFFER_SLOT));
 	// GLCall(glBindTexture(GL_TEXTURE_BUFFER, spotLightTBO));
 	// // GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, spotLightBuffer)); // bind the buffer to the texture (has been done while setting up)
-	modelShader.setInt("u_SpotLightTBO", SPOTLIGHT_TEXTURE_BUFFER_SLOT);
+	modelShader.setInt("u_SpotLightTBO", TEXSLOTS::SPOTLIGHT_TEXTURE_BUFFER_SLOT);
 	modelShader.setInt("u_NumSpotLights", 0);
 
 	// bind the render buffer to this FBO (maybe this is missing actualy binding it, idk, but it gets regenerated automatically when screen is resized)
@@ -904,7 +917,7 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 			// TODO use a VBO instead?
 			GLCall(glBindBuffer(GL_TEXTURE_BUFFER, TBO_models_buffer));
 			GLCall(glBufferData(GL_TEXTURE_BUFFER, pair.second.size() * sizeof(glm::mat4), pair.second.data(), GL_STATIC_DRAW));
-			GLCall(glActiveTexture(GL_TEXTURE0 + MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT)); // TODO call this only once?
+			GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT)); // TODO call this only once?
 			GLCall(glBindTexture(GL_TEXTURE_BUFFER, TBO_models));
 
 			// TODO compute normal matrices here on the cpu?

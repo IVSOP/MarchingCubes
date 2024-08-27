@@ -48,4 +48,6 @@ void APIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLen
 void validateProgram(const GLuint program);
 void checkProgramLinking(const GLuint program);
 
+GLint getMaxTextureUnits();
+
 #endif

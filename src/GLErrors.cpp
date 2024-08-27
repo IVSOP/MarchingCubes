@@ -141,3 +141,10 @@ void checkProgramLinking(const GLuint program) {
 		raise(SIGINT);
 	}
 }
+
+GLint getMaxTextureUnits() {
+	GLint maxTextureUnits = 0;
+    GLCall(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits));
+	printf("%d texture units\n", maxTextureUnits);
+	return maxTextureUnits;
+}
