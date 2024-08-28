@@ -1,12 +1,7 @@
 #include "TextureArray.hpp"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "stb_image_resize2.h"
-
 #include "Crash.hpp"
 #include "Logs.hpp"
+#include "Image.hpp"
 
 TextureArray::TextureArray(GLsizei _width, GLsizei _height, GLsizei _depth)
 : width(_width), height(_height), depth(_depth), sp(0)
@@ -36,45 +31,10 @@ TextureArray::~TextureArray() {
 }
 
 // texture array needs to be bound but not necessarily activated
-void TextureArray::addTexture(const char path[]) {
+void TextureArray::addTexture(const std::string &path) {
 	CRASH_IF(this->sp >= this->depth - 1, "sp exceeds max depth. This class is not prepared to handle such cases, change it to have multiple texture arrays and manage them or something");
 
-	stbi_set_flip_vertically_on_load(true);
-	int _width, _height, BPP;
-	unsigned char *buffer =	stbi_load(path, &_width, &_height, &BPP, 4); // 4 -> RGBA or just use STBI_rgb_alpha
-
-	CRASH_IF(!buffer, "Error loading image");
-
-
-	if (_width != this->width || _height != this->height) {
-		#ifndef __WIN32
-			Log::log(LOG_TYPE::WARN, std::string(__PRETTY_FUNCTION__),
-				"image dimensions for " + std::string(path) + ": Expected " + std::to_string(this->width) + " " + std::to_string(this->height) + 
-				" got " + std::to_string(_width) + " " + std::to_string(_height) + ". The image will be automatically resized");
-		#else
-			// fprintf(stderr, "WARNING: image dimensions for %s: Expected %d %d got %d %d. The image will be automatically resized.\n", path, this->width, this->height, _width, _height);
-		#endif
-		unsigned char * resized_buffer = (unsigned char*) malloc(this->width * this->height * STBIR_RGBA); // STBIR_RGBA???????
-		stbir_resize_uint8_linear(buffer, _width, _height, 0, resized_buffer, this->width, this->height, 0, STBIR_RGBA);
-
-		// to simplify just pretend the buffer is the resized image
-		free(buffer);
-		buffer = resized_buffer;
-	}
-
-	if (BPP != 4) {
-		Log::log(LOG_TYPE::WARN, std::string(__PRETTY_FUNCTION__), std::string(path) + " is not RGBA, BPP is " + std::to_string(BPP));
-	}
-
-	// in the future, if needed, can use
-	/*
-	#define STB_IMAGE_RESIZE_IMPLEMENTATION
-	#include "stb_image_resize2.h"
-
-	unsigned char * resized_image = (unsigned char*) malloc(new_width * new_height * STBIR_RGBA);
-	stbir_resize_uint8_linear(image, width, height, 0, resized_image, new_width, new_height, 0, STBIR_RGBA);
-	*/
-	// to resize the image
+	Image image = Image(path, this->width, this->height);
 
 	constexpr GLint LOD = 0,
 	xoffset = 0,
@@ -82,12 +42,11 @@ void TextureArray::addTexture(const char path[]) {
 	// Z-offset is used to place the image in the correct place
 	constexpr GLsizei depth = 1; 
 	// depth is actually if the image were 3D. it isnt so I just set it to 1
-	GLCall(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, LOD, xoffset, yoffset, this->sp, this->width, this->height, depth, GL_RGBA, GL_UNSIGNED_BYTE, buffer));
+	GLCall(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, LOD, xoffset, yoffset, this->sp, image.width(), image.height(), depth, GL_RGBA, GL_UNSIGNED_BYTE, image.buffer()));
 	// IMPORTANT this is very bad since it generates mipmaps for ALL the textures, but since they are not changed at runtime it's not too bad (for now)
 	GLCall(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
 
 	this->sp ++;
-	free(buffer);
 }
 
 void TextureArray::setTextureArrayToSlot(const GLuint slot) {

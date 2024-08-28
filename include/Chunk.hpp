@@ -257,7 +257,7 @@ struct Chunk {
 	// TODO types and casts are awful here
 	// data should already be offset itself
 																		// offset that places world on the positive quadrants
-	void generate(const glm::ivec3 &chunk_pos, unsigned char *data, int width, const glm::ivec3 &offset, GLbyte material);
+	void generate(const glm::ivec3 &chunk_pos, const unsigned char *data, int width, const glm::ivec3 &offset, GLbyte material);
 
 	// TODO EXTREMELY unoptimized
 	void breakSphere(const glm::vec3 &center, GLfloat radius_squared, const glm::vec3 &offset);

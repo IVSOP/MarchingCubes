@@ -32,6 +32,7 @@ add_executable(MarchingCubes
 		src/PhysRenderer.cpp
 		src/Settings.cpp
 		src/Archive.cpp
+		src/Image.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp
@@ -72,8 +73,10 @@ if (WIN32)
 
 	cmake_policy(SET CMP0072 NEW) # ???????????????????????????????????????
 
-	message(WARNING "IPO cannot be used with mingw, not using it")
-	set(IPO off)
+	if (Distribution)
+		set(IPO off)
+		message(WARNING "IPO cannot be used with mingw, not using it")
+	endif (Distribution)
 
 else (WIN32)
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g3>") # ${CMAKE_CXX_FLAGS_DEBUG} ${GCC_COVERAGE_COMPILE_FLAGS}
@@ -81,7 +84,11 @@ else (WIN32)
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELWITHDEBINFO>:-O2;-Wall;-Wextra;-pedantic;-Wno-unused-parameter>") # ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}
 	# MinSizeRel
 
-	set(IPO on)
+	if (Distribution)
+		set(IPO on)
+	else (Distribution)
+		set(IPO off)
+	endif (Distribution)
 
 endif(WIN32)
 
