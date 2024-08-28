@@ -13,7 +13,7 @@ set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
 
 # since I am cross compiling its important for libc pthread etc to be statically linked to avoid problems
 # TODO this is an ugly hack
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static") # -static -DGLEW_STATIC
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static") # --plugin,/usr/lib/gcc/x86_64-w64-mingw32/12-posix/liblto_plugin.so") # -static -DGLEW_STATIC
 
 # find_program(GCC_AR NAMES x86_64-w64-mingw32-gcc-ar)
 # find_program(GCC_RANLIB NAMES x86_64-w64-mingw32-gcc-ranlib)

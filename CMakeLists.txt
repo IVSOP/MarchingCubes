@@ -53,12 +53,18 @@ set(ASSIMP_INJECT_DEBUG_POSTFIX off)
 set(ASSIMP_INSTALL_PDB off)
 set(ASSIMP_BUILD_ASSIMP_VIEW off)
 set(GLFW_BUILD_DOCS off)
-set(TRACY_ENABLE on)
-set(TRACY_ONLY_LOCALHOST on)
-set(TRACY_NO_CRASH_HANDLER on)
 set(ENTT_NOEXCEPTION) # set on??
 # 	set(ENTT_DISABLE_ASSERT on)
 
+if (Distribution)
+	set(TRACY_ENABLE off)
+	set(TRACY_ONLY_LOCALHOST off)
+	set(TRACY_NO_CRASH_HANDLER off)
+else (Distribution)
+	set(TRACY_ENABLE on)
+	set(TRACY_ONLY_LOCALHOST on)
+	set(TRACY_NO_CRASH_HANDLER on)
+endif (Distribution)
 
 if (WIN32)
 
@@ -66,24 +72,30 @@ if (WIN32)
 
 	cmake_policy(SET CMP0072 NEW) # ???????????????????????????????????????
 
+	message(WARNING "IPO cannot be used with mingw, not using it")
+	set(IPO off)
+
 else (WIN32)
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g3>") # ${CMAKE_CXX_FLAGS_DEBUG} ${GCC_COVERAGE_COMPILE_FLAGS}
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELEASE>:-O2;-Wall;-Wextra;-pedantic;-Wno-unused-parameter>") # ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELWITHDEBINFO>:-O2;-Wall;-Wextra;-pedantic;-Wno-unused-parameter>") # ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}
 	# MinSizeRel
+
+	set(IPO on)
+
 endif(WIN32)
 
-# IPO takes too much time and mingw doesn't like it so I'll leave it off until needed
-if (Distribution)
+if (IPO)
 	include(CheckIPOSupported)
 	check_ipo_supported(RESULT result)
 	if (result)
+		message(STATUS "Using IPO")
 		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 		# set_property(TARGET foo PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 	else(result)
 		message(FATAL_ERROR "IPO not supported :)")
 	endif(result)
-endif (Distribution)
+endif (IPO)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON) # ???????
 

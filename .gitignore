@@ -10,4 +10,5 @@ decisions_and_problems/
 MarchingCubes.tar.zst
 *.blend
 *.blend1
+build_dist
 

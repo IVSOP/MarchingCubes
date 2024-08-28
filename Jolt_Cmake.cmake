@@ -11,7 +11,9 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Distribution")
 set(DOUBLE_PRECISION OFF)
 
 # When turning this option on, the library will be compiled with debug symbols
-set(GENERATE_DEBUG_SYMBOLS ON)
+if (NOT Distribution)
+	set(GENERATE_DEBUG_SYMBOLS ON)
+endif (NOT Distribution)
 
 # When turning this option on, the library will be compiled in such a way to attempt to keep the simulation deterministic across platforms
 set(CROSS_PLATFORM_DETERMINISTIC OFF)
@@ -19,7 +21,11 @@ set(CROSS_PLATFORM_DETERMINISTIC OFF)
 # When turning this option on, the library will be compiled with interprocedural optimizations enabled, also known as link-time optimizations or link-time code generation.
 # Note that if you turn this on you need to use SET_INTERPROCEDURAL_OPTIMIZATION() or set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON) to enable LTO specificly for your own project as well.
 # If you don't do this you may get an error: /usr/bin/ld: libJolt.a: error adding symbols: file format not recognized
-set(INTERPROCEDURAL_OPTIMIZATION OFF)
+if (IPO)
+	set(INTERPROCEDURAL_OPTIMIZATION ON)
+else (IPO)
+	set(INTERPROCEDURAL_OPTIMIZATION OFF)
+endif (IPO)
 
 # When turning this on, in Debug and Release mode, the library will emit extra code to ensure that the 4th component of a 3-vector is kept the same as the 3rd component 
 # and will enable floating point exceptions during simulation to detect divisions by zero. 
