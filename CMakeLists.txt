@@ -134,6 +134,12 @@ if (WIN32)
 	endif()
 	include_directories(external/openal-soft/win64/include)
 
+	if (NOT EXISTS ${CMAKE_BINARY_DIR}/sndfile.dll)
+		file(COPY external/libsndfile/win64/sndfile.dll DESTINATION ${CMAKE_BINARY_DIR})
+	endif()
+	include_directories(external/libsndfile/win64/include)
+
+
 	# lib files are used at compile time only, so I don't copy them and link them directly
 	target_link_directories(MarchingCubes PRIVATE
 		external/glew/lib/Release/x64/
@@ -143,6 +149,7 @@ if (WIN32)
 		# external/assimp_windows/lib/
 		external/zstd-v1.5.6-win64/static/
 		external/openal-soft/win64/
+		external/libsndfile/win64/
 		${CMAKE_BINARY_DIR}/
 	)
 
@@ -166,6 +173,11 @@ else (WIN32) # linux
 		file(COPY external/openal-soft/linux64/libopenal.so DESTINATION ${CMAKE_BINARY_DIR})
 	endif()
 	include_directories(external/openal-soft/linux64/include)
+
+	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libsndfile.so)
+		file(COPY external/libsndfile/linux64/libsndfile.so DESTINATION ${CMAKE_BINARY_DIR})
+	endif()
+	include_directories(external/libsndfile/linux64/include)
 
 	target_link_directories(MarchingCubes PRIVATE
 		${CMAKE_BINARY_DIR}/
@@ -231,6 +243,7 @@ if (WIN32)
 		phonon
 		libzstd_static
 		OpenAL32
+		sndfile
 		# ${Boost_LIBRARIES}
 	)
 
@@ -248,6 +261,7 @@ else (WIN32) # linux
 		phonon
 		zstd
 		openal
+		sndfile
 		# ${Boost_LIBRARIES}
 	)
 
