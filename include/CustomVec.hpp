@@ -4,7 +4,7 @@
 
 
 
-
+// look into alligned allocs???
 
 
 // !!!!!!!!!!!!! SEGFAULT GENERATOR AHEAD!!!!!!!!!!!! READ EVERYTHING CAREFULLY !!!!!!!!!!!

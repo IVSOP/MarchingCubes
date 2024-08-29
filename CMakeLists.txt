@@ -129,6 +129,11 @@ if (WIN32)
 
 	include_directories(external/zstd-v1.5.6-win64/include/)
 
+	if (NOT EXISTS ${CMAKE_BINARY_DIR}/OpenAL32.dll)
+		file(COPY external/openal-soft/win64/OpenAL32.dll DESTINATION ${CMAKE_BINARY_DIR})
+	endif()
+	include_directories(external/openal-soft/win64/include)
+
 	# lib files are used at compile time only, so I don't copy them and link them directly
 	target_link_directories(MarchingCubes PRIVATE
 		external/glew/lib/Release/x64/
@@ -137,6 +142,7 @@ if (WIN32)
 		external/steamaudio/lib/windows-x64/
 		# external/assimp_windows/lib/
 		external/zstd-v1.5.6-win64/static/
+		external/openal-soft/win64/
 		${CMAKE_BINARY_DIR}/
 	)
 
@@ -155,6 +161,11 @@ else (WIN32) # linux
 	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/libassimp.so)
 	# 	file(COPY external/assimp/build/bin/libassimp.so DESTINATION ${CMAKE_BINARY_DIR} FOLLOW_SYMLINK_CHAIN)
 	# endif()
+
+	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libopenal.so)
+		file(COPY external/openal-soft/linux64/libopenal.so DESTINATION ${CMAKE_BINARY_DIR})
+	endif()
+	include_directories(external/openal-soft/linux64/include)
 
 	target_link_directories(MarchingCubes PRIVATE
 		${CMAKE_BINARY_DIR}/
@@ -219,6 +230,7 @@ if (WIN32)
 		nlohmann_json::nlohmann_json
 		phonon
 		libzstd_static
+		OpenAL32
 		# ${Boost_LIBRARIES}
 	)
 
@@ -235,6 +247,7 @@ else (WIN32) # linux
 		nlohmann_json::nlohmann_json
 		phonon
 		zstd
+		openal
 		# ${Boost_LIBRARIES}
 	)
 

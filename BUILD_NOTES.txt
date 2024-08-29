@@ -1,0 +1,4 @@
+mingw needs plugin to use IPO, cant use it for now
+libsoundio was a nightmare to automate its build due to how it was setup, had to build manually. this really turned me off about it, switched to openAL soft
+turns out openal soft is the EXACT same, creating a config when built
+gave up and built it semi-manually
