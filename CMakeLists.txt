@@ -33,6 +33,7 @@ add_executable(MarchingCubes
 		src/Settings.cpp
 		src/Archive.cpp
 		src/Image.cpp
+		src/ALErrors.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp

@@ -1,14 +1,13 @@
 #include "Client.hpp"
-
 #include <steam/steam_api.h>
-
 #include "Phys.hpp"
 
-#include <tracy/Tracy.hpp>
+#include "Audio.hpp"
 
 #define APP_ID 480
 
 int main(int argc, char **argv) {
+	ALContext alcontext = ALContext();
 	// if (SteamAPI_RestartAppIfNecessary(APP_ID)) {
 	// 	return 1;
 	// }
