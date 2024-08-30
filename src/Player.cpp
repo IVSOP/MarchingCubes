@@ -225,6 +225,11 @@ glm::vec3 Player::getUpVector() {
 	return getDir().up;
 }
 
+glm::vec3 Player::getVelocity() const {
+	JPH::Vec3 vel = physCharacter->GetLinearVelocity();
+
+	return glm::vec3(vel.GetX(), vel.GetY(), vel.GetZ());
+}
 
 // Player::Player(std::ifstream &file)
 // : camera(file)

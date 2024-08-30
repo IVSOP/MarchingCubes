@@ -3,6 +3,7 @@
 
 #include "common.hpp"
 #include "Phys.hpp"
+#include "Audio.hpp"
 
 // TODO make this whole thing including serialization not suck, lots of hardcoded values and strings
 enum class Component : uint32_t {
@@ -160,6 +161,35 @@ struct PhysicsCharacter {
 	}
 };
 
+// for now, entities have 1 source each
+struct AudioComponent {
+	// creates source with a buffer from audio with this filename
+	AudioComponent(const std::string &filename) {
+		const Audio::Buffer &buff = Audio::ALContext::createBufferFromWavIfNotExists(filename);
+
+		source.setBuffer(buff);
+	}
+
+	void play() const {
+		source.play();
+	}
+
+	void pause() const {
+		source.pause();
+	}
+
+	void setPosition(const glm::vec3 &pos) const {
+		source.setPosition(pos);
+	}
+
+	void setGain(const ALfloat gain) const {
+		source.setGain(gain);
+	}
+
+	~AudioComponent() = default;
+
+	Audio::Source source;
+};
 
 	// standingShape = JPH::RotatedTranslatedShapeSettings(JPH::Vec3(0, 0.5f * playerHeight + playerRadius, 0), JPH::Quat::sIdentity(), new JPH::CapsuleShape(0.5f * playerHeight, playerRadius)).Create().Get();
 

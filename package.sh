@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 # am bad at names
 
-echo "NOT BUILDING ANYTHING!!!!!!!!!!"
+echo "NOT BUILDING ANYTHING!!!!!!!!!! build it yourself"
 
 if [ "$#" -ne 1 ]
 then

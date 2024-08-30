@@ -2,9 +2,8 @@
 
 #include "LookupTable.hpp"
 #include "Looper.hpp"
-
+#include "Audio.hpp"
 #include "Assets.hpp"
-
 #include "Settings.hpp"
 
 #define PLAYER_POS Position(glm::vec3(64, 16, 64))
@@ -146,10 +145,14 @@ void Client::mainloop() {
 	// // uint32_t idmagujo = world->loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
 	uint32_t idmagujo = 0;
 	// world->spawn(idmagujo, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
-	world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
+	entt::entity magujoentity = world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
 	uint32_t idmagujonpc = 1;
-	world->spawnCharacter(idmagujonpc, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
+	(void)world->spawnCharacter(idmagujonpc, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
+
+	AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(magujoentity, "crazy_frog_mono.wav");
+	audio.setGain(10.0f);
+	audio.play();
 
 	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
 	// // world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
@@ -209,8 +212,6 @@ void Client::mainloop() {
 		);
     	world->buildData(frustum);
 
-
-
 		glm::mat4 view = player->getViewMatrix();
 		renderer->draw(
 			view,
@@ -228,17 +229,6 @@ void Client::mainloop() {
 		
         // lock.unlock();
 
-		// auto phys_pos_view = world->entt_registry.group<Position, Physics>();
-		// for (auto entity : phys_pos_view) {
-		// 	Physics &phys = phys_pos_view.get<Physics>(entity);
-
-		// 	// if (world->checkBasicCollision(phys_pos_view.get<Position>(entity).pos)) {
-		// 	// 	phys.vel.y = 0.0f;
-		// 	// 	phys.slowDown(2.0f, static_cast<GLfloat>(deltaTime));
-		// 	// } else {
-		// 	// 	phys.addGravity();
-		// 	// }
-
 
 		// 	phys.applyToPosition(phys_pos_view.get<Position>(entity).pos, static_cast<GLfloat>(deltaTime));
 		// }
@@ -254,6 +244,27 @@ void Client::mainloop() {
 		// 		deltaTime = fps_time;
 		// 	}
 		// }
+
+		// set listener props
+		Audio::ALContext::setListenerPosition(pos.pos);
+		Audio::ALContext::setListenerVelocity(player->getVelocity());
+		Audio::ALContext::setListenerOrientation(dir.front, dir.up);
+
+		// set audio for all entities
+		{
+			JPH::Vec3 pos_jph;
+			glm::vec3 pos;
+			auto group = world->entt_registry.group<>(entt::get<AudioComponent, Physics>);
+			for (const auto entity : group) {
+				const AudioComponent &audio = group.get<AudioComponent>(entity);
+				const Physics &phys = group.get<Physics>(entity);
+
+				pos_jph = phys.getPosition();
+				pos = glm::vec3(pos_jph.GetX(), pos_jph.GetY(), pos_jph.GetZ());
+
+				audio.setPosition(pos);
+			}
+		}
 
     }
 }

@@ -7,6 +7,9 @@
 #include "ALErrors.hpp"
 #include "Crash.hpp"
 #include <unordered_map>
+#include "types.hpp"
+
+namespace Audio {
 
 struct Buffer {
 	Buffer() {
@@ -19,74 +22,72 @@ struct Buffer {
 	ALuint id;
 };
 
+struct Source {
+	Source() {
+		ALCall(alGenSources(1, &id));
+		ALCall(alSourcei(id, AL_SOURCE_RELATIVE, AL_FALSE));
+		ALCall(alSourcef(id, AL_GAIN, 1.0f));
+		ALCall(alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f));
+	};
+
+	Source(const Buffer &buffer) {
+		ALCall(alGenSources(1, &id));
+		ALCall(alSourcei(id, AL_BUFFER, buffer.id));
+		ALCall(alSourcei(id, AL_SOURCE_RELATIVE, AL_FALSE));
+		ALCall(alSourcef(id, AL_GAIN, 1.0f));
+		ALCall(alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f));
+	}
+
+	void setBuffer(const Buffer &buffer) const {
+		ALCall(alSourcei(id, AL_BUFFER, buffer.id));
+	}
+
+	~Source() {
+		ALCall(alDeleteSources(1, &id));
+	}
+
+	void play() const {
+		ALCall(alSourcePlay(id));
+	}
+
+	void pause() const {
+		ALCall(alSourcePause(id));
+	}
+
+	void setPosition(const glm::vec3 &pos) const {
+		ALCall(alSourcefv(id, AL_POSITION, glm::value_ptr(pos)));
+	}
+
+	void setGain(const ALfloat gain) const {
+		alSourcef(id, AL_GAIN, gain);
+	}
+
+	ALuint id;
+};
+
 class ALContext {
 public:
-	Buffer &createBufferFromWav(const std::string &filename) {
-		// Load WAV file using libsndfile
-		SF_INFO sfInfo;
-		SNDFILE* sndFile = sf_open(filename.c_str(), SFM_READ, &sfInfo);
-		CRASH_IF(!sndFile, "Failed to open WAV file: " + filename);
+	static Buffer &createBufferFromWav(const std::string &filename);
+	static Buffer &createBufferFromWavIfNotExists(const std::string &filename);
 
-		// Read WAV data
-		std::vector<short> samples(sfInfo.frames * sfInfo.channels);
-		sf_read_short(sndFile, samples.data(), samples.size());
-		sf_close(sndFile);
+	static void setupContext();
 
-		// ????????????????????
-		Buffer &buffer = name_to_buff->emplace(std::piecewise_construct, std::forward_as_tuple(filename), std::forward_as_tuple()).first->second;
-		// printf("channels %u size %lu rate %u\n", sfInfo.channels, samples.size(), sfInfo.samplerate);
-		ALCall(alBufferData(buffer.id, sfInfo.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16, 
-					samples.data(), samples.size() * sizeof(short), sfInfo.samplerate));
+	static void destroyContext();
 
-		return buffer;
-	}
-
-	ALContext()
-	: name_to_buff(std::make_unique<std::unordered_map<std::string, Buffer>>())
-	{
-		// Initialization
-		device = alcOpenDevice(nullptr);
-		CRASH_IF(!device, "Failed to open OpenAL device");
-
-		// context
-		ALCcontext* context = alcCreateContext(device, nullptr);
-		CRASH_IF(!context || !alcMakeContextCurrent(context), "Failed to create or make OpenAL context current");
-
-
-		// buffer
-		Buffer &buffer = createBufferFromWav("song.wav");
-
-		// source
-		ALuint source;
-		ALCall(alGenSources(1, &source));
-		ALCall(alSourcei(source, AL_BUFFER, buffer.id));
-
-		ALCall(alSourcePlay(source));
-
-		// ALCall(alDeleteSources(1, &source));
-
-		// Wait for the sound to finish playing
-		// ALint sourceState;
-		// do {
-		// 	ALCall(alGetSourcei(source, AL_SOURCE_STATE, &sourceState));
-		// } while (sourceState == AL_PLAYING);
-	}
-	~ALContext() {
-		name_to_buff = nullptr; // destroy buffers
-		context = alcGetCurrentContext();
-		device = alcGetContextsDevice(context);
-		alcMakeContextCurrent(nullptr);
-		alcDestroyContext(context);
-		alcCloseDevice(device);
-	}
+	static void setListenerPosition(const glm::vec3 &pos);
+	static void setListenerVelocity(const glm::vec3 &vel);
+	static void setListenerOrientation(const glm::vec3 &front, const glm::vec3 &up);
 
 private:
-	ALCdevice *device = nullptr;
-	ALCcontext* context = nullptr;
+	static ALCdevice *device;
+	static ALCcontext* context;
 
 	// each filename has a dedicated buffer
 	// unique ptr to easily manually dfestruct it
-	std::unique_ptr<std::unordered_map<std::string, Buffer>> name_to_buff;
+	static std::unique_ptr<std::unordered_map<std::string, Buffer>> name_to_buff;
 };
+
+
+} // end namespace
 
 #endif

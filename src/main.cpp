@@ -7,7 +7,8 @@
 #define APP_ID 480
 
 int main(int argc, char **argv) {
-	ALContext alcontext = ALContext();
+
+	Audio::ALContext::setupContext();
 	// if (SteamAPI_RestartAppIfNecessary(APP_ID)) {
 	// 	return 1;
 	// }
@@ -21,12 +22,15 @@ int main(int argc, char **argv) {
 	Phys::setup_phys();
 
 	// this is ALSO VERY BAD that is receives the debug renderer, TEMPORARY
-	Client client = Client(Phys::getPhysRenderer());
-	// client.loadWorldFrom("saves/first.world");
-	client.mainloop();
-	// client.saveWorldTo("saves/first.world");
+	// cursed but I wanted to be able to manually destroy the client, fuck it
+	// otherwise destroying audio context would happen before client is destroyed
+	// TODO fix it somehow, make audio not be a static class??
+	std::unique_ptr<Client> client = std::make_unique<Client>(Phys::getPhysRenderer());
+	client->mainloop();
 
+	client = nullptr;
 	// SteamAPI_Shutdown();
+	Audio::ALContext::destroyContext();
 	return 0;
 }
 

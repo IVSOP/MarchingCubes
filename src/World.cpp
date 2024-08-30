@@ -451,7 +451,7 @@ JPH::Body *World::createBodyFromID(uint32_t id, const JPH::Vec3 &translation, co
 }
 
 // TODO this is a bit of a mess, make the Physics itself able to activate the body
-void World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
+entt::entity World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
 	// create a body (not activated)
 	JPH::Body *body = createBodyFromID(render_id, translation, rotation);
 
@@ -462,10 +462,11 @@ void World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Q
 
 	// activate body
 	Phys::activateBody(body);
+	return entity;
 }
 
 // same here, gets activated implicitly
-void World::spawnCharacter(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
+entt::entity World::spawnCharacter(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
 	// get shape
 	JPH::RefConst<JPH::Shape> shape = this->objects_info[object_id].phys_shape;
 
@@ -473,7 +474,7 @@ void World::spawnCharacter(uint32_t object_id, const JPH::Vec3 &translation, con
 	entt::entity entity = entt_registry.create();
 	entt_registry.emplace<PhysicsCharacter>(entity, shape, translation, rotation);
 	entt_registry.emplace<Render>(entity, object_id);
-
+	return entity;
 }
 
 // TODO this should be const, cant make a const group. make components themselves const???

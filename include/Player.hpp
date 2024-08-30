@@ -5,6 +5,7 @@
 #include "Components.hpp"
 #include "Phys.hpp"
 
+
 // I will store a reference to the registry for simplicity, idk If I like this
 class Player {
 public:
@@ -54,6 +55,7 @@ public:
 	Movement  &getMov();
 	glm::vec3 getRotation() const;
 	glm::vec3 getUpVector(); // TODO make this const
+	glm::vec3 getVelocity() const;
 
 	// Player(std::ifstream &file);
 	// void saveTo(std::ofstream &file) const;

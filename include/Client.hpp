@@ -8,6 +8,7 @@
 class WindowManager;
 #include "WindowManager.hpp"
 #include "Renderer.hpp"
+#include "Audio.hpp"
 
 #ifdef PROFILING
 	#include <valgrind/callgrind.h>
