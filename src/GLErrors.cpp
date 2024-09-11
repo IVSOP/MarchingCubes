@@ -63,7 +63,7 @@ void APIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLen
     }
 
 	log_message += "\nid: " + std::to_string(id) + "\nseverity: ";
-	LOG_TYPE logtype = LOG_TYPE::INFO;
+	LOG_TYPE logtype = LOG_TYPE::UNIMPORTANT;
 
     switch (severity){
     case GL_DEBUG_SEVERITY_LOW:
@@ -80,7 +80,7 @@ void APIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLen
         break;
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
 		log_message += "NOTIFICATION";
-		logtype = LOG_TYPE::INFO;
+		logtype = LOG_TYPE::UNIMPORTANT;
 		break;
     }
 

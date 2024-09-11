@@ -57,42 +57,6 @@ void recursive_add_verts(const aiScene* scene, const aiNode *node, GameObject *o
 	}
 }
 
-// const GameObject *Assets::load(const std::string &name, const std::string &hitbox) {
-// 	Assimp::Importer importer;
-
-// 	const aiScene* scene = importer.ReadFile(ASSETS_FOLDER + name, POST_PROCESS);
-
-// 	 // If the import failed, report it
-// 	CRASH_IF(scene == nullptr, std::string("Failed to import asset from ") + ASSETS_FOLDER + name);
-
-// 	// importer destructor will clean everything up!!!!!!
-
-// 	// scene has nodes
-// 	// nodes have num meshes, and an array of indices to meshes
-// 	// these indices are for an array in the scene itself
-
-// 	// need to iterate over the nodes recursively and add up the vertices that make up their meshes
-// 	// TODO test this vs iterating over things already in scene
-
-// 	// getNextPowerOfTwo(mesh->mNumVertices));
-// 	// cursed, and pretty unsafe since iterators can get invalidated, but we ball
-// 	// I refuse to live in fear of the segfault
-// 	GameObject *obj = &(Assets::objects.emplace(
-// 		std::piecewise_construct,
-// 		std::forward_as_tuple(name),
-// 		std::forward_as_tuple()
-// 	).first->second);
-
-// 	aiNode *node = scene->mRootNode;
-
-// 	recursive_add_verts(scene, node, obj);
-
-// 	FileHandler hitbox_file = FileHandler(ASSETS_FOLDER + hitbox);
-// 	obj->phys_shape = Phys::createShapeFromJson(hitbox_file.readjson());
-
-// 	return obj;
-// }
-
 void Assets::load(const std::string &name, const std::string &hitbox, CustomVec<GameObject> &objs) {
 	Assimp::Importer importer;
 
@@ -146,6 +110,26 @@ void Assets::load(const std::string &name, CustomVec<GameObject> &objs) {
 
 	obj->phys_shape = Phys::createConvexHull(obj->verts, obj->indices);
 }
+
+void Assets::loadMarchingCubes(const std::string &name, CustomVec<MarchingCubesObject> &objs, uint32_t len_x, uint32_t len_y, uint32_t len_z) {
+	Assimp::Importer importer;
+
+	const aiScene* scene = importer.ReadFile(ASSETS_FOLDER + name, POST_PROCESS);
+
+	CRASH_IF(scene == nullptr, std::string("Failed to import asset from ") + ASSETS_FOLDER + name);
+
+	objs.emplace_back(len_x, len_y, len_z);
+	MarchingCubesObject *obj = objs.getBackPointer();
+	aiNode *node = scene->mRootNode;
+	GameObject gameobj;
+
+	// load the mesh for the model
+	recursive_add_verts(scene, node, &gameobj);
+
+	// turn the mesh into marching cubes
+	EmbreeWrapper::marcheCubes(obj, gameobj.verts, gameobj.indices, len_x, len_y, len_z);
+}
+
 
 void recursive_dump_metadata(const aiNode *node) {
 	aiMetadata *meta = node->mMetaData;

@@ -150,6 +150,7 @@ struct Chunk {
 		const uint32_t data = static_cast<uint32_t>(_data.data);
 
 		// cursed wtf
+		// clear data
 		corners[pos.y][pos.z].data         &= ~(0x00000003 << pos.x);
 		corners[pos.y][pos.z + 1].data     &= ~(0x00000001 << (pos.x + 1));
 		corners[pos.y][pos.z + 1].data     &= ~(0x00000001 << pos.x);
@@ -157,6 +158,7 @@ struct Chunk {
 		corners[pos.y + 1][pos.z + 1].data &= ~(0x00000001 << (pos.x + 1));
 		corners[pos.y + 1][pos.z + 1].data &= ~(0x00000001 << pos.x);
 
+		// actually set the data
 		corners[pos.y][pos.z].data         |= ((data & 0x00000003) << pos.x);
 		corners[pos.y][pos.z + 1].data     |= (((data >> 2) & 0x00000001) << (pos.x + 1));
 		corners[pos.y][pos.z + 1].data     |= (((data >> 3) & 0x00000001) << pos.x);

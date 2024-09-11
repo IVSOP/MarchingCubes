@@ -143,16 +143,23 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 void Client::mainloop() {
 
 	// // uint32_t idmagujo = world->loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
-	uint32_t idmagujo = 0;
-	// world->spawn(idmagujo, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
-	entt::entity magujoentity = world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
+	// uint32_t idmagujo = 0;
+	// // world->spawn(idmagujo, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
+	// entt::entity magujoentity = world->spawn(idmagujo, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
-	uint32_t idmagujonpc = 1;
-	(void)world->spawnCharacter(idmagujonpc, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
+	// uint32_t idmagujonpc = 1;
+	// (void)world->spawnCharacter(idmagujonpc, JPH::Vec3::sZero(), JPH::Quat::sIdentity());
 
-	AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(magujoentity, "crazy_frog_mono.wav");
-	audio.setGain(10.0f);
-	audio.play();
+	// AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(magujoentity, "crazy_frog_mono.wav");
+	// audio.setGain(10.0f);
+	// audio.play();
+
+	for (int i = 0; i < 100; i++) {
+		entt::entity ball = world->spawn(2, JPH::Vec3(0.0f, 0.0f + (i * 5.0f), 0.0f), JPH::Quat::sIdentity());
+		AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(ball, "crazy_frog_mono.wav");
+		audio.setGain(10.0f);
+		audio.play();
+	}
 
 	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
 	// // world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());

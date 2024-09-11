@@ -35,6 +35,7 @@ add_executable(MarchingCubes
 		src/Image.cpp
 		src/ALErrors.cpp
 		src/Audio.cpp
+		src/embree.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp
@@ -121,9 +122,9 @@ if (WIN32)
 		file(COPY external/steamworks/sdk/redistributable_bin/win64/steam_api64.dll DESTINATION ${CMAKE_BINARY_DIR})
 	endif()
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/phonon.dll)
-		file(COPY external/steamaudio/lib/windows-x64/phonon.dll DESTINATION ${CMAKE_BINARY_DIR})
-	endif()
+	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/phonon.dll)
+	# 	file(COPY external/steamaudio/lib/windows-x64/phonon.dll DESTINATION ${CMAKE_BINARY_DIR})
+	# endif()
 
 	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/assimp.dll)
 	# 	file(COPY external/assimp_windows/bin/assimp.dll DESTINATION ${CMAKE_BINARY_DIR})
@@ -141,17 +142,25 @@ if (WIN32)
 	endif()
 	include_directories(external/libsndfile/win64/include)
 
+	if (NOT EXISTS ${CMAKE_BINARY_DIR}/embree4.dll)
+		file(COPY external/embree/win64/bin/embree4.dll DESTINATION ${CMAKE_BINARY_DIR})
+	endif()
+	include_directories(external/embree/win64/include)
+	if (NOT EXISTS ${CMAKE_BINARY_DIR}/tbb12.dll)
+		file(COPY external/embree/win64/bin/tbb12.dll DESTINATION ${CMAKE_BINARY_DIR})
+	endif()
+	include_directories(external/embree/win64/include)
+
 
 	# lib files are used at compile time only, so I don't copy them and link them directly
 	target_link_directories(MarchingCubes PRIVATE
 		external/glew/lib/Release/x64/
-		# external/glew/bin/Release/x64/
 		external/steamworks/sdk/redistributable_bin/win64/
-		external/steamaudio/lib/windows-x64/
-		# external/assimp_windows/lib/
+		# external/steamaudio/lib/windows-x64/
 		external/zstd-v1.5.6-win64/static/
 		external/openal-soft/win64/
 		external/libsndfile/win64/
+		external/embree/win64/lib/
 		${CMAKE_BINARY_DIR}/
 	)
 
@@ -163,9 +172,9 @@ else (WIN32) # linux
 		file(COPY external/steamworks/sdk/redistributable_bin/linux64/libsteam_api.so DESTINATION ${CMAKE_BINARY_DIR})
 	endif()
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libphonon.so)
-		file(COPY external/steamaudio/lib/linux-x64/libphonon.so DESTINATION ${CMAKE_BINARY_DIR})
-	endif()
+	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/libphonon.so)
+	# 	file(COPY external/steamaudio/lib/linux-x64/libphonon.so DESTINATION ${CMAKE_BINARY_DIR})
+	# endif()
 
 	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/libassimp.so)
 	# 	file(COPY external/assimp/build/bin/libassimp.so DESTINATION ${CMAKE_BINARY_DIR} FOLLOW_SYMLINK_CHAIN)
@@ -180,6 +189,11 @@ else (WIN32) # linux
 		file(COPY external/libsndfile/linux64/libsndfile.so DESTINATION ${CMAKE_BINARY_DIR})
 	endif()
 	include_directories(external/libsndfile/linux64/include)
+
+	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libembree4.so)
+		file(COPY external/embree/linux64/lib/libembree4.so DESTINATION ${CMAKE_BINARY_DIR} FOLLOW_SYMLINK_CHAIN)
+	endif()
+	include_directories(external/embree/linux64/include)
 
 	target_link_directories(MarchingCubes PRIVATE
 		${CMAKE_BINARY_DIR}/
@@ -242,10 +256,11 @@ if (WIN32)
 		Tracy::TracyClient
 		assimp
 		nlohmann_json::nlohmann_json
-		phonon
+		# phonon
 		libzstd_static
 		OpenAL32
 		sndfile
+		embree4
 		# ${Boost_LIBRARIES}
 	)
 
@@ -260,10 +275,11 @@ else (WIN32) # linux
 		Tracy::TracyClient
 		assimp
 		nlohmann_json::nlohmann_json
-		phonon
+		# phonon
 		zstd
 		openal
 		sndfile
+		embree4
 		# ${Boost_LIBRARIES}
 	)
 

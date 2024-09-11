@@ -19,6 +19,7 @@
 #define BOLDMAGENTA "\033[1m\033[35m" 
 #define BOLDCYAN    "\033[1m\033[36m" 
 #define BOLDWHITE   "\033[1m\033[37m" 
+#define GRAY "\033[1;30m"
 
 void print_color(LOG_TYPE type) {
 	switch(type) {
@@ -29,6 +30,9 @@ void print_color(LOG_TYPE type) {
 			break;
 		case (LOG_TYPE::ERR):
 			printf("%s", RED);
+			break;
+		case (LOG_TYPE::UNIMPORTANT):
+			printf("%s", GRAY);
 			break;
 	}
 }

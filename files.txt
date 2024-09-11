@@ -1,4 +1,5 @@
 assets/magujo
+assets/prim
 shaders/
 saves/
 textures/terreno.jpg

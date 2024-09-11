@@ -445,6 +445,13 @@ uint32_t World::loadModel(const std::string &name) {
 	return size;
 }
 
+uint32_t World::loadModelMarchingCubes(const std::string &name, uint32_t len_x, uint32_t len_y, uint32_t len_z) {
+	uint32_t size = this->mc_objects_info.size();
+	Assets::loadMarchingCubes(name, this->mc_objects_info, len_x, len_y, len_z);
+	// id_to_model.emplace(size, name);
+	return size;
+}
+
 JPH::Body *World::createBodyFromID(uint32_t id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
 	JPH::RefConst<JPH::Shape> shape = this->objects_info[id].phys_shape;
 	return Phys::createBodyFromShape(shape, translation, rotation);
@@ -587,6 +594,8 @@ void World::loadModels() {
 	// uint32_t idmagujo = 
 	(void)loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
 	(void)loadModel("magujo/magujo.glb");
+	(void)loadModelMarchingCubes("prim/bigsphere.glb", 32, 32, 32);
+	(void)loadModel("prim/bigsphere.glb", "prim/bigsphere-hitbox.json");
 }
 
 World::World(FileHandler &file)

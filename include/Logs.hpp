@@ -9,7 +9,8 @@
 enum LOG_TYPE {
 	INFO = 0,
 	WARN = 1,
-	ERR  = 2
+	ERR  = 2,
+	UNIMPORTANT = 4
 };
 
 // for now uses print, in the future should be singleton and log to files

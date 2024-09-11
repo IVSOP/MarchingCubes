@@ -152,6 +152,7 @@ public:
 	// loads model and stores its info, returning the object_id
 	uint32_t loadModel(const std::string &name, const std::string &hitbox_name);
 	uint32_t loadModel(const std::string &name);
+	uint32_t loadModelMarchingCubes(const std::string &name, uint32_t len_x, uint32_t len_y, uint32_t len_z);
 	JPH::Body *createBodyFromID(uint32_t id, const JPH::Vec3 &position, const JPH::Quat &rotation);
 	// creates a renderable physics entity internally, given an object_id
 	entt::entity spawn(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation);
@@ -172,6 +173,8 @@ private:
 	// TODO improve this, for now every single frame I loop over ALL entities and group them by their object_id, cannot come up with a good solution right now
 	// !!!!!!!!!! DO NOT USE std::vector AS IT CALLS DESTRUCTOR WHEN DOING REALLOCATIONS
 	CustomVec<GameObject> objects_info = CustomVec<GameObject>(1);
+
+	CustomVec<MarchingCubesObject> mc_objects_info = CustomVec<MarchingCubesObject>(1);
 
 	// // to allow spawning entities using the model name instead of the ID, but will be slower
 	// std::unordered_map<std::string, uint32_t> name_to_id;

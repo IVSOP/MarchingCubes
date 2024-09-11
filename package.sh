@@ -11,7 +11,7 @@ fi
 
 if [ "$1" == "linux" ]
 then
-	sos=($cd build_dist; echo *.so)
+	sos=$(cd build_dist; echo *.so)
 	tar --owner=0 --group=0 --no-same-owner --no-same-permissions -c steam_appid.txt --files-from <(grep -Ev '^(\#|\/\/).*' files.txt) -C build_dist MarchingCubes $sos -f - | zstd -10 --long --threads=0 --stdout > MarchingCubes.tar.zst
 else
     if [ "$1" == "windows" ]

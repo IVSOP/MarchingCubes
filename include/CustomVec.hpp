@@ -6,6 +6,7 @@
 
 // look into alligned allocs???
 
+// TODO optimize while (...) grow()
 
 // !!!!!!!!!!!!! SEGFAULT GENERATOR AHEAD!!!!!!!!!!!! READ EVERYTHING CAREFULLY !!!!!!!!!!!
 
@@ -25,7 +26,12 @@
 template <typename T>
 class CustomVec {
 public:
-	CustomVec() = delete; // for max performance you have to decide on an initial size > 0
+	// sets capacity to 1 as default
+	CustomVec()
+	: _sp(0), _capacity(1)
+	{
+		_data = reinterpret_cast<T *>(std::malloc(sizeof(T) * _capacity));
+	}
 	
 	// !!!!!cap > 0 otherwise when doubling size it gets stuck at 0
 	// didnt know a better way to check this at the time
