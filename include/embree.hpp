@@ -13,8 +13,8 @@
 #include <limits>
 
 struct MarchingCubesObject {
-	// [y][x][z] grid of boolean values
 	uint32_t len_x, len_y, len_z; // len of the grid dimentions
+	// [y][z][x] grid of boolean values
 	bool *corners;
 	// std::vector<std::vector<std::vector<bool>>> corners;
 
@@ -25,6 +25,14 @@ struct MarchingCubesObject {
 
 	~MarchingCubesObject() {
 		std::free(corners);
+	}
+
+	constexpr void set(uint32_t x, uint32_t y, uint32_t z, bool val) {
+		corners[(x * len_y * len_z) + (z * len_y) + y] = val;
+	}
+
+	constexpr bool get(uint32_t x, uint32_t y, uint32_t z) const {
+		return corners[(x * len_y * len_z) + (z * len_y) + y];
 	}
 };
 

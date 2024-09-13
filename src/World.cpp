@@ -363,7 +363,7 @@ void World::addVoxelShpere(const SelectedBlockInfo &selectedInfo, GLfloat radius
 	const GLfloat big_radius   = radius + (diagonal * CHUNK_SIZE_FLOAT);
 	const GLfloat small_radius = radius - (diagonal * CHUNK_SIZE_FLOAT);
 
-
+	// TODO WHAT??????? WHY ARE CHUNKS GETTING DESTROYED WHEN ADDING A SPHERE??????????
 	if (small_radius >= CHUNK_SIZE_FLOAT) {
 		// calculate the bounding box and destroy every chunk inside it
 		GLint min_x = glm::clamp(static_cast<GLint>(((center.x - small_radius) / CHUNK_SIZE_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)), 0, WORLD_SIZE_X - 1),
@@ -484,6 +484,27 @@ entt::entity World::spawnCharacter(uint32_t object_id, const JPH::Vec3 &translat
 	return entity;
 }
 
+void World::spawnMarchingCubes(uint32_t object_id, const glm::ivec3 &pos) {
+	const MarchingCubesObject &obj = mc_objects_info[object_id];
+
+	Log::log(LOG_TYPE::WARN, "this function does nothing for now");
+
+	for (uint32_t y = 0; y < obj.len_y; y++) {
+		for (uint32_t z = 0; z < obj.len_z; z++) {
+			for (uint32_t x = 0; x < obj.len_x; x++) {
+				switch (obj.get(x, y, z)) {
+					case true:
+						// setBit(pos + glm::ivec3(x, y, z));
+						break;
+					case false:
+						// clearBit(pos + glm::ivec3(x, y, z));
+						break;
+				}
+			}
+		}
+	}
+}
+
 // TODO this should be const, cant make a const group. make components themselves const???
 // TODO group vs view???? different types of group ownership?????? was calling ~Physics() and messing everything up
 // TODO optimize this
@@ -592,10 +613,13 @@ void World::save(FileHandler &file) {
 
 void World::loadModels() {
 	// uint32_t idmagujo = 
+	// regular models
 	(void)loadModel("magujo/magujo.glb", "magujo/magujo-hitbox.json");
 	(void)loadModel("magujo/magujo.glb");
-	(void)loadModelMarchingCubes("prim/bigsphere.glb", 32, 32, 32);
 	(void)loadModel("prim/bigsphere.glb", "prim/bigsphere-hitbox.json");
+
+	// marching cubes models
+	(void)loadModelMarchingCubes("prim/bigsphere.glb", 32, 32, 32);
 }
 
 World::World(FileHandler &file)

@@ -17,7 +17,8 @@
                 "${workspaceFolder}/external/steamworks/sdk/public/**",
                 "${workspaceFolder}/external/assimp/include/*",
                 "${workspaceFolder}/external/assimp/include/assimp/*",
-                "/home/ivsopi3/Desktop/MarchingCubes/external/assimp/include"
+                "${workspaceFolder}/external/assimp/include",
+				"${workspaceFolder}/external/embree/linux64/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

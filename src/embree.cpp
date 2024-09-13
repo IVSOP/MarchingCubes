@@ -65,6 +65,7 @@ uint32_t intersect(const glm::vec3 &origin, float tfar, RTCScene scene) {
 }
 
 // possible optimization: since I trace in +x, I could do an entire line of points all at once, reusing work
+// use rtcSetNewGeometryBuffer correctly so that I don't need to make a new verts vector, and put the offset in the ray itself
 void EmbreeWrapper::marcheCubes(MarchingCubesObject *obj, const CustomVec<ModelVertex> &verts, const std::vector<GLuint> &indices, uint32_t len_x, uint32_t len_y, uint32_t len_z) {
 	// 1. Initialize Embree device
 	RTCDevice device = rtcNewDevice(nullptr);
@@ -105,10 +106,16 @@ void EmbreeWrapper::marcheCubes(MarchingCubesObject *obj, const CustomVec<ModelV
 	// RTCRayQueryContext context;
 	// rtcInitRayQueryContext(&context);
 
-	intersect(glm::vec3(0.0f, 5.0f, 5.0f), len_x + 1.0f, scene);
+	for (uint32_t y = 0; y < len_y; y++) {
+		for (uint32_t z = 0; z < len_z; z++) {
+			for (uint32_t x = 0; x < len_x; x++) {
+				const bool inside = !((intersect(glm::vec3(x, y, z), len_x + 1.0f, scene) % 2) == 0);
+				obj->set(x, y, z, inside);
+			}
+		}
+	}
+
 
 	rtcReleaseScene(scene);
 	rtcReleaseDevice(device);
-
-	exit(1);
 }

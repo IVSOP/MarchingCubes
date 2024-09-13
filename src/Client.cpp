@@ -154,12 +154,15 @@ void Client::mainloop() {
 	// audio.setGain(10.0f);
 	// audio.play();
 
-	for (int i = 0; i < 100; i++) {
-		entt::entity ball = world->spawn(2, JPH::Vec3(0.0f, 0.0f + (i * 5.0f), 0.0f), JPH::Quat::sIdentity());
-		AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(ball, "crazy_frog_mono.wav");
-		audio.setGain(10.0f);
-		audio.play();
-	}
+	// for (int i = 0; i < 100; i++) {
+	// 	entt::entity ball = world->spawn(2, JPH::Vec3(0.0f, 0.0f + (i * 5.0f), 0.0f), JPH::Quat::sIdentity());
+	// 	AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(ball, "crazy_frog_mono.wav");
+	// 	audio.setGain(1.0f);
+	// 	audio.play();
+	// }
+
+	uint32_t idsphere_mc = 0;
+	world->spawnMarchingCubes(idsphere_mc, glm::ivec3(0, -40, 0));
 
 	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
 	// // world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
