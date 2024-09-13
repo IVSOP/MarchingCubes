@@ -80,6 +80,11 @@ void Shader::setVec3(const std::string &uniformName, GLfloat x, GLfloat y, GLflo
 	GLCall(glUniform3f(location, x, y, z));
 }
 
+void Shader::setVec4(const std::string &uniformName, const glm::vec4 &vec) {
+	GLint location = getUniformLocation(uniformName);
+	GLCall(glUniform4fv(location, 1, glm::value_ptr(vec)));
+}
+
 void Shader::setMat4(const std::string &uniformName, const glm::mat4 &mat) {
 	GLint location = getUniformLocation(uniformName);
 	GLCall(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat)));

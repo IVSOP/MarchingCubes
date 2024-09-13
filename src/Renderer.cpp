@@ -124,6 +124,7 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer
   hdrBbloomMergeShader("shaders/hdrBloomMerge.vert", "shaders/hdrBloomMerge.frag"),
   pointshader("shaders/points.vert", "shaders/points.frag"),
   modelShader("shaders/lighting_models.vert", "shaders/lighting_models.frag"),
+  selectedModelShader("shaders/selected_models.vert", "shaders/selected_models.frag"),
   phys_renderer(phys_renderer)
 {
 	// TODO make a workaround for this
@@ -687,12 +688,13 @@ void Renderer::endFrame(GLFWwindow * window) {
     glfwSwapBuffers(window);
 }
 
-void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo) {
+void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const DrawObjects &objs, const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo) {
 	ZoneScoped;
 	
 	prepareFrame(verts.size(), pos, dir, mov, deltaTime, selectedInfo);
 	drawLighting(verts, points, indirect, chunkInfo, projection, view);
 	drawObjects(view, projection, objs);
+	drawSelectedObjects(view, projection, selected_objs);
 
 	if (Settings::render_physics) {
 		draw_phys(view, projection);
@@ -929,6 +931,66 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 				// modelShader.setMat4("u_Model", transform);
 
 				// GLCall(glDrawElements(GL_TRIANGLES, obj->indices.size(), GL_UNSIGNED_INT, 0));
+		}
+	}
+
+	if (Settings::wireframe_models) {
+		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+	}
+}
+
+
+// copied from drawObjects!!!!!!
+void Renderer::drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs) {
+	if (Settings::wireframe_models) {
+		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+	}
+	
+	selectedModelShader.use();
+
+	// bind VAO, VBO, TBO
+	GLCall(glBindVertexArray(this->VAO_models));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO_models));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO_models));
+	selectedModelShader.setInt("u_TransformTBO", TEXSLOTS::MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT);
+
+	// TODO clean this up, same initialization as main shader
+	selectedModelShader.setFloat("u_BloomThreshold", Settings::bloomThreshold);
+
+	selectedModelShader.setInt("u_MaterialTBO", TEXSLOTS::MATERIAL_TEXTURE_BUFFER_SLOT);
+	selectedModelShader.setInt("u_PointLightTBO", TEXSLOTS::POINTLIGHT_TEXTURE_BUFFER_SLOT);
+	selectedModelShader.setInt("u_NumPointLights", 0);
+	selectedModelShader.setInt("u_DirLightTBO", TEXSLOTS::DIRLIGHT_TEXTURE_BUFFER_SLOT);
+	selectedModelShader.setInt("u_NumDirLights", 1);
+
+	selectedModelShader.setInt("u_SpotLightTBO", TEXSLOTS::SPOTLIGHT_TEXTURE_BUFFER_SLOT);
+	selectedModelShader.setInt("u_NumSpotLights", 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, lightingFBODepthBuffer);
+
+	constexpr GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	GLCall(glDrawBuffers(2, attachments));
+
+	selectedModelShader.setMat4("u_View", view);
+	selectedModelShader.setMat4("u_Projection", projection);
+
+	selectedModelShader.setVec4("u_Color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+
+	if (Settings::render_models) {
+		for (const auto &pair : objs) {
+			// verts loaded once
+			const GameObject *obj = pair.first;
+			GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj->verts.size(), obj->verts.data(), GL_STATIC_DRAW));
+			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * obj->indices.size(), obj->indices.data(), GL_STATIC_DRAW));
+
+			// TODO use a VBO instead?
+			GLCall(glBindBuffer(GL_TEXTURE_BUFFER, TBO_models_buffer));
+			GLCall(glBufferData(GL_TEXTURE_BUFFER, pair.second.size() * sizeof(glm::mat4), pair.second.data(), GL_STATIC_DRAW));
+			GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT)); // TODO call this only once?
+			GLCall(glBindTexture(GL_TEXTURE_BUFFER, TBO_models));
+
+
+			GLCall(glDrawElementsInstanced(GL_TRIANGLES, obj->indices.size(), GL_UNSIGNED_INT, 0, pair.second.size()));
 		}
 	}
 

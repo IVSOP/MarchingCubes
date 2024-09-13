@@ -524,6 +524,7 @@ solution was to make not even the Render be owned
 
 */
 // TODO actually use the frustum
+// TODO res[render.object_id] is very danger, might as well use a static array
 const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEntitiesToDraw(const Frustum &frustum) {
 	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res(objects_info.size());
 
@@ -557,16 +558,28 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEnt
 
 // this funcs assumes N entities can be selected at once
 // for now only 1 is used, but it might be needed in the future so why not
+// TODO res[render.object_id] is very danger, might as well use a static array
 const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getSelectedEntities() {
-	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res;
+	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res(objects_info.size());
 
 	{
 		auto group = entt_registry.group<>(entt::get<Render, Physics, Selected>);
 		for (const auto entity : group) {
 			const Physics &phys = group.get<Physics>(entity);
 			const Render &render = group.get<Render>(entity);
+			// entt_registry.remove<Selected>(entity);
 
 			res[render.object_id].second.emplace_back(phys.getTransform());
+		}
+	}
+
+	{
+		auto group = entt_registry.group<>(entt::get<Render, PhysicsCharacter, Selected>);
+		for (const auto entity : group) {
+			const PhysicsCharacter &physcharacter = group.get<PhysicsCharacter>(entity);
+			const Render &render = group.get<Render>(entity);
+
+			res[render.object_id].second.emplace_back(physcharacter.getTransform());
 		}
 	}
 
