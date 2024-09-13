@@ -564,8 +564,6 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getSel
 	std::vector<entt::entity> selected_entts; // so I can remove their Selected component
 
 
-	// int i = 0;
-
 	{
 		auto group = entt_registry.group<>(entt::get<Render, Physics, Selected>);
 		for (const auto entity : group) {
@@ -574,8 +572,6 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getSel
 
 			res[render.object_id].second.emplace_back(phys.getTransform());
 			selected_entts.emplace_back(entity);
-
-			// i++;
 		}
 	}
 
@@ -594,11 +590,9 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getSel
 		res[i].first = &objects_info[i];
 	}
 
-	// printf("found %d entities\n", i);
-
-	// for (entt::entity entity : selected_entts) {
-	// 	entt_registry.erase<Selected>(entity);
-	// }
+	for (entt::entity entity : selected_entts) {
+		entt_registry.erase<Selected>(entity);
+	}
 
 	// TODO is everything getting deep copied??????
 	return res;

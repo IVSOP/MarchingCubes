@@ -235,6 +235,10 @@ void Client::mainloop() {
 		);
     	world->buildData(frustum);
 
+		// made this here instead of inside the draw() since the order matters
+		auto entitiesToDraw = world->getEntitiesToDraw(frustum);
+		auto entitiesSelected = world->getSelectedEntities();
+
 		glm::mat4 view = player->getViewMatrix();
 		renderer->draw(
 			view,
@@ -242,8 +246,8 @@ void Client::mainloop() {
 			world->getPoints(),
 			world->getIndirect(),
 			world->getInfo(),
-			world->getEntitiesToDraw(frustum),
-			world->getSelectedEntities(),
+			entitiesToDraw,
+			entitiesSelected,
 			windowManager->projection,
 			windowManager->window, deltaTime,
 			pos,
