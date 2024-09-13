@@ -207,13 +207,17 @@ void Client::mainloop() {
 			Settings::break_radius,
 			player.get(), windowManager->windowWidth, windowManager->windowHeight, static_cast<GLfloat>(deltaTime));
 
-		// ray cast to select entities
-		glm::vec3 raydir = dir.front * Settings::raycast_len;
-		// to prevent from colliding with the body of the player itself I did this, will change in the future
-		glm::vec3 rayorigin = pos.pos + (dir.front * 3.5f);
-		JPH::BodyID lookatbody = Phys::raycastBody(JPH::Vec3(rayorigin.x, rayorigin.y, rayorigin.z), JPH::Vec3(raydir.x, raydir.y, raydir.z));
-		entt::entity selected_entity = Phys::getUserData(lookatbody).getEntity();
-		world->entt_registry.emplace<Selected>(selected_entity);
+		if (Settings::select) {
+			// ray cast to select entities
+			glm::vec3 raydir = dir.front * Settings::raycast_len;
+			// to prevent from colliding with the body of the player itself I did this, will change in the future
+			glm::vec3 rayorigin = pos.pos + (dir.front * 3.5f);
+			JPH::BodyID lookatbody = Phys::raycastBody(JPH::Vec3(rayorigin.x, rayorigin.y, rayorigin.z), JPH::Vec3(raydir.x, raydir.y, raydir.z));
+			if (! lookatbody.IsInvalid()) {
+				entt::entity selected_entity = Phys::getUserData(lookatbody).getEntity();
+				world->entt_registry.emplace<Selected>(selected_entity);
+			}
+		}
 
 
 

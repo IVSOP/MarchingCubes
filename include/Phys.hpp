@@ -50,7 +50,7 @@ namespace Layers
 {
 	static constexpr JPH::ObjectLayer NON_MOVING = 0;
 	static constexpr JPH::ObjectLayer MOVING = 1;
-	static constexpr JPH::ObjectLayer NUM_LAYERS = 2;
+	static constexpr JPH::ObjectLayer NUM_LAYERS = 3;
 };
 
 /// Class that determines if two object layers can collide
@@ -142,6 +142,20 @@ public:
 	}
 };
 
+// Custom BroadPhaseLayerFilter that excludes non moving
+class RayBroadPhaseFilter : public JPH::BroadPhaseLayerFilter
+{
+public:
+    JPH::BroadPhaseLayer excluded_layer = BroadPhaseLayers::NON_MOVING;
+
+    RayBroadPhaseFilter() = default;
+
+    virtual bool ShouldCollide(JPH::BroadPhaseLayer layer) const override
+    {
+        return layer != excluded_layer;  // Exclude the specific layer
+    }
+};
+
 
 #include <entt.hpp>
 // must fit into uint64, or be a pointer. if pointer, do
@@ -206,6 +220,7 @@ public:
 	static JPH::BodyID raycastBody(const JPH::Vec3 &origin, const JPH::Vec3 &direction_and_len);
 	
 	static const JPH::BroadPhaseQuery &getBroadPhase();
+	static const JPH::NarrowPhaseQuery &getNarrowPhase();
 
 	static void setUserData(JPH::Body *body, UserData data);
 	static UserData getUserData(JPH::Body *body);

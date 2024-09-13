@@ -472,7 +472,7 @@ entt::entity World::spawn(uint32_t render_id, const JPH::Vec3 &translation, cons
 	entt_registry.emplace<Render>(entity, render_id);
 
 	// activate body
-	Phys::activateBody(body);
+	// Phys::activateBody(body);
 	return entity;
 }
 
@@ -561,15 +561,21 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEnt
 // TODO res[render.object_id] is very danger, might as well use a static array
 const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getSelectedEntities() {
 	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res(objects_info.size());
+	std::vector<entt::entity> selected_entts; // so I can remove their Selected component
+
+
+	// int i = 0;
 
 	{
 		auto group = entt_registry.group<>(entt::get<Render, Physics, Selected>);
 		for (const auto entity : group) {
 			const Physics &phys = group.get<Physics>(entity);
 			const Render &render = group.get<Render>(entity);
-			// entt_registry.remove<Selected>(entity);
 
 			res[render.object_id].second.emplace_back(phys.getTransform());
+			selected_entts.emplace_back(entity);
+
+			// i++;
 		}
 	}
 
@@ -580,12 +586,19 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getSel
 			const Render &render = group.get<Render>(entity);
 
 			res[render.object_id].second.emplace_back(physcharacter.getTransform());
+			selected_entts.emplace_back(entity);
 		}
 	}
 
 	for (unsigned int i = 0; i < res.size(); i++) {
 		res[i].first = &objects_info[i];
 	}
+
+	// printf("found %d entities\n", i);
+
+	// for (entt::entity entity : selected_entts) {
+	// 	entt_registry.erase<Selected>(entity);
+	// }
 
 	// TODO is everything getting deep copied??????
 	return res;

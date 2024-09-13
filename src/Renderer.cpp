@@ -389,6 +389,7 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::Checkbox("Render physics", &Settings::render_physics);
 	ImGui::Checkbox("Render", &Settings::render);
 	ImGui::Checkbox("Render models", &Settings::render_models);
+	ImGui::Checkbox("Select", &Settings::select);
 }
 
 void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view) {
@@ -911,6 +912,9 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 
 	if (Settings::render_models) {
 		for (const auto &pair : objs) {
+
+			if (pair.second.size() == 0) continue; // no entities
+
 			// verts loaded once
 			const GameObject *obj = pair.first;
 			GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj->verts.size(), obj->verts.data(), GL_STATIC_DRAW));
@@ -978,6 +982,9 @@ void Renderer::drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &proje
 
 	if (Settings::render_models) {
 		for (const auto &pair : objs) {
+
+			if (pair.second.size() == 0) continue; // no entities
+
 			// verts loaded once
 			const GameObject *obj = pair.first;
 			GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj->verts.size(), obj->verts.data(), GL_STATIC_DRAW));

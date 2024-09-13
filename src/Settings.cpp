@@ -22,3 +22,4 @@ bool Settings::render = true;
 bool Settings::render_models = true;
 
 float Settings::raycast_len = 100.0f;
+bool Settings::select = false;

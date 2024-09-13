@@ -547,11 +547,27 @@ void Phys::update(GLfloat deltaTime, int collisionSteps) {
 
 BodyID Phys::raycastBody(const JPH::Vec3 &origin, const JPH::Vec3 &direction_and_len) {
 	
-	//////// probably colliding with the body of the player itself!!!
 	// printf("ray from %f %f %f, dir %f %f %f\n", origin.GetX(), origin.GetY(), origin.GetZ(), direction_and_len.GetX(), direction_and_len.GetY(), direction_and_len.GetZ());
-	RayCast ray {origin, direction_and_len};
-	ClosestHitCollisionCollector<RayCastBodyCollector> collector;
-	Phys::getBroadPhase().CastRay(ray, collector);
+
+	// version using broad phase
+	// RayCast ray {origin, direction_and_len};
+	// ClosestHitCollisionCollector<RayCastBodyCollector> collector;
+	// Phys::getBroadPhase().CastRay(ray, collector);
+	// return collector.mHit.mBodyID;
+
+	// version usng narrow phase
+	RRayCast ray {origin, direction_and_len};
+	// TODO prevent this object from being constructed here
+	RayBroadPhaseFilter filter;
+	RayCastResult res; // {<JPH::BroadPhaseCastResult> = {mBodyID = {static cInvalidBodyID = 4294967295, static cBroadPhaseBit = 8388608, static cMaxBodyIndex = 8388607, static cMaxSequenceNumber = 255 '\377', mID = 32512}, mFraction = 1.36915773e+14}, mSubShapeID2 = {static MaxBits = 32, static cEmpty = 4294967295, mValue = 21845}}
+	Phys::getNarrowPhase().CastRay(ray, res, filter);
+	// if (res.mBodyID.IsInvalid()) {
+	// 	printf("no hit\n");
+	// } else {
+	// 	printf("hit\n");
+	// }
+	return res.mBodyID;
+	
 
 	// can't see SHIT with all these abstractions, here is what gdb says collector.mHit contains:
 	// {mBodyID = {static cInvalidBodyID = 4294967295, static cBroadPhaseBit = 8388608, static cMaxBodyIndex = 8388607, static cMaxSequenceNumber = 255 '\377', mID = 1433036460}, mFraction = 3.0611365e-41}
@@ -565,11 +581,14 @@ BodyID Phys::raycastBody(const JPH::Vec3 &origin, const JPH::Vec3 &direction_and
 	// }
 	// printf("id is %u\n", collector.mHit.mBodyID.GetIndexAndSequenceNumber());
 
-	return collector.mHit.mBodyID;
 }
 
 const BroadPhaseQuery &Phys::getBroadPhase() {
 	return Phys::getPhysSystem()->GetBroadPhaseQuery();
+}
+
+const NarrowPhaseQuery &Phys::getNarrowPhase() {
+	return Phys::getPhysSystem()->GetNarrowPhaseQuery();
 }
 
 void Phys::setUserData(JPH::Body *body, UserData data) {
