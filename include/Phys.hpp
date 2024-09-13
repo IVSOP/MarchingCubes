@@ -26,6 +26,9 @@
 #include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
 #include <Jolt/Physics/Character/Character.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 
 #include "PhysRenderer.hpp"
 
@@ -139,6 +142,25 @@ public:
 	}
 };
 
+
+#include <entt.hpp>
+// must fit into uint64, or be a pointer. if pointer, do
+// static_assert(sizeof(uint64) == sizeof(void *), "Cannot fit a pointer into Body user data");
+// TODO improve this so it's a template
+struct UserData {
+	constexpr UserData(JPH::uint64 data) : data(data) {} // compiler should optimize this heavily
+
+	constexpr UserData(entt::entity entity) : data(static_cast<JPH::uint64>(entity)) {}
+
+	~UserData() = default;
+
+	constexpr entt::entity getEntity() const {
+		return static_cast<entt::entity>(data);
+	}
+
+	JPH::uint64 data;
+};
+
 class Phys {
 private:
 	static std::unique_ptr<JPH::PhysicsSystem> phys_system;
@@ -179,6 +201,15 @@ public:
 	static JPH::JobSystem *getJobSystem();
 
 	static void update(GLfloat deltaTime, int collisionSteps);
+
+	// casts a ray and returns first body it hits (or null)
+	static JPH::BodyID raycastBody(const JPH::Vec3 &origin, const JPH::Vec3 &direction_and_len);
+	
+	static const JPH::BroadPhaseQuery &getBroadPhase();
+
+	static void setUserData(JPH::Body *body, UserData data);
+	static UserData getUserData(JPH::Body *body);
+	static UserData getUserData(JPH::BodyID bodyID);
 };
 
 

@@ -544,3 +544,43 @@ void Phys::update(GLfloat deltaTime, int collisionSteps) {
 	ZoneScoped;
 	Phys::getPhysSystem()->Update(deltaTime, collisionSteps, Phys::getTempAllocator(), Phys::getJobSystem());
 }
+
+BodyID Phys::raycastBody(const JPH::Vec3 &origin, const JPH::Vec3 &direction_and_len) {
+	
+	//////// probably colliding with the body of the player itself!!!
+	// printf("ray from %f %f %f, dir %f %f %f\n", origin.GetX(), origin.GetY(), origin.GetZ(), direction_and_len.GetX(), direction_and_len.GetY(), direction_and_len.GetZ());
+	RayCast ray {origin, direction_and_len};
+	ClosestHitCollisionCollector<RayCastBodyCollector> collector;
+	Phys::getBroadPhase().CastRay(ray, collector);
+
+	// can't see SHIT with all these abstractions, here is what gdb says collector.mHit contains:
+	// {mBodyID = {static cInvalidBodyID = 4294967295, static cBroadPhaseBit = 8388608, static cMaxBodyIndex = 8388607, static cMaxSequenceNumber = 255 '\377', mID = 1433036460}, mFraction = 3.0611365e-41}
+	// BodyID is just a uint32
+
+	// no need for this. if not hit, id == BodyID::cInvalidBodyID
+	// if (collector.HadHit()) {
+	// 	printf("had a hit. ");
+	// } else {
+	// 	printf("no hit. ");
+	// }
+	// printf("id is %u\n", collector.mHit.mBodyID.GetIndexAndSequenceNumber());
+
+	return collector.mHit.mBodyID;
+}
+
+const BroadPhaseQuery &Phys::getBroadPhase() {
+	return Phys::getPhysSystem()->GetBroadPhaseQuery();
+}
+
+void Phys::setUserData(JPH::Body *body, UserData data) {
+	body->SetUserData(data.data);
+}
+
+UserData Phys::getUserData(JPH::Body *body) {
+	return UserData(body->GetUserData());
+}
+
+UserData Phys::getUserData(JPH::BodyID bodyID) {
+	BodyInterface &bodyInterface = getBodyInterface();
+	return UserData(bodyInterface.GetUserData(bodyID));
+}

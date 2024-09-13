@@ -108,6 +108,7 @@ public:
 
 	// a bit cursed but makes it clear that the pointer is returned and not the object
 	// compiler will optimize this
+	// ERROR if there are no elements in the array (_sp == 0)
 	constexpr T *getBackPointer() const { return &_data[_sp - 1]; }
 
 	// makes sure at least len elements can be written at the end of the current array, with no realloc

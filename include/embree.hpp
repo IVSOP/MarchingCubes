@@ -28,11 +28,13 @@ struct MarchingCubesObject {
 	}
 
 	constexpr void set(uint32_t x, uint32_t y, uint32_t z, bool val) {
-		corners[(x * len_y * len_z) + (z * len_y) + y] = val;
+		// corners[(x * len_y * len_z) + (z * len_y) + y] = val;
+		corners[(y * len_z * len_x) + (z * len_x) + x] = val;
 	}
 
 	constexpr bool get(uint32_t x, uint32_t y, uint32_t z) const {
-		return corners[(x * len_y * len_z) + (z * len_y) + y];
+		// return corners[(x * len_y * len_z) + (z * len_y) + y];
+		return corners[(y * len_z * len_x) + (z * len_x) + x];
 	}
 };
 

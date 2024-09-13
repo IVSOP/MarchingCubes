@@ -154,15 +154,15 @@ void Client::mainloop() {
 	// audio.setGain(10.0f);
 	// audio.play();
 
-	// for (int i = 0; i < 100; i++) {
-	// 	entt::entity ball = world->spawn(2, JPH::Vec3(0.0f, 0.0f + (i * 5.0f), 0.0f), JPH::Quat::sIdentity());
-	// 	AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(ball, "crazy_frog_mono.wav");
-	// 	audio.setGain(1.0f);
-	// 	audio.play();
-	// }
+	for (int i = 0; i < 100; i++) {
+		entt::entity ball = world->spawn(2, JPH::Vec3(0.0f, 0.0f + (i * 5.0f), 0.0f), JPH::Quat::sIdentity());
+		// AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(ball, "crazy_frog_mono.wav");
+		// audio.setGain(1.0f);
+		// audio.play();
+	}
 
-	uint32_t idsphere_mc = 0;
-	world->spawnMarchingCubes(idsphere_mc, glm::ivec3(0, -40, 0));
+	// uint32_t idsphere_mc = 0;
+	// world->spawnMarchingCubes(idsphere_mc, glm::ivec3(0, -40, 0));
 
 	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
 	// // world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
@@ -206,6 +206,15 @@ void Client::mainloop() {
 			selectedBlock,
 			Settings::break_radius,
 			player.get(), windowManager->windowWidth, windowManager->windowHeight, static_cast<GLfloat>(deltaTime));
+
+		// ray cast to select entities
+		glm::vec3 raydir = dir.front * Settings::raycast_len;
+		// to prevent from colliding with the body of the player itself I did this, will change in the future
+		glm::vec3 rayorigin = pos.pos + (dir.front * 3.5f);
+		JPH::BodyID lookatbody = Phys::raycastBody(JPH::Vec3(rayorigin.x, rayorigin.y, rayorigin.z), JPH::Vec3(raydir.x, raydir.y, raydir.z));
+		entt::entity selected_entity = Phys::getUserData(lookatbody).getEntity();
+		world->entt_registry.emplace<Selected>(selected_entity);
+
 
 
 		const int collisionSteps = 1;

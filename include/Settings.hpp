@@ -28,6 +28,8 @@ struct Settings {
 	static bool render;
 	static bool render_models;
 
+	static float raycast_len;
+
 	static void setFov(GLdouble _fov) {
 		Settings::fov = _fov;
 	}

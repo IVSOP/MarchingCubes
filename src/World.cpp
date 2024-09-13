@@ -457,6 +457,9 @@ JPH::Body *World::createBodyFromID(uint32_t id, const JPH::Vec3 &translation, co
 	return Phys::createBodyFromShape(shape, translation, rotation);
 }
 
+
+static_assert(sizeof(entt::entity) <= sizeof(void *), "Entity does not fit into user data");
+
 // TODO this is a bit of a mess, make the Physics itself able to activate the body
 entt::entity World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
 	// create a body (not activated)
@@ -464,7 +467,8 @@ entt::entity World::spawn(uint32_t render_id, const JPH::Vec3 &translation, cons
 
 	// add to entt
 	entt::entity entity = entt_registry.create();
-	entt_registry.emplace<Physics>(entity, body);
+	Physics &physics = entt_registry.emplace<Physics>(entity, body);
+	physics.setUserData(UserData(entity));
 	entt_registry.emplace<Render>(entity, render_id);
 
 	// activate body
@@ -479,7 +483,7 @@ entt::entity World::spawnCharacter(uint32_t object_id, const JPH::Vec3 &translat
 
 	// add to entt
 	entt::entity entity = entt_registry.create();
-	entt_registry.emplace<PhysicsCharacter>(entity, shape, translation, rotation);
+	entt_registry.emplace<PhysicsCharacter>(entity, shape, translation, rotation, UserData(entity));
 	entt_registry.emplace<Render>(entity, object_id);
 	return entity;
 }
@@ -519,11 +523,12 @@ but since Render belongs to both, I got an error
 solution was to make not even the Render be owned
 
 */
+// TODO actually use the frustum
 const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEntitiesToDraw(const Frustum &frustum) {
 	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res(objects_info.size());
 
 	{
-		auto group = entt_registry.group<>(entt::get<Render, Physics>);
+		auto group = entt_registry.group<>(entt::get<Render, Physics>, entt::exclude<Selected>);
 		for (const auto entity : group) {
 			const Physics &phys = group.get<Physics>(entity);
 			const Render &render = group.get<Render>(entity);
@@ -533,12 +538,35 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEnt
 	}
 
 	{
-		auto group = entt_registry.group<>(entt::get<Render, PhysicsCharacter>);
+		auto group = entt_registry.group<>(entt::get<Render, PhysicsCharacter>, entt::exclude<Selected>);
 		for (const auto entity : group) {
 			const PhysicsCharacter &physcharacter = group.get<PhysicsCharacter>(entity);
 			const Render &render = group.get<Render>(entity);
 
 			res[render.object_id].second.emplace_back(physcharacter.getTransform());
+		}
+	}
+
+	for (unsigned int i = 0; i < res.size(); i++) {
+		res[i].first = &objects_info[i];
+	}
+
+	// TODO is everything getting deep copied??????
+	return res;
+}
+
+// this funcs assumes N entities can be selected at once
+// for now only 1 is used, but it might be needed in the future so why not
+const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getSelectedEntities() {
+	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res;
+
+	{
+		auto group = entt_registry.group<>(entt::get<Render, Physics, Selected>);
+		for (const auto entity : group) {
+			const Physics &phys = group.get<Physics>(entity);
+			const Render &render = group.get<Render>(entity);
+
+			res[render.object_id].second.emplace_back(phys.getTransform());
 		}
 	}
 
@@ -619,7 +647,7 @@ void World::loadModels() {
 	(void)loadModel("prim/bigsphere.glb", "prim/bigsphere-hitbox.json");
 
 	// marching cubes models
-	(void)loadModelMarchingCubes("prim/bigsphere.glb", 32, 32, 32);
+	// (void)loadModelMarchingCubes("prim/bigsphere.glb", 32, 32, 32);
 }
 
 World::World(FileHandler &file)

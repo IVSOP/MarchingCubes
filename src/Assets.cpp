@@ -121,7 +121,7 @@ void Assets::loadMarchingCubes(const std::string &name, CustomVec<MarchingCubesO
 	objs.emplace_back(len_x, len_y, len_z);
 	MarchingCubesObject *obj = objs.getBackPointer();
 	aiNode *node = scene->mRootNode;
-	GameObject gameobj;
+	GameObject gameobj = GameObject(1);
 
 	// load the mesh for the model
 	recursive_add_verts(scene, node, &gameobj);
