@@ -57,7 +57,7 @@ public:
 	Shader pointshader;
 
 	// for models
-	Shader modelShader, selectedModelShader;
+	Shader modelShader, selectedModelShader, modelNormalShader;
 	GLuint VAO_models;
 	GLuint VBO_models;
 	GLuint TBO_models_buffer, TBO_models;
@@ -71,6 +71,7 @@ public:
 		const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo); // const
 	void drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
 	void drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
+	void drawObjectNormals(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
 	void draw_phys(const glm::mat4 &view, const glm::mat4 &projection);
 
 	void loadTextures();

@@ -125,6 +125,7 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer
   pointshader("shaders/points.vert", "shaders/points.frag"),
   modelShader("shaders/lighting_models.vert", "shaders/lighting_models.frag"),
   selectedModelShader("shaders/selected_models.vert", "shaders/selected_models.frag"),
+  modelNormalShader("shaders/model_normals.vert", "shaders/model_normals.frag", "shaders/model_normals.gs"),
   phys_renderer(phys_renderer)
 {
 	// TODO make a workaround for this
@@ -390,6 +391,7 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::Checkbox("Render", &Settings::render);
 	ImGui::Checkbox("Render models", &Settings::render_models);
 	ImGui::Checkbox("Select", &Settings::select);
+	ImGui::Checkbox("Show model normals", &Settings::showModelNormals);
 }
 
 void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view) {
@@ -779,7 +781,7 @@ void Renderer::checkFrameBuffer() {
 }
 
 // TODO optimize, for now 1 draw per object
-void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs) {
+void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs) {
 	if (Settings::wireframe_models) {
 		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 	}
@@ -941,11 +943,15 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 	if (Settings::wireframe_models) {
 		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 	}
+
+	if (Settings::showModelNormals) {
+		drawObjectNormals(view, projection, objs);
+	}
 }
 
 
 // copied from drawObjects!!!!!!
-void Renderer::drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &projection, const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> &objs) {
+void Renderer::drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs) {
 	if (Settings::wireframe_models) {
 		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 	}
@@ -1003,6 +1009,46 @@ void Renderer::drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &proje
 
 	if (Settings::wireframe_models) {
 		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+	}
+}
+
+void Renderer::drawObjectNormals(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs) {
+	modelNormalShader.use();
+
+	// bind VAO, VBO, TBO
+	GLCall(glBindVertexArray(this->VAO_models));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO_models));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO_models));
+	modelNormalShader.setInt("u_TransformTBO", TEXSLOTS::MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT);
+
+	// TODO clean this up, same initialization as main shader
+	modelNormalShader.setFloat("u_BloomThreshold", Settings::bloomThreshold);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, lightingFBODepthBuffer);
+
+	constexpr GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	GLCall(glDrawBuffers(2, attachments));
+
+	modelNormalShader.setMat4("u_View", view);
+	modelNormalShader.setMat4("u_Projection", projection);
+
+	for (const auto &pair : objs) {
+
+		if (pair.second.size() == 0) continue; // no entities
+
+		// verts loaded once
+		const GameObject *obj = pair.first;
+		GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj->verts.size(), obj->verts.data(), GL_STATIC_DRAW));
+		GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * obj->indices.size(), obj->indices.data(), GL_STATIC_DRAW));
+
+		// TODO use a VBO instead?
+		GLCall(glBindBuffer(GL_TEXTURE_BUFFER, TBO_models_buffer));
+		GLCall(glBufferData(GL_TEXTURE_BUFFER, pair.second.size() * sizeof(glm::mat4), pair.second.data(), GL_STATIC_DRAW));
+		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT)); // TODO call this only once?
+		GLCall(glBindTexture(GL_TEXTURE_BUFFER, TBO_models));
+
+
+		GLCall(glDrawElementsInstanced(GL_TRIANGLES, obj->indices.size(), GL_UNSIGNED_INT, 0, pair.second.size()));
 	}
 }
 

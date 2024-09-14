@@ -27,6 +27,7 @@ struct Settings {
 	static bool render_physics;
 	static bool render;
 	static bool render_models;
+	static bool showModelNormals;
 
 	static float raycast_len;
 	static bool select;

@@ -20,6 +20,7 @@ bool Settings::wireframe_models = false;
 bool Settings::render_physics = false;
 bool Settings::render = true;
 bool Settings::render_models = true;
+bool Settings::showModelNormals = false;
 
 float Settings::raycast_len = 100.0f;
 bool Settings::select = false;
