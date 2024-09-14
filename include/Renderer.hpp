@@ -57,7 +57,7 @@ public:
 	Shader pointshader;
 
 	// for models
-	Shader modelShader, selectedModelShader, modelNormalShader;
+	Shader modelShader, selectedModelShader, modelNormalShader, outlineShader;
 	GLuint VAO_models;
 	GLuint VBO_models;
 	GLuint TBO_models_buffer, TBO_models;

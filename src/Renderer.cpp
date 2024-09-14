@@ -126,6 +126,7 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer
   modelShader("shaders/lighting_models.vert", "shaders/lighting_models.frag"),
   selectedModelShader("shaders/selected_models.vert", "shaders/selected_models.frag"),
   modelNormalShader("shaders/model_normals.vert", "shaders/model_normals.frag", "shaders/model_normals.gs"),
+  outlineShader("shaders/outline.vert", "shaders/outline.frag"),
   phys_renderer(phys_renderer)
 {
 	// TODO make a workaround for this
@@ -404,7 +405,8 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 
 	//////////////////////////////////////////////// he normal scene is drawn into the lighting framebuffer, where the bright colors are then separated
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, lightingFBO));
-    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glStencilMask(0xFF); // allow writing to all bits, otherwise clear does not even work
+    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		if (Settings::wireframe) {
 			GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 		}
@@ -531,9 +533,6 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 		// GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, spotLightBuffer)); // bind the buffer to the texture (has been done while setting up)
 		mainShader.setInt("u_SpotLightTBO", TEXSLOTS::SPOTLIGHT_TEXTURE_BUFFER_SLOT);
 		mainShader.setInt("u_NumSpotLights", 0);
-
-		// bind the render buffer to this FBO (maybe this is missing actualy binding it, idk, but it gets regenerated automatically when screen is resized)
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, lightingFBODepthBuffer);
 
 		// specify 2 attachments
 		constexpr GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
@@ -717,6 +716,7 @@ void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const
 }
 
 // make sure fbo is bound before calling this
+// !!!! I changed from GL_DEPTH_COMPONENT to GL_DEPTH24_STENCIL8 and GL_DEPTH_ATTACHMENT to GL_DEPTH_STENCIL_ATTACHMENT
 void Renderer::generate_FBO_depth_buffer(GLuint *depthBuffer) const {
 
 	if (*depthBuffer > 0) {
@@ -725,7 +725,9 @@ void Renderer::generate_FBO_depth_buffer(GLuint *depthBuffer) const {
 
 	glGenRenderbuffers(1, depthBuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, *depthBuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, this->viewport_width, this->viewport_height);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->viewport_width, this->viewport_height);
+	// bind the render buffer to this FBO (maybe this is missing actualy binding it, idk, but it gets regenerated automatically when screen is resized)
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, *depthBuffer);
 }
 
 // this does NOT take into acount currently used textures slots etc, only here for organisation
@@ -901,9 +903,6 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 	modelShader.setInt("u_SpotLightTBO", TEXSLOTS::SPOTLIGHT_TEXTURE_BUFFER_SLOT);
 	modelShader.setInt("u_NumSpotLights", 0);
 
-	// bind the render buffer to this FBO (maybe this is missing actualy binding it, idk, but it gets regenerated automatically when screen is resized)
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, lightingFBODepthBuffer);
-
 	// specify 2 attachments
 	constexpr GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	GLCall(glDrawBuffers(2, attachments));
@@ -952,6 +951,15 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 
 // copied from drawObjects!!!!!!
 void Renderer::drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs) {
+	// setup stencil
+	glEnable(GL_STENCIL_TEST);
+	// glClear(GL_STENCIL_BUFFER_BIT);
+	// Configure stencil to write operation
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF); // Always pass the stencil test
+    glStencilMask(0xFF); // Enable writing to the stencil buffer
+
+
 	if (Settings::wireframe_models) {
 		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 	}
@@ -976,8 +984,6 @@ void Renderer::drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &proje
 	selectedModelShader.setInt("u_SpotLightTBO", TEXSLOTS::SPOTLIGHT_TEXTURE_BUFFER_SLOT);
 	selectedModelShader.setInt("u_NumSpotLights", 0);
 
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, lightingFBODepthBuffer);
-
 	constexpr GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	GLCall(glDrawBuffers(2, attachments));
 
@@ -986,9 +992,42 @@ void Renderer::drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &proje
 
 	selectedModelShader.setVec4("u_Color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
+	// TODO optimize this mess
 	if (Settings::render_models) {
+		// first pass, render normally. will write to stencil buffer
 		for (const auto &pair : objs) {
 
+			if (pair.second.size() == 0) continue; // no entities (can this ever happen????? TODO)
+
+			// verts loaded once
+			const GameObject *obj = pair.first;
+			GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj->verts.size(), obj->verts.data(), GL_STATIC_DRAW));
+			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * obj->indices.size(), obj->indices.data(), GL_STATIC_DRAW));
+
+			// TODO use a VBO instead?
+			GLCall(glBindBuffer(GL_TEXTURE_BUFFER, TBO_models_buffer));
+			GLCall(glBufferData(GL_TEXTURE_BUFFER, pair.second.size() * sizeof(glm::mat4), pair.second.data(), GL_STATIC_DRAW));
+			GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT)); // TODO call this only once?
+			GLCall(glBindTexture(GL_TEXTURE_BUFFER, TBO_models));
+
+
+			GLCall(glDrawElementsInstanced(GL_TRIANGLES, obj->indices.size(), GL_UNSIGNED_INT, 0, pair.second.size()));
+		}
+
+		// second pass, mask against stencil buffer, draw slightly larger versions
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+
+		outlineShader.use();
+		outlineShader.setInt("u_TransformTBO", TEXSLOTS::MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT);
+		outlineShader.setMat4("u_View", view);
+		outlineShader.setMat4("u_Projection", projection);
+		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(1.1f, 1.1f, 1.1f));
+		outlineShader.setMat4("u_Model", model);
+		outlineShader.setMat4("u_Projection", projection);
+
+		for (const auto &pair : objs) {
 			if (pair.second.size() == 0) continue; // no entities
 
 			// verts loaded once
@@ -1010,6 +1049,10 @@ void Renderer::drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &proje
 	if (Settings::wireframe_models) {
 		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 	}
+
+	// cleanup stencil, so that other draw calls don't use it
+	glDisable(GL_STENCIL_TEST);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer::drawObjectNormals(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs) {
@@ -1023,8 +1066,6 @@ void Renderer::drawObjectNormals(const glm::mat4 &view, const glm::mat4 &project
 
 	// TODO clean this up, same initialization as main shader
 	modelNormalShader.setFloat("u_BloomThreshold", Settings::bloomThreshold);
-
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, lightingFBODepthBuffer);
 
 	constexpr GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	GLCall(glDrawBuffers(2, attachments));
