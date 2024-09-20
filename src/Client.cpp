@@ -161,8 +161,9 @@ void Client::mainloop() {
 		// audio.play();
 	}
 
-	// uint32_t idsphere_mc = 0;
-	// world->spawnMarchingCubes(idsphere_mc, glm::ivec3(0, -40, 0));
+	uint32_t idsphere_mc = 0;
+	world->spawnMarchingCubes(idsphere_mc, glm::ivec3(0, -40, 0));
+	world->spawnMarchingCubes(idsphere_mc, glm::ivec3(-60, -30, -75));
 
 	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
 	// // world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
@@ -264,14 +265,15 @@ void Client::mainloop() {
         currentFrameTime = glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;
 
-		// if (renderer.get()->limitFPS) {
-		// 	const double fps_time = 1.0f / renderer.get()->fps;
-		// 	if (deltaTime < fps_time) {
-		// 		const double sleepTime = (fps_time - deltaTime) * 10E5; // multiply to get from seconds to microseconds, this is prob platform dependent and very bad
-		// 		usleep(sleepTime);
-		// 		deltaTime = fps_time;
-		// 	}
-		// }
+		// for some reason I started getting coil whine and felt like destroying my pc so I'll limit the fps here temporarily
+		if (Settings::limitFPS) {
+			const double fps_time = 1.0f / Settings::fps;
+			if (deltaTime < fps_time) {
+				const double sleepTime = (fps_time - deltaTime) * 10E5; // multiply to get from seconds to microseconds, this is prob platform dependent and very bad
+				usleep(sleepTime);
+				deltaTime = fps_time;
+			}
+		}
 
 		// set listener props
 		Audio::ALContext::setListenerPosition(pos.pos);

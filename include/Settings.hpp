@@ -32,6 +32,9 @@ struct Settings {
 	static float raycast_len;
 	static bool select;
 
+	static bool limitFPS;
+	static float fps;
+
 	static void setFov(GLdouble _fov) {
 		Settings::fov = _fov;
 	}

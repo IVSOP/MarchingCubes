@@ -448,7 +448,6 @@ uint32_t World::loadModel(const std::string &name) {
 uint32_t World::loadModelMarchingCubes(const std::string &name, uint32_t len_x, uint32_t len_y, uint32_t len_z) {
 	uint32_t size = this->mc_objects_info.size();
 	Assets::loadMarchingCubes(name, this->mc_objects_info, len_x, len_y, len_z);
-	// id_to_model.emplace(size, name);
 	return size;
 }
 
@@ -491,14 +490,12 @@ entt::entity World::spawnCharacter(uint32_t object_id, const JPH::Vec3 &translat
 void World::spawnMarchingCubes(uint32_t object_id, const glm::ivec3 &pos) {
 	const MarchingCubesObject &obj = mc_objects_info[object_id];
 
-	Log::log(LOG_TYPE::WARN, "this function does nothing for now");
-
 	for (uint32_t y = 0; y < obj.len_y; y++) {
 		for (uint32_t z = 0; z < obj.len_z; z++) {
 			for (uint32_t x = 0; x < obj.len_x; x++) {
 				switch (obj.get(x, y, z)) {
 					case true:
-						// setBit(pos + glm::ivec3(x, y, z));
+						setBit(pos + glm::ivec3(x, y, z));
 						break;
 					case false:
 						// clearBit(pos + glm::ivec3(x, y, z));
@@ -667,7 +664,7 @@ void World::loadModels() {
 	(void)loadModel("prim/bigsphere.glb", "prim/bigsphere-hitbox.json");
 
 	// marching cubes models
-	// (void)loadModelMarchingCubes("prim/bigsphere.glb", 32, 32, 32);
+	(void)loadModelMarchingCubes("prim/bigsphere.glb", 32, 32, 32);
 }
 
 World::World(FileHandler &file)
@@ -726,5 +723,48 @@ World::World(FileHandler &file)
 		JPH::Body *body = createBodyFromID(render.object_id, position, rotation);
 		entt_registry.replace<Physics>(entity, body);
 		Phys::activateBody(body);
+	}
+}
+
+void World::setBit(const glm::ivec3 &position) {
+	// bits overlap over up to 8 chunks
+	// this gives you ONE of the chunks it belongs to
+	// Chunk *chunk = &chunks
+	// 	[static_cast<GLuint>((static_cast<GLfloat>(pos.x) / CHUNK_SIZE_CORNERS_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f))]
+	// 	[static_cast<GLuint>((static_cast<GLfloat>(pos.y) / CHUNK_SIZE_CORNERS_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f))]
+	// 	[static_cast<GLuint>((static_cast<GLfloat>(pos.z) / CHUNK_SIZE_CORNERS_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f))];
+
+	// I have to deal with the problem where coordinates at (for example) 0 or 31 should also affect other chunks
+	// I don't know what is the fastest way of doing this, checking what coordinates overlap and how they overlap or just
+	// bruteforce looking into all the nearest chunks, since the logic gets complicated when values are negative
+	for (int x = -1; x <= 1; x++) {
+		for (int y = -1; y <= 1; y++) {
+			for (int z = -1; z <= 1; z++) {
+
+				// doing +- 1 is dangerous. clamp to 0 is free due to GLuint, clamp to MAX is not
+				// however clamp() takes in a min value
+				// all I need is to generate a bitmask so I'll do that
+				// the chunk might not be useable but this will get caught in the if at the bottom
+				Chunk *chunk = &chunks
+					[(static_cast<GLuint>((static_cast<GLfloat>(position.x) / CHUNK_SIZE_CORNERS_FLOAT) + (WORLD_SIZE_X_FLOAT / 2.0f)) + x) & WORLD_SIZE_X_MASK]
+					[(static_cast<GLuint>((static_cast<GLfloat>(position.y) / CHUNK_SIZE_CORNERS_FLOAT) + (WORLD_SIZE_Y_FLOAT / 2.0f)) + y) & WORLD_SIZE_Y_MASK]
+					[(static_cast<GLuint>((static_cast<GLfloat>(position.z) / CHUNK_SIZE_CORNERS_FLOAT) + (WORLD_SIZE_Z_FLOAT / 2.0f)) + z) & WORLD_SIZE_Z_MASK];
+
+				// now, given this chunk, get the relative position inside it.
+
+				// TODO this can be faster, ugly hack
+				const glm::ivec3 chunkpos = getChunkCoordsByID(chunk - &chunks[0][0][0]);
+
+				const glm::ivec3 relpos = position - chunkpos;
+
+				const glm::u8vec3 finalpos = glm::u8vec3(relpos);
+				// check if the position is actually inside the chunk
+				if (finalpos.x > CHUNK_SIZE || finalpos.y > CHUNK_SIZE || finalpos.z > CHUNK_SIZE) {
+					// then it does not belong to this chunk, do nothing
+				} else {
+					chunk->addCornerAt(finalpos, 1);
+				}
+			}
+		}
 	}
 }

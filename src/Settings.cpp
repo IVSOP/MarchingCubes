@@ -24,3 +24,6 @@ bool Settings::showModelNormals = false;
 
 float Settings::raycast_len = 100.0f;
 bool Settings::select = false;
+
+bool Settings::limitFPS = true;
+float Settings::fps = 165.0f;

@@ -180,6 +180,7 @@ private:
 
 	// // to allow spawning entities using the model name instead of the ID, but will be slower
 	// std::unordered_map<std::string, uint32_t> name_to_id;
+	void setBit(const glm::ivec3 &pos);
 };
 
 
