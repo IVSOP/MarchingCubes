@@ -393,6 +393,7 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::Checkbox("Render models", &Settings::render_models);
 	ImGui::Checkbox("Select", &Settings::select);
 	ImGui::Checkbox("Show model normals", &Settings::showModelNormals);
+	ImGui::SliderFloat("FPS limit", &Settings::fps, 0.0f, 240.0f, "FPS limit = %.3f");
 }
 
 void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view) {
