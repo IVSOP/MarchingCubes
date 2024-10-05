@@ -128,6 +128,8 @@ void Assets::loadMarchingCubes(const std::string &name, CustomVec<MarchingCubesO
 
 	// turn the mesh into marching cubes
 	EmbreeWrapper::marcheCubes(obj, gameobj.verts, gameobj.indices, len_x, len_y, len_z);
+
+	// TODO free things here???
 }
 
 

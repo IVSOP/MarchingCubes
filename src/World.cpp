@@ -459,7 +459,6 @@ JPH::Body *World::createBodyFromID(uint32_t id, const JPH::Vec3 &translation, co
 
 static_assert(sizeof(entt::entity) <= sizeof(void *), "Entity does not fit into user data");
 
-// TODO this is a bit of a mess, make the Physics itself able to activate the body
 entt::entity World::spawn(uint32_t render_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
 	// create a body (not activated)
 	JPH::Body *body = createBodyFromID(render_id, translation, rotation);
@@ -665,6 +664,7 @@ void World::loadModels() {
 
 	// marching cubes models
 	(void)loadModelMarchingCubes("prim/bigsphere.glb", 32, 32, 32);
+	(void)loadModelMarchingCubes("magujo/magujo-big.glb", 128, 128, 128);
 }
 
 World::World(FileHandler &file)
