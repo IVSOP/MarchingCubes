@@ -209,6 +209,7 @@ void Client::mainloop() {
 		Direction dir = player->getDir();
 		Movement  mov = player->getMov();
 
+		// voxel ray cast to break or place things
 		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(pos.pos, dir.front, Settings::break_range);
         inputHandler.applyInputs(
 			world.get(),
@@ -216,8 +217,8 @@ void Client::mainloop() {
 			Settings::break_radius,
 			player.get(), windowManager->windowWidth, windowManager->windowHeight, static_cast<GLfloat>(deltaTime));
 
+		// physics ray cast to select entities, only if in selection mode
 		if (Settings::select) {
-			// ray cast to select entities
 			glm::vec3 raydir = dir.front * Settings::raycast_len;
 			// to prevent from colliding with the body of the player itself I did this, will change in the future
 			glm::vec3 rayorigin = pos.pos + (dir.front * 3.5f);
@@ -229,12 +230,13 @@ void Client::mainloop() {
 		}
 
 
-
 		const int collisionSteps = 1;
-		Phys::update(deltaTime, collisionSteps);
+		Phys::update(deltaTime, collisionSteps); // TODO wait what? Doesn't this mean I don't know the player position yet????????
 
+		Audio::ALContext::setListenerPosition(pos.pos);
+		Audio::ALContext::setListenerVelocity(player->getVelocity());
+		Audio::ALContext::setListenerOrientation(dir.front, dir.up);
 		player->postTick();
-
 
         // std::unique_lock<std::mutex> lock = std::unique_lock<std::mutex>(mtx);
         // renderer.get()->draw(draw_quads, projection, *camera.get(), window, deltaTime);
@@ -264,11 +266,18 @@ void Client::mainloop() {
 			mov,
 			selectedBlock);
 		
-        // lock.unlock();
+		if (Settings::insert) {
+			GLuint insertID = 0;
+			const GameObject *insertObj = world->getObject(insertID);
+			glm::quat rot(1.0f, 0.0f, 0.0f, 0.0f);
+			const InsertInfo insertInfo = InsertInfo(insertObj, rot, selectedBlock.world_pos);
 
+			renderer->drawInsert(view, windowManager->projection, insertInfo);
+		}
 
-		// 	phys.applyToPosition(phys_pos_view.get<Position>(entity).pos, static_cast<GLfloat>(deltaTime));
-		// }
+		renderer->postProcess(Settings::bloomBlurPasses);
+		renderer->endFrame(windowManager->window);
+
 
         currentFrameTime = glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;
@@ -282,11 +291,6 @@ void Client::mainloop() {
 				deltaTime = fps_time;
 			}
 		}
-
-		// set listener props
-		Audio::ALContext::setListenerPosition(pos.pos);
-		Audio::ALContext::setListenerVelocity(player->getVelocity());
-		Audio::ALContext::setListenerOrientation(dir.front, dir.up);
 
 		// set audio for all entities
 		{

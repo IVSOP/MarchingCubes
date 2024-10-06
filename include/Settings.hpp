@@ -7,19 +7,21 @@
 // all player settings are set here like global vars
 // it makes sense to make them be owned by many classes, so no one ows them
 struct Settings {
+	// camera
 	static GLdouble fov;
 	static GLdouble znear;
 	static GLdouble zfar;
+
 	static std::string saves_dir;
 
+	// rendering parameters
 	static GLfloat gamma;
 	static GLfloat exposure;
 	static int bloomBlurPasses;
 	static GLfloat bloomThreshold;
 	static GLfloat bloomOffset;
-	static GLfloat break_radius;
-	static GLfloat break_range;
 
+	// rendering options
 	static bool showAxis;
 	static bool showNormals;
 	static bool wireframe;
@@ -29,9 +31,19 @@ struct Settings {
 	static bool render_models;
 	static bool showModelNormals;
 
+	// breaking
+	static GLfloat break_radius;
+	static GLfloat break_range;
+
+	// entity selection
 	static float raycast_len;
 	static bool select;
 
+	// inserting entities
+	// break_range is used by this too
+	static bool insert;
+
+	// fps
 	static bool limitFPS;
 	static float fps;
 

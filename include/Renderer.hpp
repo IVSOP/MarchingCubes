@@ -16,6 +16,17 @@
 
 using DrawObjects = std::vector<std::pair<GameObject *, std::vector<glm::mat4>>>;
 
+struct InsertInfo {
+	const GameObject *obj;
+	glm::quat rot;
+	glm::ivec3 pos; // make this already be vec3??
+
+	InsertInfo(const GameObject *obj, glm::quat &rot, const glm::ivec3 &pos)
+	: obj(obj), rot(rot), pos(pos) {}
+
+	~InsertInfo() = default;
+};
+
 // TODO many things are not deleted (ex: all related to models)
 class Renderer {
 public:
@@ -57,7 +68,7 @@ public:
 	Shader pointshader;
 
 	// for models
-	Shader modelShader, selectedModelShader, modelNormalShader, outlineShader;
+	Shader modelShader, selectedModelShader, modelNormalShader, outlineShader, insertShader;
 	GLuint VAO_models;
 	GLuint VBO_models;
 	GLuint TBO_models_buffer, TBO_models;
@@ -69,10 +80,13 @@ public:
 
 	void draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const DrawObjects &objs,
 		const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo); // const
+	void postProcess(int bloomBlurPasses);
+	void endFrame(GLFWwindow * window);
 	void drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
 	void drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
 	void drawObjectNormals(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
 	void draw_phys(const glm::mat4 &view, const glm::mat4 &projection);
+	void drawInsert(const glm::mat4 &view, const glm::mat4 &projection, const InsertInfo &insertInfo);
 
 	void loadTextures();
 	void resizeViewport(GLsizei viewport_width, GLsizei viewport_height);
@@ -87,7 +101,6 @@ private:
 	void drawNormals(const CustomVec<Vertex> &verts, const std::vector<IndirectData> &indirect, const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 	void bloomBlur(int passes);
 	void merge();
-	void endFrame(GLFWwindow * window);
 };
 
 #endif

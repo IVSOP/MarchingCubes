@@ -162,6 +162,7 @@ public:
 	// vector of pair<render info for a single instance, array of transforms of all entities to be drawn>
 	const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> getEntitiesToDraw(const Frustum &frustum);
 	const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> getSelectedEntities();
+	const GameObject *getObject(GLuint id);
 
 	void save(FileHandler &file);
 

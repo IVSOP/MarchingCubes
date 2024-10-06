@@ -521,6 +521,7 @@ solution was to make not even the Render be owned
 */
 // TODO actually use the frustum
 // TODO res[render.object_id] is very danger, might as well use a static array
+// this returns a vector of pair<pointer to object, vector of transform matrix>. a given object can be instanced in many places, using the transform
 const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEntitiesToDraw(const Frustum &frustum) {
 	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res(objects_info.size());
 
@@ -566,6 +567,7 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getSel
 			const Physics &phys = group.get<Physics>(entity);
 			const Render &render = group.get<Render>(entity);
 
+			// get the vector of transforms of this object and add a new transform
 			res[render.object_id].second.emplace_back(phys.getTransform());
 			selected_entts.emplace_back(entity);
 		}
@@ -767,4 +769,8 @@ void World::setBit(const glm::ivec3 &position) {
 			}
 		}
 	}
+}
+
+const GameObject *World::getObject(GLuint id) {
+	return &(this->objects_info[id]);
 }

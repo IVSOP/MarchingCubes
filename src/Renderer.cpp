@@ -12,6 +12,11 @@
 #include "Phys.hpp"
 #include "Settings.hpp"
 
+// TODO get this out of here too
+#include <glm/gtc/quaternion.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
 // TODO manage texture slots somewhere
 // I hate cpp enums so much, I can't I use enum class ... : int and have it convert to a fucking int
 // TODO when should I use GL_TEXTURE0???????????????????????????????????????
@@ -127,6 +132,7 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer
   selectedModelShader("shaders/selected_models.vert", "shaders/selected_models.frag"),
   modelNormalShader("shaders/model_normals.vert", "shaders/model_normals.frag", "shaders/model_normals.gs"),
   outlineShader("shaders/outline.vert", "shaders/outline.frag"),
+  insertShader("shaders/insert.vert", "shaders/insert.frag"),
   phys_renderer(phys_renderer)
 {
 	// TODO make a workaround for this
@@ -394,6 +400,7 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::Checkbox("Select", &Settings::select);
 	ImGui::Checkbox("Show model normals", &Settings::showModelNormals);
 	ImGui::SliderFloat("FPS limit", &Settings::fps, 0.0f, 240.0f, "FPS limit = %.3f");
+	ImGui::Checkbox("Insert", &Settings::insert);
 }
 
 void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view) {
@@ -611,7 +618,6 @@ void Renderer::bloomBlur(int passes) {
 		// bind FBO, attach texture, clear color buffer
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[1]));
 		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::BRIGHT_TEXTURE_SLOT));
-		GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::BRIGHT_TEXTURE_SLOT));
 		GLCall(glBindTexture(GL_TEXTURE_2D, pingpongTextures[1])); // use texture from pong
 		blurShader.setInt("u_BlurBuffer", TEXSLOTS::BRIGHT_TEXTURE_SLOT);
 
@@ -691,6 +697,11 @@ void Renderer::endFrame(GLFWwindow * window) {
     glfwSwapBuffers(window);
 }
 
+void Renderer::postProcess(int bloomBlurPasses) {
+	bloomBlur(bloomBlurPasses);
+	merge();
+}
+
 void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const DrawObjects &objs, const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo) {
 	ZoneScoped;
 	
@@ -702,18 +713,6 @@ void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const
 	if (Settings::render_physics) {
 		draw_phys(view, projection);
 	}
-
-	bloomBlur(Settings::bloomBlurPasses);
-	merge();
-
-	// ImGui::Checkbox("Limit FPS", &limitFPS);
-	// if (limitFPS) {
-	// 	const double f64_min = 0.0, f64_max = 240.0;
-	// 	ImGui::SliderScalar("Target FPS", ImGuiDataType_Double, &fps, &f64_min, &f64_max, "Target FPS = %.0f");
-	// }
-
-
-	endFrame(window);
 }
 
 // make sure fbo is bound before calling this
@@ -928,7 +927,7 @@ void Renderer::drawObjects(const glm::mat4 &view, const glm::mat4 &projection, c
 			GLCall(glActiveTexture(TEXSLOTS::BASESLOT + TEXSLOTS::MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT)); // TODO call this only once?
 			GLCall(glBindTexture(GL_TEXTURE_BUFFER, TBO_models));
 
-			// TODO compute normal matrices here on the cpu?
+			// TODO compute normal matrices here on the cpu
 
 			GLCall(glDrawElementsInstanced(GL_TRIANGLES, obj->indices.size(), GL_UNSIGNED_INT, 0, pair.second.size()));
 
@@ -1112,4 +1111,61 @@ void Renderer::draw_phys(const glm::mat4 &view, const glm::mat4 &projection) {
 	axisShader.setMat4("u_MVP", projection * view);
 
 	GLCall(glDrawArrays(GL_TRIANGLES, 0, verts.size()));
+}
+
+void Renderer::drawInsert(const glm::mat4 &view, const glm::mat4 &projection, const InsertInfo &insertInfo) {
+	if (Settings::wireframe_models) {
+		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+	}
+	
+	insertShader.use();
+
+	// bind VAO, VBO, TBO
+	GLCall(glBindVertexArray(this->VAO_models));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO_models));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->IBO_models));
+
+	insertShader.setFloat("u_BloomThreshold", Settings::bloomThreshold);
+
+	insertShader.setInt("u_MaterialTBO", TEXSLOTS::MATERIAL_TEXTURE_BUFFER_SLOT);
+
+	insertShader.setInt("u_PointLightTBO", TEXSLOTS::POINTLIGHT_TEXTURE_BUFFER_SLOT);
+	insertShader.setInt("u_NumPointLights", 0);
+
+	insertShader.setInt("u_DirLightTBO", TEXSLOTS::DIRLIGHT_TEXTURE_BUFFER_SLOT);
+	insertShader.setInt("u_NumDirLights", 1);
+
+	insertShader.setInt("u_SpotLightTBO", TEXSLOTS::SPOTLIGHT_TEXTURE_BUFFER_SLOT);
+	insertShader.setInt("u_NumSpotLights", 0);
+
+	// specify 2 attachments
+	constexpr GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	GLCall(glDrawBuffers(2, attachments));
+
+	// insertShader.validate();
+	insertShader.setMat4("u_View", view);
+	insertShader.setMat4("u_Projection", projection);
+
+
+	// TODO get this out of here
+	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(insertInfo.pos));
+	glm::mat4 rotationMatrix = glm::toMat4(insertInfo.rot); // TODO use glm::rotate instead???
+	const glm::mat4 model = translationMatrix * rotationMatrix;
+	insertShader.setMat4("u_Model", model);
+
+	const GameObject *obj = insertInfo.obj;
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(ModelVertex) * obj->verts.size(), obj->verts.data(), GL_STATIC_DRAW));
+	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * obj->indices.size(), obj->indices.data(), GL_STATIC_DRAW));
+
+	// TODO use a VBO instead?
+	GLCall(glBindBuffer(GL_TEXTURE_BUFFER, TBO_models_buffer));
+
+
+	// TODO compute normal matrix here on the cpu
+
+	GLCall(glDrawElements(GL_TRIANGLES, obj->indices.size(), GL_UNSIGNED_INT, reinterpret_cast<const GLvoid *>(0)));
+
+	if (Settings::wireframe_models) {
+		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+	}
 }
