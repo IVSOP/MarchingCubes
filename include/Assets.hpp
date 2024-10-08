@@ -9,25 +9,12 @@
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
 #include "embree.hpp"
+#include "ObjectInfo.hpp"
 
 #define ASSETS_FOLDER "assets/"
 
 
 // TODO make a separate struct and map for hitboxes. for now, if model exists the same hitbox is always used
-
-// info about an object, allowing to render it and make its physics object
-struct GameObject {
-	CustomVec<ModelVertex> verts;
-	std::vector<GLuint> indices; // TODO use CustomVec???
-
-	JPH::RefConst<JPH::Shape> phys_shape;
-
-	GameObject() : verts(1) {} // cursed
-	GameObject(std::size_t vert_cap) : verts(vert_cap) {}
-																			 // can I do this??? what happens to the underlying data
-	// GameObject(CustomVec<ModelVertex> verts, std::vector<GLuint> indices) : verts(verts), indices(indices) {}
-	~GameObject() = default;
-};
 
 // uses assimp to import things
 class Assets {

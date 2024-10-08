@@ -12,20 +12,9 @@
 
 #include "PhysRenderer.hpp"
 
-#include "Phys.hpp" // cursed, to call Phys::buildDebugVerts();
+#include "Phys.hpp" // cursed, to call Phys::buildDebugVerts(); and get InsertInfo
 
 using DrawObjects = std::vector<std::pair<GameObject *, std::vector<glm::mat4>>>;
-
-struct InsertInfo {
-	const GameObject *obj;
-	glm::quat rot;
-	glm::ivec3 pos; // make this already be vec3??
-
-	InsertInfo(const GameObject *obj, glm::quat &rot, const glm::ivec3 &pos)
-	: obj(obj), rot(rot), pos(pos) {}
-
-	~InsertInfo() = default;
-};
 
 // TODO many things are not deleted (ex: all related to models)
 class Renderer {
@@ -86,7 +75,7 @@ public:
 	void drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
 	void drawObjectNormals(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
 	void draw_phys(const glm::mat4 &view, const glm::mat4 &projection);
-	void drawInsert(const glm::mat4 &view, const glm::mat4 &projection, const InsertInfo &insertInfo);
+	void drawInsert(const glm::mat4 &view, const glm::mat4 &projection, const InsertInfo &insertInfo, bool valid);
 
 	void loadTextures();
 	void resizeViewport(GLsizei viewport_width, GLsizei viewport_height);

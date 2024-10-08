@@ -1113,7 +1113,7 @@ void Renderer::draw_phys(const glm::mat4 &view, const glm::mat4 &projection) {
 	GLCall(glDrawArrays(GL_TRIANGLES, 0, verts.size()));
 }
 
-void Renderer::drawInsert(const glm::mat4 &view, const glm::mat4 &projection, const InsertInfo &insertInfo) {
+void Renderer::drawInsert(const glm::mat4 &view, const glm::mat4 &projection, const InsertInfo &insertInfo, bool valid) {
 	if (Settings::wireframe_models) {
 		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 	}
@@ -1145,6 +1145,14 @@ void Renderer::drawInsert(const glm::mat4 &view, const glm::mat4 &projection, co
 	// insertShader.validate();
 	insertShader.setMat4("u_View", view);
 	insertShader.setMat4("u_Projection", projection);
+
+	glm::vec4 color;
+	if (valid) {
+		color = glm::vec4(0.0f, 1.0f, 0.0f, 0.5f);
+	} else {
+		color = glm::vec4(1.0f, 0.0f, 0.0f, 0.5f);
+	}
+	insertShader.setVec4("u_Color", color);
 
 
 	// TODO get this out of here

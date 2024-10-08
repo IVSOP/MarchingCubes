@@ -73,6 +73,8 @@ uniform int u_NumSpotLights = 0;
 
 uniform float u_BloomThreshold = 1.0;
 
+uniform vec4 u_Color = vec4(1.0, 1.0, 1.0, 1.0);
+
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, Material material);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, Material material);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, Material material);
@@ -143,7 +145,7 @@ void main() {
 	res_color.rgb += material.emissive.rgb;
 
 	// apply texture at the end, merge colors
-	color = res_color * texture(u_TextureArraySlot, vec3(fs_in.v_TexCoord.xy, material.texture_id));
+	color = u_Color * res_color * texture(u_TextureArraySlot, vec3(fs_in.v_TexCoord.xy, material.texture_id));
 
 	float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722)); // common approximation of luminance based on human perception of color (or so I'm told)
     if(brightness > u_BloomThreshold) {

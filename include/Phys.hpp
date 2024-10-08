@@ -28,11 +28,17 @@
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/CollideShape.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 
 #include "PhysRenderer.hpp"
 
+#include "ObjectInfo.hpp"
+
 JPH_SUPPRESS_WARNINGS
+
+// TODO GET THIS THE FUCK OUT OF HERE
+struct InsertInfo;
 
 // JPH_NAMESPACE_BEGIN
 
@@ -201,6 +207,7 @@ public:
 	static JPH::RefConst<JPH::Shape> createShapeFromJson(const json &data);
 	static JPH::RefConst<JPH::Shape> createConvexHull(const CustomVec<ModelVertex> &verts, const std::vector<GLuint> &indices);
 	static JPH::Body *createBodyFromShape(JPH::RefConst<JPH::Shape> shape, const JPH::Vec3 &translation, const JPH::Quat &rotation);
+	static JPH::Body *createFakeBodyFromShape(JPH::RefConst<JPH::Shape> shape, const JPH::Vec3 &translation, const JPH::Quat &rotation);
 	static void activateBody(const JPH::Body *body);
 	static void addBodyToSystem(const JPH::Body *body);
 
@@ -225,8 +232,21 @@ public:
 	static void setUserData(JPH::Body *body, UserData data);
 	static UserData getUserData(JPH::Body *body);
 	static UserData getUserData(JPH::BodyID bodyID);
+
+	static bool checkIntersection(const InsertInfo &insertInfo);
 };
 
+// TODO GET THIS THE FUCK OUT OF HERE
+struct InsertInfo {
+	const GameObject *obj;
+	glm::quat rot;
+	glm::ivec3 pos; // make this already be vec3??
+
+	InsertInfo(const GameObject *obj, glm::quat &rot, const glm::ivec3 &pos)
+	: obj(obj), rot(rot), pos(pos) {}
+
+	~InsertInfo() = default;
+};
 
 // JPH_NAMESPACE_END
 

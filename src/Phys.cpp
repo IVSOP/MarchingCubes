@@ -375,6 +375,15 @@ JPH::Body *Phys::createBodyFromShape(JPH::RefConst<JPH::Shape> shape, const JPH:
 	return body;
 }
 
+// doesnt add it to phys system
+JPH::Body *Phys::createFakeBodyFromShape(JPH::RefConst<JPH::Shape> shape, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
+	BodyCreationSettings bodySettings(shape, translation, rotation, EMotionType::Dynamic, Layers::MOVING);
+	BodyInterface &bodyInterface = getBodyInterface();
+	Body* body = bodyInterface.CreateBody(bodySettings);
+	// bodyInterface.AddBody(body->GetID(), EActivation::DontActivate);
+	return body;
+}
+
 void Phys::activateBody(const JPH::Body *body) {
 	BodyInterface &bodyInterface = getBodyInterface();
 
@@ -555,10 +564,11 @@ BodyID Phys::raycastBody(const JPH::Vec3 &origin, const JPH::Vec3 &direction_and
 	// Phys::getBroadPhase().CastRay(ray, collector);
 	// return collector.mHit.mBodyID;
 
-	// version usng narrow phase
+	// version using narrow phase
 	RRayCast ray {origin, direction_and_len};
 	// TODO prevent this object from being constructed here
 	RayBroadPhaseFilter filter;
+	// res is a simple collector that only registers the first hit
 	RayCastResult res; // {<JPH::BroadPhaseCastResult> = {mBodyID = {static cInvalidBodyID = 4294967295, static cBroadPhaseBit = 8388608, static cMaxBodyIndex = 8388607, static cMaxSequenceNumber = 255 '\377', mID = 32512}, mFraction = 1.36915773e+14}, mSubShapeID2 = {static MaxBits = 32, static cEmpty = 4294967295, mValue = 21845}}
 	Phys::getNarrowPhase().CastRay(ray, res, filter);
 	// if (res.mBodyID.IsInvalid()) {
@@ -602,4 +612,136 @@ UserData Phys::getUserData(JPH::Body *body) {
 UserData Phys::getUserData(JPH::BodyID bodyID) {
 	BodyInterface &bodyInterface = getBodyInterface();
 	return UserData(bodyInterface.GetUserData(bodyID));
+}
+
+// https://jrouwe.github.io/JoltPhysics/class_broad_phase_query.html
+// https://jrouwe.github.io/JoltPhysics/class_narrow_phase_query.html
+// https://jrouwe.github.io/JoltPhysics/class_shape.html
+// NOTE I'm stupid so this returns true if the object can be placed (no intersection)
+// TODO clean this up
+bool Phys::checkIntersection(const InsertInfo &insertInfo) {
+	const JPH::Vec3 scale = JPH::Vec3::sReplicate(1.0f);
+	const JPH::Vec3 pos = JPH::Vec3(static_cast<float>(insertInfo.pos.x), static_cast<float>(insertInfo.pos.y), static_cast<float>(insertInfo.pos.z));
+	const JPH::Quat rot = JPH::Quat(insertInfo.rot.x, insertInfo.rot.y, insertInfo.rot.z, insertInfo.rot.w);
+	const JPH::Mat44 transform = JPH::Mat44::sRotationTranslation(rot, pos);
+
+	// // since world space bounds is relative to center of mass, I need to apply an offset
+	// JPH::Vec3 centerOfMassOffset = insertInfo.obj->phys_shape->GetCenterOfMass();
+	// JPH::AABox aabb = insertInfo.obj->phys_shape->GetWorldSpaceBounds(JPH::Mat44::sRotationTranslation(rot, pos - centerOfMassOffset), JPH::Vec3::sReplicate(1.0f));
+	JPH::AABox aabb = insertInfo.obj->phys_shape->GetWorldSpaceBounds(transform, scale);
+
+
+// // Assuming you have a Jolt physics system initialized
+// JPH::PhysicsSystem physicsSystem;
+
+// // Create a new body
+// JPH::BodyCreationSettings bodySettings(/* parameters */);
+// JPH::Body* newBody = physicsSystem.CreateBody(bodySettings);
+
+// // Perform a broad phase query
+// JPH::BroadPhaseQuery broadPhaseQuery = physicsSystem.GetBroadPhaseQuery();
+// JPH::BroadPhaseLayerFilter layerFilter = /* your layer filter */;
+// JPH::ObjectLayerFilter objectFilter = /* your object filter */;
+// JPH::BroadPhaseQuery::Results results;
+// broadPhaseQuery.CollideAABox(newBody->GetWorldSpaceBounds(), results, layerFilter, objectFilter);
+
+// // Check results for potential collisions
+// for (const JPH::BroadPhaseQuery::Result& result : results)
+// {
+//     JPH::Body* otherBody = physicsSystem.GetBody(result.mBodyID);
+//     if (newBody->Collide(otherBody))
+//     {
+//         // Handle intersection
+//         std::cout << "Intersection detected with body ID: " << result.mBodyID << std::endl;
+//     }
+// }
+
+	// TODO get these out of here
+    // Define a collision filter (you can customize this)
+    class MyBroadPhaseFilter : public JPH::BroadPhaseLayerFilter {
+    public:
+        virtual bool ShouldCollide(JPH::BroadPhaseLayer inLayer) const override {
+            // You can filter layers if needed, for now return true for all
+            return true;
+        }
+    };
+
+    class MyObjectFilter : public JPH::ObjectLayerFilter {
+    public:
+        virtual bool ShouldCollide(JPH::ObjectLayer inLayer) const override {
+            // Customize this if you need to filter out certain layers
+            return true;
+        }
+    };
+
+	// TODO can I make this stop after first collision?
+	class MyBodyCollector : public CollideShapeBodyCollector {
+	public:
+		// Store body IDs that overlap with the AABB
+		// Array<BodyID> overlappingBodies;
+		bool collision = false;
+
+		// This function is called for each overlapping body
+		virtual void AddHit(const BodyID &inBodyID) override {
+			// overlappingBodies.push_back(inBodyID);
+			collision = true;
+		}
+	};
+
+	class MyCollideShapeCollector : public CollideShapeCollector {
+	public:
+		// This function is called for each hit detected by the collision query
+		bool collision = false;
+		virtual void AddHit(const CollideShapeResult &inResult) override {
+			// Print out information about the hit (BodyID and Fraction)
+			// std::cout << "Hit detected! BodyID: " << inResult.mBodyID.GetIndex() << ", Fraction: " << inResult.mFraction << std::endl;
+
+			// You can store results if needed, for example:
+			// hits.push_back(inResult);
+			collision = true;
+		}
+
+		// Store all the hits detected (optional, if you need to process them later)
+		// std::vector<CollideShapeResult> hits;
+	};
+
+    MyBroadPhaseFilter broadPhaseFilter;
+    MyObjectFilter objectFilter;
+	MyBodyCollector collector;
+
+    // Perform the broad-phase collision check
+	// Jolt/Physics/Collision/Collector/ClosestHitCollisionCollector.h
+    Phys::getBroadPhase().CollideAABox(aabb, collector, broadPhaseFilter, objectFilter);
+
+	bool res = true;
+
+	// if broad phase hits, check narrow phase
+	if (collector.collision) {
+		CollideShapeSettings collideSettings;
+		MyCollideShapeCollector collisionCollector;
+	// 	void NarrowPhaseQuery::CollideShape 	( 	const Shape *  	inShape,
+	// 	Vec3Arg  	inShapeScale,
+	// 	RMat44Arg  	inCenterOfMassTransform,
+	// 	const CollideShapeSettings &  	inCollideShapeSettings,
+	// 	RVec3Arg  	inBaseOffset,
+	// 	CollideShapeCollector &  	ioCollector,
+	// 	const BroadPhaseLayerFilter &  	inBroadPhaseLayerFilter = { },
+	// 	const ObjectLayerFilter &  	inObjectLayerFilter = { },
+	// 	const BodyFilter &  	inBodyFilter = { },
+	// 	const ShapeFilter &  	inShapeFilter = { } 
+	// )
+		// TODO add all the filters
+		Phys::getNarrowPhase().CollideShape(
+			insertInfo.obj->phys_shape,
+			scale,
+			transform,
+			collideSettings,
+			pos, // All hit results will be returned relative to this offset, can be zero to get results in world position, but when you're testing far from the origin you get better precision by picking a position that's closer e.g. inCenterOfMassTransform.GetTranslation() since floats are most accurate near the origin 
+			collisionCollector
+		);
+
+		res = !collisionCollector.collision;
+	}
+
+    return res;
 }

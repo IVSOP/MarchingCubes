@@ -270,9 +270,11 @@ void Client::mainloop() {
 			GLuint insertID = 0;
 			const GameObject *insertObj = world->getObject(insertID);
 			glm::quat rot(1.0f, 0.0f, 0.0f, 0.0f);
-			const InsertInfo insertInfo = InsertInfo(insertObj, rot, selectedBlock.world_pos);
+			glm::ivec3 pos = selectedBlock.world_pos;
+			pos.y += 12; // TODO use the bounding box for this
+			const InsertInfo insertInfo = InsertInfo(insertObj, rot, pos);
 
-			renderer->drawInsert(view, windowManager->projection, insertInfo);
+			renderer->drawInsert(view, windowManager->projection, insertInfo, Phys::checkIntersection(insertInfo));
 		}
 
 		renderer->postProcess(Settings::bloomBlurPasses);
