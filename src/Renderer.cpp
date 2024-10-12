@@ -399,6 +399,7 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::Checkbox("Render models", &Settings::render_models);
 	ImGui::Checkbox("Select", &Settings::select);
 	ImGui::Checkbox("Show model normals", &Settings::showModelNormals);
+	ImGui::Checkbox("Limit fps", &Settings::limitFPS);
 	ImGui::SliderFloat("FPS limit", &Settings::fps, 0.0f, 240.0f, "FPS limit = %.3f");
 	ImGui::Checkbox("Insert", &Settings::insert);
 }

@@ -21,7 +21,7 @@ void InputHandler::pressKey(GLFWwindow *window, int key, int scancode, int actio
 
 	keys[key].newAction(action, mods);
 
-	// bandaid fix temporario isto estar aqui, presskey nao devia fazer isto
+	// TODO bandaid fix temporario isto estar aqui, presskey nao devia fazer isto
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		if (inMenu) { // then go into engine
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -64,7 +64,7 @@ std::vector<KeyInfo> InputHandler::getKeysPressedOrHeld() const {
 	std::vector<KeyInfo> res;
 	const KeyInfo *keys = keyInfo.get();
 	for (unsigned int i = 0; i < MAX_KEYS_ID + 1; i++) {
-		if (keys[i].last_action != GLFW_RELEASE) {
+		if (keys[i].action != GLFW_RELEASE) {
 			res.push_back(keys[i]);
 		}
 	}
@@ -75,50 +75,51 @@ std::vector<KeyInfo> InputHandler::getKeysPressedOrHeld() const {
 // 	return glm::vec2(curX - lastX, curY - lastY);
 // }
 
-void InputHandler::applyInputs(World *world, const SelectedBlockInfo &selectedInfo, GLfloat break_radius, Player *player, int windowWidth, int windowHeight, GLfloat deltatime) {
+void InputHandler::move(World *world, Player *player, int windowWidth, int windowHeight, GLfloat deltatime) {
 	// muito mal feito, tbm nao tive paciencia mas funcemina
 
 	const KeyInfo *keys = keyInfo.get();
 
-	if ((&keys[GLFW_KEY_W])->last_action != GLFW_RELEASE) {
+	if ((&keys[GLFW_KEY_W])->action != GLFW_RELEASE) {
 		player->move(FRONT, deltatime);
 	}
-	if ((&keys[GLFW_KEY_S])->last_action != GLFW_RELEASE) {
+	if ((&keys[GLFW_KEY_S])->action != GLFW_RELEASE) {
 		player->move(BACK, deltatime);
 	}
-	if ((&keys[GLFW_KEY_A])->last_action != GLFW_RELEASE) {
+	if ((&keys[GLFW_KEY_A])->action != GLFW_RELEASE) {
 		player->move(LEFT, deltatime);
 	}
-	if ((&keys[GLFW_KEY_D])->last_action != GLFW_RELEASE) {
+	if ((&keys[GLFW_KEY_D])->action != GLFW_RELEASE) {
 		player->move(RIGHT, deltatime);
 	}
-	if ((&keys[GLFW_KEY_SPACE])->last_action != GLFW_RELEASE) {
+	if ((&keys[GLFW_KEY_SPACE])->action != GLFW_RELEASE) {
 		player->move(UP, deltatime);
 	}
-	if ((&keys[GLFW_KEY_LEFT_ALT])->last_action != GLFW_RELEASE) {
+	if ((&keys[GLFW_KEY_LEFT_ALT])->action != GLFW_RELEASE) {
 		player->move(DOWN, deltatime);
 	}
-	if ((&keys[GLFW_KEY_LEFT_SHIFT])->last_action != GLFW_RELEASE) {
+	if ((&keys[GLFW_KEY_LEFT_SHIFT])->action != GLFW_RELEASE) {
 		player->speedUp(true);
 	} else {
 		player->speedUp(false);
 	}
-	if ((&keys[GLFW_MOUSE_BUTTON_LEFT])->last_action != GLFW_RELEASE) {
-		if (! selectedInfo.isEmpty()) {
-			if ((&keys[GLFW_MOUSE_BUTTON_LEFT])->last_mods == GLFW_MOD_SHIFT) {
-				world->breakVoxelSphere(selectedInfo, break_radius);
-			} else {
-				world->breakVoxel(selectedInfo);
-				// printf("breaking voxel at %d %d %d\n", selectedInfo.getWorldPosition().x, selectedInfo.getWorldPosition().y, selectedInfo.getWorldPosition().z);
-				// world->breakVoxelSphere(selectedInfo, 1.0f);
-			}
-		}
-	} else if ((&keys[GLFW_MOUSE_BUTTON_RIGHT])->last_action != GLFW_RELEASE) {
-		if (! selectedInfo.isEmpty()) {
-			world->addVoxelShpere(selectedInfo, break_radius);
-		}
-	}
+	// if ((&keys[GLFW_MOUSE_BUTTON_LEFT])->last_action != GLFW_RELEASE) {
+	// 	if (! selectedInfo.isEmpty()) {
+	// 		if ((&keys[GLFW_MOUSE_BUTTON_LEFT])->last_mods == GLFW_MOD_SHIFT) {
+	// 			world->breakVoxelSphere(selectedInfo, break_radius);
+	// 		} else {
+	// 			world->breakVoxel(selectedInfo);
+	// 			// printf("breaking voxel at %d %d %d\n", selectedInfo.getWorldPosition().x, selectedInfo.getWorldPosition().y, selectedInfo.getWorldPosition().z);
+	// 			// world->breakVoxelSphere(selectedInfo, 1.0f);
+	// 		}
+	// 	}
+	// } else if ((&keys[GLFW_MOUSE_BUTTON_RIGHT])->last_action != GLFW_RELEASE) {
+	// 	if (! selectedInfo.isEmpty()) {
+	// 		world->addVoxelShpere(selectedInfo, break_radius);
+	// 	}
+	// }
 
+	// printf("action %d prev %d single %d\n", (&keys[GLFW_MOUSE_BUTTON_LEFT])->action, (&keys[GLFW_MOUSE_BUTTON_LEFT])->prev_action, single_click(GLFW_MOUSE_BUTTON_LEFT));
 
 	if (!inMenu) {
 		// const int center_x = windowWidth / 2;
@@ -133,4 +134,37 @@ void InputHandler::applyInputs(World *world, const SelectedBlockInfo &selectedIn
 		// printf("Camera moving mouse from %f %f to %f %f\n", lastX, lastY, curX, curY);
 		player->look(xoffset, yoffset);
 	}
+}
+
+
+bool InputHandler::single_click(uint32_t keyid) {
+	const KeyInfo *keys = keyInfo.get();
+	const KeyInfo *key = &keys[keyid];
+
+	int action = key->action;
+
+	if (action == GLFW_RELEASE) {
+		single_clicked = false;
+		return false;
+	}
+
+	// if (action == GLFW_PRESS) {
+		if (single_clicked) {
+			return false;
+		} else {
+			single_clicked = true;
+			return true;
+		}
+	// }
+
+	// return (key->action == GLFW_PRESS && key->prev_action != GLFW_PRESS);
+}
+
+void InputHandler::poll(GLFWwindow *window) {
+	glfwPollEvents();
+
+	// // manually poll certain keys (cursed)
+	// KeyInfo *keys = keyInfo.get();
+
+	// (&keys[GLFW_MOUSE_BUTTON_LEFT])->newAction(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT));
 }

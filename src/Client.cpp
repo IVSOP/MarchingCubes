@@ -198,8 +198,8 @@ void Client::mainloop() {
 	// exit(1);
 
     double lastFrameTime, currentFrameTime, deltaTime = PHYS_STEP; // to prevent errors when this is first ran, I initialize it to the physics substep
-    while (!glfwWindowShouldClose(windowManager.get()->window)) {
-        glfwPollEvents(); // at the start due to imgui (??) test moving it to after the unlock()
+    while (!glfwWindowShouldClose(windowManager->window)) {
+		inputHandler.poll(windowManager->window);
 
 		lastFrameTime = glfwGetTime();
 
@@ -211,10 +211,9 @@ void Client::mainloop() {
 
 		// voxel ray cast to break or place things
 		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(pos.pos, dir.front, Settings::break_range);
-        inputHandler.applyInputs(
+		// const SelectedBlockInfo &selectedInfo
+        inputHandler.move(
 			world.get(),
-			selectedBlock,
-			Settings::break_radius,
 			player.get(), windowManager->windowWidth, windowManager->windowHeight, static_cast<GLfloat>(deltaTime));
 
 		// physics ray cast to select entities, only if in selection mode
@@ -284,16 +283,6 @@ void Client::mainloop() {
         currentFrameTime = glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;
 
-		// for some reason I started getting coil whine and felt like destroying my pc so I'll limit the fps here temporarily
-		if (Settings::limitFPS) {
-			const double fps_time = 1.0f / Settings::fps;
-			if (deltaTime < fps_time) {
-				const double sleepTime = (fps_time - deltaTime) * 10E5; // multiply to get from seconds to microseconds, this is prob platform dependent and very bad
-				usleep(sleepTime);
-				deltaTime = fps_time;
-			}
-		}
-
 		// set audio for all entities
 		{
 			JPH::Vec3 pos_jph;
@@ -310,6 +299,15 @@ void Client::mainloop() {
 			}
 		}
 
+		// for some reason I started getting coil whine and felt like destroying my pc so I'll limit the fps here temporarily
+		if (Settings::limitFPS) {
+			const double fps_time = 1.0f / Settings::fps;
+			if (deltaTime < fps_time) {
+				const double sleepTime = (fps_time - deltaTime) * 10E5; // multiply to get from seconds to microseconds, this is prob platform dependent and very bad
+				usleep(sleepTime);
+				deltaTime = fps_time;
+			}
+		}
     }
 }
 

@@ -9,47 +9,69 @@
 
 #define MAX_KEYS_ID GLFW_KEY_MENU
 
+// TODO
+// const int scancode = glfwGetKeyScancode(GLFW_KEY_X);
+// set_key_mapping(scancode, swap_weapons);
+
+// TODO raw mouse
+
+// problem: callbacks are only called when keys are pressed or released
+// so the previous state is not the state at the previous time it was read, but at the previous callback
+// in the future I might manually poll everything
+// prev state is kind of useless because of this
 
 struct KeyInfo {
 	KeyInfo() {
-		last_action = GLFW_RELEASE;
-		last_mods = 0;
+		action = GLFW_RELEASE;
+		mods = 0;
 
-		// current_action = GLFW_RELEASE;
-		// current_mods = 0;
+		prev_action = GLFW_RELEASE;
+		prev_mods = 0;
 	}
 	~KeyInfo() = default;
 
-	void press(int mods = 0) {
-		// pode ver se key ja foi clicada ou assim, por agora mudo so o estado para pressed
-		last_action = GLFW_PRESS;
+	constexpr void press(int mods = 0) {
+		// action = GLFW_PRESS;
+		newAction(action, mods);
 	}
 
-	void newAction(int action, int mods) {
-		last_action = action;
-		last_mods = mods;
+	constexpr void newAction(int _action, int _mods) {
+		prev_action = this->action;
+		prev_mods = this->mods;
+
+		action = _action;
+		mods = _mods;
 	}
 
-	void release() {
-		last_action = GLFW_RELEASE;
+	constexpr void newAction(int _action) {
+		prev_action = this->action;
+		prev_mods = this->mods;
+
+		action = _action;
+		mods = this->mods;
 	}
 
-	// bool pressedNow() const { // true se era released e passou a pressed
-	// 	// fazer isto com | ??
-	// 	if (last_action == GLFW_RELEASE && current_action == GLFW_PRESS) {
-	// 		return true;
-	// 	}
+	constexpr void set_prev(int _prev_action, int _prev_mods = 0) {
+		prev_action = _prev_action;
+		prev_mods = _prev_mods;
+	}
 
-	// 	return false;
-	// }
+	constexpr void release() {
+		// action = GLFW_RELEASE;
+		newAction(GLFW_RELEASE, 0);
+	}
 
-	int last_action; //, current_action;
-	int last_mods; //, current_mods;
+	int action;
+	int mods;
+
+	int prev_action;
+	int prev_mods;
 };
 
 class InputHandler {
 public:
 	// Estado sobre teclas pressionadas, rato, etc
+	// WTF why not use a vector or something
 	std::unique_ptr<KeyInfo []> keyInfo; // [MAX_KEYS_ID + 1]
 
 	// mouse
@@ -79,10 +101,14 @@ public:
 	// delta em que o rato se moveu
 	// glm::vec2 getMouseMovDelta() const;
 
+	void poll(GLFWwindow *window);
 
 	// changes camera
 	// pointers because its easier, idk if using references would be copying the object (in the caller)
-	void applyInputs(World *world, const SelectedBlockInfo &selectedInfo, GLfloat break_radius, Player *player, int windowWidth, int windowHeight, GLfloat deltatime);
+	void move(World *world, Player *player, int windowWidth, int windowHeight, GLfloat deltatime);
+	// returns true if the key was clicked, but only returns true again after it has been released once
+	bool single_clicked = false; // cursed, read explanation at the top
+	bool single_click(uint32_t key);
 };
 
 #endif
