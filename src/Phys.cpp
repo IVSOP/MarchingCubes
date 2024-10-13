@@ -617,9 +617,8 @@ UserData Phys::getUserData(JPH::BodyID bodyID) {
 // https://jrouwe.github.io/JoltPhysics/class_broad_phase_query.html
 // https://jrouwe.github.io/JoltPhysics/class_narrow_phase_query.html
 // https://jrouwe.github.io/JoltPhysics/class_shape.html
-// NOTE I'm stupid so this returns true if the object can be placed (no intersection)
 // TODO clean this up
-bool Phys::checkIntersection(const InsertInfo &insertInfo) {
+bool Phys::canBePlaced(const InsertInfo &insertInfo) {
 	const JPH::Vec3 scale = JPH::Vec3::sReplicate(1.0f);
 	const JPH::Vec3 pos = JPH::Vec3(static_cast<float>(insertInfo.pos.x), static_cast<float>(insertInfo.pos.y), static_cast<float>(insertInfo.pos.z));
 	const JPH::Quat rot = JPH::Quat(insertInfo.rot.x, insertInfo.rot.y, insertInfo.rot.z, insertInfo.rot.w);

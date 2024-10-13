@@ -233,7 +233,7 @@ public:
 	static UserData getUserData(JPH::Body *body);
 	static UserData getUserData(JPH::BodyID bodyID);
 
-	static bool checkIntersection(const InsertInfo &insertInfo);
+	static bool canBePlaced(const InsertInfo &insertInfo);
 };
 
 // TODO GET THIS THE FUCK OUT OF HERE

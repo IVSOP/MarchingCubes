@@ -43,6 +43,8 @@ struct Settings {
 	// break_range is used by this too
 	static bool insert;
 
+	static bool edit_terrain;
+
 	// fps
 	static bool limitFPS;
 	static float fps;

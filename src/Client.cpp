@@ -219,17 +219,8 @@ void Client::mainloop() {
 		// done anyway for debug purposes
 		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(pos.pos, dir.front, Settings::break_range);
 
-		// physics ray cast to select entities, only if in selection mode
-		if (Settings::select) {
-			glm::vec3 raydir = dir.front * Settings::raycast_len;
-			// to prevent from colliding with the body of the player itself I did this, will change in the future
-			glm::vec3 rayorigin = pos.pos + (dir.front * 3.5f);
-			JPH::BodyID lookatbody = Phys::raycastBody(JPH::Vec3(rayorigin.x, rayorigin.y, rayorigin.z), JPH::Vec3(raydir.x, raydir.y, raydir.z));
-			if (! lookatbody.IsInvalid()) {
-				entt::entity selected_entity = Phys::getUserData(lookatbody).getEntity();
-				world->entt_registry.emplace<Selected>(selected_entity);
-			}
-		} else {
+		// this can change the verts that make up the world, so is done before the draw call
+		if (Settings::edit_terrain) {
 			if (! selectedBlock.isEmpty()) {
 
 				if (inputHandler.single_click(GLFW_MOUSE_BUTTON_LEFT)) {
@@ -253,7 +244,7 @@ void Client::mainloop() {
 		Audio::ALContext::setListenerPosition(pos.pos);
 		Audio::ALContext::setListenerVelocity(player->getVelocity());
 		Audio::ALContext::setListenerOrientation(dir.front, dir.up);
-		player->postTick();
+		player->postTick(); // TODO do this here????????????
 
         // std::unique_lock<std::mutex> lock = std::unique_lock<std::mutex>(mtx);
         // renderer.get()->draw(draw_quads, projection, *camera.get(), window, deltaTime);
@@ -282,8 +273,18 @@ void Client::mainloop() {
 			dir,
 			mov,
 			selectedBlock);
-		
-		if (Settings::insert) {
+
+		if (Settings::select) {
+			glm::vec3 raydir = dir.front * Settings::raycast_len;
+			// to prevent from colliding with the body of the player itself I did this, will change in the future
+			glm::vec3 rayorigin = pos.pos + (dir.front * 3.5f);
+			JPH::BodyID lookatbody = Phys::raycastBody(JPH::Vec3(rayorigin.x, rayorigin.y, rayorigin.z), JPH::Vec3(raydir.x, raydir.y, raydir.z));
+			if (! lookatbody.IsInvalid()) {
+				// place as an entity of type Selected
+				entt::entity selected_entity = Phys::getUserData(lookatbody).getEntity();
+				world->entt_registry.emplace<Selected>(selected_entity);
+			}
+		} else if (Settings::insert) {
 			GLuint insertID = 0;
 			const GameObject *insertObj = world->getObject(insertID);
 			glm::quat rot(1.0f, 0.0f, 0.0f, 0.0f);
@@ -291,7 +292,14 @@ void Client::mainloop() {
 			pos.y += 12; // TODO use the bounding box for this
 			const InsertInfo insertInfo = InsertInfo(insertObj, rot, pos);
 
-			renderer->drawInsert(view, windowManager->projection, insertInfo, Phys::checkIntersection(insertInfo));
+			bool valid = Phys::canBePlaced(insertInfo);
+
+			if (inputHandler.single_click(GLFW_MOUSE_BUTTON_LEFT)) {
+				world->spawn(insertID, JPH::Vec3(pos.x, pos.y, pos.z), JPH::Quat(rot.x, rot.y, rot.z, rot.w));
+			} else {
+				renderer->drawInsert(view, windowManager->projection, insertInfo, valid);
+			}
+
 		}
 
 		renderer->postProcess(Settings::bloomBlurPasses);
