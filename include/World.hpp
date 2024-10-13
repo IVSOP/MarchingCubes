@@ -157,6 +157,7 @@ public:
 	// creates a renderable physics entity internally, given an object_id
 	entt::entity spawn(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation);
 	entt::entity spawnCharacter(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation);
+	void despawn(entt::entity id);
 	void spawnMarchingCubes(uint32_t object_id, const glm::ivec3 &pos); // TODO accept rotation, create entt entity
 
 	// vector of pair<render info for a single instance, array of transforms of all entities to be drawn>

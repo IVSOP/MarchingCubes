@@ -235,6 +235,23 @@ void Client::mainloop() {
 					world->addVoxelShpere(selectedBlock, Settings::break_radius);
 				}
 			}
+		} else if (Settings::select) { // needs to be before draw as it affects the entities that are drawn
+			glm::vec3 raydir = dir.front * Settings::raycast_len;
+			// to prevent from colliding with the body of the player itself I did this, will change in the future
+			glm::vec3 rayorigin = pos.pos + (dir.front * 3.5f);
+			JPH::BodyID lookatbody = Phys::raycastBody(JPH::Vec3(rayorigin.x, rayorigin.y, rayorigin.z), JPH::Vec3(raydir.x, raydir.y, raydir.z));
+			if (! lookatbody.IsInvalid()) {
+				// place as an entity of type Selected
+				entt::entity selected_entity = Phys::getUserData(lookatbody).getEntity();
+
+				if (inputHandler.single_click(GLFW_MOUSE_BUTTON_LEFT)) {
+					// delete the entity
+					world->despawn(selected_entity);
+				} else {
+					// mark as selected entity
+					world->entt_registry.emplace<Selected>(selected_entity);
+				}
+			}
 		}
 
 
@@ -274,17 +291,7 @@ void Client::mainloop() {
 			mov,
 			selectedBlock);
 
-		if (Settings::select) {
-			glm::vec3 raydir = dir.front * Settings::raycast_len;
-			// to prevent from colliding with the body of the player itself I did this, will change in the future
-			glm::vec3 rayorigin = pos.pos + (dir.front * 3.5f);
-			JPH::BodyID lookatbody = Phys::raycastBody(JPH::Vec3(rayorigin.x, rayorigin.y, rayorigin.z), JPH::Vec3(raydir.x, raydir.y, raydir.z));
-			if (! lookatbody.IsInvalid()) {
-				// place as an entity of type Selected
-				entt::entity selected_entity = Phys::getUserData(lookatbody).getEntity();
-				world->entt_registry.emplace<Selected>(selected_entity);
-			}
-		} else if (Settings::insert) {
+		if (Settings::insert) {
 			GLuint insertID = 0;
 			const GameObject *insertObj = world->getObject(insertID);
 			glm::quat rot(1.0f, 0.0f, 0.0f, 0.0f);
@@ -294,7 +301,7 @@ void Client::mainloop() {
 
 			bool valid = Phys::canBePlaced(insertInfo);
 
-			if (inputHandler.single_click(GLFW_MOUSE_BUTTON_LEFT)) {
+			if (valid && inputHandler.single_click(GLFW_MOUSE_BUTTON_LEFT)) {
 				world->spawn(insertID, JPH::Vec3(pos.x, pos.y, pos.z), JPH::Quat(rot.x, rot.y, rot.z, rot.w));
 			} else {
 				renderer->drawInsert(view, windowManager->projection, insertInfo, valid);

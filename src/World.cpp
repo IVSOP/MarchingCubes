@@ -474,6 +474,10 @@ entt::entity World::spawn(uint32_t render_id, const JPH::Vec3 &translation, cons
 	return entity;
 }
 
+void World::despawn(entt::entity id) {
+	entt_registry.destroy(id);
+}
+
 // same here, gets activated implicitly
 entt::entity World::spawnCharacter(uint32_t object_id, const JPH::Vec3 &translation, const JPH::Quat &rotation) {
 	// get shape
