@@ -103,23 +103,6 @@ void InputHandler::move(World *world, Player *player, int windowWidth, int windo
 	} else {
 		player->speedUp(false);
 	}
-	// if ((&keys[GLFW_MOUSE_BUTTON_LEFT])->last_action != GLFW_RELEASE) {
-	// 	if (! selectedInfo.isEmpty()) {
-	// 		if ((&keys[GLFW_MOUSE_BUTTON_LEFT])->last_mods == GLFW_MOD_SHIFT) {
-	// 			world->breakVoxelSphere(selectedInfo, break_radius);
-	// 		} else {
-	// 			world->breakVoxel(selectedInfo);
-	// 			// printf("breaking voxel at %d %d %d\n", selectedInfo.getWorldPosition().x, selectedInfo.getWorldPosition().y, selectedInfo.getWorldPosition().z);
-	// 			// world->breakVoxelSphere(selectedInfo, 1.0f);
-	// 		}
-	// 	}
-	// } else if ((&keys[GLFW_MOUSE_BUTTON_RIGHT])->last_action != GLFW_RELEASE) {
-	// 	if (! selectedInfo.isEmpty()) {
-	// 		world->addVoxelShpere(selectedInfo, break_radius);
-	// 	}
-	// }
-
-	// printf("action %d prev %d single %d\n", (&keys[GLFW_MOUSE_BUTTON_LEFT])->action, (&keys[GLFW_MOUSE_BUTTON_LEFT])->prev_action, single_click(GLFW_MOUSE_BUTTON_LEFT));
 
 	if (!inMenu) {
 		// const int center_x = windowWidth / 2;
@@ -138,26 +121,28 @@ void InputHandler::move(World *world, Player *player, int windowWidth, int windo
 
 
 bool InputHandler::single_click(uint32_t keyid) {
-	const KeyInfo *keys = keyInfo.get();
-	const KeyInfo *key = &keys[keyid];
+	KeyInfo *keys = keyInfo.get();
+	KeyInfo *key = &keys[keyid];
 
-	int action = key->action;
+	return key->single_click();
 
-	if (action == GLFW_RELEASE) {
-		single_clicked = false;
-		return false;
-	}
+	// int action = key->action;
 
-	// if (action == GLFW_PRESS) {
-		if (single_clicked) {
-			return false;
-		} else {
-			single_clicked = true;
-			return true;
-		}
+	// if (action == GLFW_RELEASE) {
+	// 	key->single_clicked = false;
+	// 	return false;
 	// }
 
-	// return (key->action == GLFW_PRESS && key->prev_action != GLFW_PRESS);
+	// // if (action == GLFW_PRESS) {
+	// 	if (key->single_clicked) { // flag is set, so a single click occurred and the player still has not released the key
+	// 		return false;
+	// 	} else { // single_clicked not set, so this is a single click. set the flag to tell it was a single click
+	// 		key->single_clicked = true;
+	// 		return true;
+	// 	}
+	// // }
+
+	// // return (key->action == GLFW_PRESS && key->prev_action != GLFW_PRESS);
 }
 
 void InputHandler::poll(GLFWwindow *window) {
@@ -167,4 +152,15 @@ void InputHandler::poll(GLFWwindow *window) {
 	// KeyInfo *keys = keyInfo.get();
 
 	// (&keys[GLFW_MOUSE_BUTTON_LEFT])->newAction(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT));
+}
+
+bool InputHandler::clicked(uint32_t keyid) {
+	const KeyInfo *keys = keyInfo.get();
+	const KeyInfo *key = &keys[keyid];
+	return (key->action == GLFW_PRESS);
+}
+
+const KeyInfo *InputHandler::get(uint32_t keyid) {
+	const KeyInfo *keys = keyInfo.get();
+	return &keys[keyid];
 }

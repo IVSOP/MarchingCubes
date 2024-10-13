@@ -210,11 +210,14 @@ void Client::mainloop() {
 		Movement  mov = player->getMov();
 
 		// voxel ray cast to break or place things
-		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(pos.pos, dir.front, Settings::break_range);
 		// const SelectedBlockInfo &selectedInfo
         inputHandler.move(
 			world.get(),
 			player.get(), windowManager->windowWidth, windowManager->windowHeight, static_cast<GLfloat>(deltaTime));
+
+
+		// done anyway for debug purposes
+		SelectedBlockInfo selectedBlock = world.get()->getSelectedBlock(pos.pos, dir.front, Settings::break_range);
 
 		// physics ray cast to select entities, only if in selection mode
 		if (Settings::select) {
@@ -225,6 +228,21 @@ void Client::mainloop() {
 			if (! lookatbody.IsInvalid()) {
 				entt::entity selected_entity = Phys::getUserData(lookatbody).getEntity();
 				world->entt_registry.emplace<Selected>(selected_entity);
+			}
+		} else {
+			if (! selectedBlock.isEmpty()) {
+
+				if (inputHandler.single_click(GLFW_MOUSE_BUTTON_LEFT)) {
+					if (inputHandler.get(GLFW_MOUSE_BUTTON_LEFT)->mods == GLFW_MOD_SHIFT) {
+						world->breakVoxelSphere(selectedBlock, Settings::break_radius);
+					} else {
+						world->breakVoxel(selectedBlock);
+					}
+				}
+
+				if (inputHandler.single_click(GLFW_MOUSE_BUTTON_RIGHT)) {
+					world->addVoxelShpere(selectedBlock, Settings::break_radius);
+				}
 			}
 		}
 

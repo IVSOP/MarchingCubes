@@ -61,11 +61,29 @@ struct KeyInfo {
 		newAction(GLFW_RELEASE, 0);
 	}
 
+	constexpr bool single_click() {
+		// if action was a release, cannot have clicked, and set the flag to false
+		if (action == GLFW_RELEASE) {
+			single_clicked = false;
+			return false;
+		}
+
+		if (single_clicked) {
+			// if previously single clicked, now it has to be false, but keep the flag for the next timr
+			return false;
+		} else {
+			single_clicked = true;
+			return true;
+		}
+	}
+
 	int action;
 	int mods;
 
 	int prev_action;
 	int prev_mods;
+
+	bool single_clicked = false;
 };
 
 class InputHandler {
@@ -107,8 +125,9 @@ public:
 	// pointers because its easier, idk if using references would be copying the object (in the caller)
 	void move(World *world, Player *player, int windowWidth, int windowHeight, GLfloat deltatime);
 	// returns true if the key was clicked, but only returns true again after it has been released once
-	bool single_clicked = false; // cursed, read explanation at the top
 	bool single_click(uint32_t key);
+	bool clicked(uint32_t key);
+	const KeyInfo *get(uint32_t keyid);
 };
 
 #endif
