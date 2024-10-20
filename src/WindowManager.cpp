@@ -63,6 +63,12 @@ void glfw_handleFileDrop_callback(GLFWwindow* window, int count, const char** pa
 	}
 }
 
+void glfw_handleScroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	Client *client = reinterpret_cast<Client *>(glfwGetWindowUserPointer(window));
+
+	client->scroll(xoffset, yoffset);
+}
+
 WindowManager::WindowManager(int windowWidth, int windowHeight, Client *client)
 : windowWidth(windowWidth), windowHeight(windowHeight)
 {
@@ -96,6 +102,7 @@ WindowManager::WindowManager(int windowWidth, int windowHeight, Client *client)
     glfwSetCursorPosCallback(window, glfw_handleMouseMov_callback);
 	glfwSetMouseButtonCallback(window, glfw_handleMouseKey_callback);
 	glfwSetDropCallback(window, glfw_handleFileDrop_callback);
+	glfwSetScrollCallback(window, glfw_handleScroll_callback);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 

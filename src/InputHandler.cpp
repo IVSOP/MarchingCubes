@@ -1,7 +1,7 @@
 #include "InputHandler.hpp"
 
 InputHandler::InputHandler(GLFWcursorposfun mouse_mov_callback, GLFWmousebuttonfun mouse_keypress_callback)
-: keyInfo(std::make_unique<KeyInfo []>(MAX_KEYS_ID + 1)), curX(0.0f), curY(0.0f), lastX(0.0f), lastY(0.0f), inMenu(false), handleMouseMov(mouse_mov_callback), handleMouseKey(mouse_keypress_callback)
+: keyInfo(std::make_unique<KeyInfo []>(MAX_KEYS_ID + 1)), curX(0.0f), curY(0.0f), lastX(0.0f), lastY(0.0f), inMenu(false), scroll_x(0.0f), scroll_y(0.0f), handleMouseMov(mouse_mov_callback), handleMouseKey(mouse_keypress_callback)
 {
 
 }
@@ -44,6 +44,11 @@ void InputHandler::pressMouseKey(GLFWwindow* window, int button, int action, int
 	KeyInfo *keys = this->keyInfo.get();
 
 	keys[button].newAction(action, mods);
+}
+
+void InputHandler::scroll(double xoffset, double yoffset) {
+	scroll_x += xoffset;
+	scroll_y += yoffset;
 }
 
 void InputHandler::centerMouseTo(GLdouble center_x, GLdouble center_y) {
@@ -163,4 +168,12 @@ bool InputHandler::clicked(uint32_t keyid) {
 const KeyInfo *InputHandler::get(uint32_t keyid) {
 	const KeyInfo *keys = keyInfo.get();
 	return &keys[keyid];
+}
+
+GLfloat InputHandler::getXScroll() {
+	return static_cast<GLfloat>(this->scroll_x);
+}
+
+GLfloat InputHandler::getYScroll() {
+	return static_cast<GLfloat>(this->scroll_y);
 }

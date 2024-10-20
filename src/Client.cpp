@@ -139,6 +139,10 @@ void Client::pressMouseKey(GLFWwindow* window, int button, int action, int mods)
 	inputHandler.pressMouseKey(window, button, action, mods);
 }
 
+void Client::scroll(double xoffset, double yoffset) {
+	inputHandler.scroll(xoffset, yoffset);
+}
+
 // TODO order of input processing, rendering and phys updating probaby makes things feel off by 1 frame, consider making phys update right after processing inputs
 void Client::mainloop() {
 
@@ -292,7 +296,8 @@ void Client::mainloop() {
 		if (Settings::insert) {
 			GLuint insertID = 0;
 			const GameObject *insertObj = world->getObject(insertID);
-			glm::quat rot(1.0f, 0.0f, 0.0f, 0.0f);
+			GLfloat rotationAngle = 5 * glm::radians(inputHandler.getYScroll());
+			glm::quat rot = glm::angleAxis(rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f)); // rotation around the Y axis
 			glm::ivec3 pos = selectedBlock.world_pos;
 			pos.y += 12; // TODO use the bounding box for this
 			const InsertInfo insertInfo = InsertInfo(insertObj, rot, pos);

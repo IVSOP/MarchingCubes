@@ -100,6 +100,8 @@ public:
 
 	bool inMenu; // faz o rato nao virar a camera
 
+	GLdouble scroll_x;
+	GLdouble scroll_y;
 
 	// Get this out of here asap
 	GLFWcursorposfun handleMouseMov = nullptr;
@@ -111,6 +113,7 @@ public:
 
 	void pressKey(GLFWwindow *window, int key, int scancode, int action, int mods);
 	void pressMouseKey(GLFWwindow* window, int button, int action, int mods);
+	void scroll(double xoffset, double yoffset);
 	void centerMouseTo(GLdouble center_x, GLdouble center_y); // same as below but also changes the last position
 	void moveMouseTo(GLdouble x, GLdouble y);
 
@@ -128,6 +131,9 @@ public:
 	bool single_click(uint32_t key);
 	bool clicked(uint32_t key);
 	const KeyInfo *get(uint32_t keyid);
+
+	GLfloat getXScroll();
+	GLfloat getYScroll();
 };
 
 #endif

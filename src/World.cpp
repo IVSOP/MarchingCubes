@@ -475,7 +475,6 @@ entt::entity World::spawn(uint32_t render_id, const JPH::Vec3 &translation, cons
 }
 
 void World::despawn(entt::entity id) {
-	puts("despawn was called");
 	entt_registry.destroy(id);
 }
 

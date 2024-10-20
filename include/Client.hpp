@@ -35,6 +35,7 @@ public:
 	void pressKey(GLFWwindow *window, int key, int scancode, int action, int mods);
 	void moveMouseTo(double xpos, double ypos);
 	void centerMouseTo(double xpos, double ypos);
+	void scroll(double xoffset, double yoffset);
 	void pressMouseKey(GLFWwindow* window, int button, int action, int mods);
 
 	void mainloop();

@@ -219,7 +219,6 @@ struct AudioComponent {
 
 	Audio::Source source;
 
-
 	NON_COPYABLE_AND_NON_MOVABLE(AudioComponent)
 };
 
