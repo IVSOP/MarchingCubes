@@ -209,8 +209,6 @@ void Client::mainloop() {
 		Direction dir = player->getDir();
 		Movement  mov = player->getMov();
 
-		// voxel ray cast to break or place things
-		// const SelectedBlockInfo &selectedInfo
         inputHandler.move(
 			world.get(),
 			player.get(), windowManager->windowWidth, windowManager->windowHeight, static_cast<GLfloat>(deltaTime));

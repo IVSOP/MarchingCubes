@@ -475,6 +475,7 @@ entt::entity World::spawn(uint32_t render_id, const JPH::Vec3 &translation, cons
 }
 
 void World::despawn(entt::entity id) {
+	puts("despawn was called");
 	entt_registry.destroy(id);
 }
 
@@ -676,60 +677,60 @@ void World::loadModels() {
 World::World(FileHandler &file)
 : verts(1 << 10), debug_points(1 << 10), indirect(1 << 10), info(1 << 10)
 {
-	loadModels();
+	// loadModels();
 
-	Decompressor decompressor;
+	// Decompressor decompressor;
 
-	CompressionData corners_compressed;
-	CustomArchive::deserializeFromFile<CompressionData>(file, corners_compressed);
-	CompressionData corners_res = decompressor.decompress(corners_compressed); std::free(corners_compressed.data);
+	// CompressionData corners_compressed;
+	// CustomArchive::deserializeFromFile<CompressionData>(file, corners_compressed);
+	// CompressionData corners_res = decompressor.decompress(corners_compressed); std::free(corners_compressed.data);
 
-	CompressionData materials_compressed;
-	CustomArchive::deserializeFromFile<CompressionData>(file, materials_compressed);
-	CompressionData materials_res = decompressor.decompress(materials_compressed); std::free(materials_compressed.data);
+	// CompressionData materials_compressed;
+	// CustomArchive::deserializeFromFile<CompressionData>(file, materials_compressed);
+	// CompressionData materials_res = decompressor.decompress(materials_compressed); std::free(materials_compressed.data);
 
-	unsigned int i = 0;
-	for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
-		for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
-			for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
-				Chunk &chunk = chunks[x][y][z];
+	// unsigned int i = 0;
+	// for (GLuint x = 0; x < WORLD_SIZE_X; x++) {
+	// 	for (GLuint y = 0; y < WORLD_SIZE_Y; y++) {
+	// 		for (GLuint z = 0; z < WORLD_SIZE_Z; z++) {
+	// 			Chunk &chunk = chunks[x][y][z];
 
-				// wtf is chunk.corners enough for it to get the pointer??????
-				std::memcpy(&chunk.corners[0][0], reinterpret_cast<uint8_t *>(corners_res.data) + (i * sizeof(Chunk::corners)), sizeof(Chunk::corners));
-				std::memcpy(&chunk.materials[0][0][0], reinterpret_cast<uint8_t *>(materials_res.data) + (i * sizeof(Chunk::materials)), sizeof(Chunk::materials));
-				i++;
-			}
-		}
-	}
+	// 			// wtf is chunk.corners enough for it to get the pointer??????
+	// 			std::memcpy(&chunk.corners[0][0], reinterpret_cast<uint8_t *>(corners_res.data) + (i * sizeof(Chunk::corners)), sizeof(Chunk::corners));
+	// 			std::memcpy(&chunk.materials[0][0][0], reinterpret_cast<uint8_t *>(materials_res.data) + (i * sizeof(Chunk::materials)), sizeof(Chunk::materials));
+	// 			i++;
+	// 		}
+	// 	}
+	// }
 
-	std::free(corners_res.data);
-	std::free(materials_res.data);
+	// std::free(corners_res.data);
+	// std::free(materials_res.data);
 
-	CompressionData entities_compressed;
-	CustomArchive::deserializeFromFile<CompressionData>(file, entities_compressed);
-	CompressionData entities_res = decompressor.decompress(entities_compressed); std::free(entities_compressed.data);
+	// CompressionData entities_compressed;
+	// CustomArchive::deserializeFromFile<CompressionData>(file, entities_compressed);
+	// CompressionData entities_res = decompressor.decompress(entities_compressed); std::free(entities_compressed.data);
 
-	CustomArchive entities_archive;
-	entities_archive.setBuffer(entities_res.data, entities_res.len); // entities_res.data now belongs to archive, do not free
-	entities_archive.deserializeFromBuffer<entt::registry>(entt_registry);
+	// CustomArchive entities_archive;
+	// entities_archive.setBuffer(entities_res.data, entities_res.len); // entities_res.data now belongs to archive, do not free
+	// entities_archive.deserializeFromBuffer<entt::registry>(entt_registry);
 
-	// pray that the iteration order here is the exact same TODO somehow do not rely on this
-	CompressionData entities_phys_compressed;
-	CustomArchive::deserializeFromFile<CompressionData>(file, entities_phys_compressed);
-	CompressionData entities_phys_res = decompressor.decompress(entities_phys_compressed); std::free(entities_phys_compressed.data);
-	entities_archive.setBuffer(entities_phys_res.data, entities_phys_res.len); // just reuse it, whatever
+	// // pray that the iteration order here is the exact same TODO somehow do not rely on this
+	// CompressionData entities_phys_compressed;
+	// CustomArchive::deserializeFromFile<CompressionData>(file, entities_phys_compressed);
+	// CompressionData entities_phys_res = decompressor.decompress(entities_phys_compressed); std::free(entities_phys_compressed.data);
+	// entities_archive.setBuffer(entities_phys_res.data, entities_phys_res.len); // just reuse it, whatever
 
-	const auto group = entt_registry.group<>(entt::get<const Physics, const Render>);
-	for (const auto entity : group) {
-		const Render& render = group.get<Render>(entity);
-		JPH::Vec3 position;
-		entities_archive.deserializeFromBuffer<JPH::Vec3>(position);
-		JPH::Quat rotation;
-		entities_archive.deserializeFromBuffer<JPH::Quat>(rotation);
-		JPH::Body *body = createBodyFromID(render.object_id, position, rotation);
-		entt_registry.replace<Physics>(entity, body);
-		Phys::activateBody(body);
-	}
+	// const auto group = entt_registry.group<>(entt::get<const Physics, const Render>);
+	// for (const auto entity : group) {
+	// 	const Render& render = group.get<Render>(entity);
+	// 	JPH::Vec3 position;
+	// 	entities_archive.deserializeFromBuffer<JPH::Vec3>(position);
+	// 	JPH::Quat rotation;
+	// 	entities_archive.deserializeFromBuffer<JPH::Quat>(rotation);
+	// 	JPH::Body *body = createBodyFromID(render.object_id, position, rotation);
+	// 	entt_registry.replace<Physics>(entity, body); // TODO I got problems here since I deleted the needed operators
+	// 	Phys::activateBody(body);
+	// }
 }
 
 void World::setBit(const glm::ivec3 &position) {

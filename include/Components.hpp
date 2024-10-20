@@ -5,6 +5,17 @@
 #include "Phys.hpp"
 #include "Audio.hpp"
 
+// IMPORTANT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// entt went against my way of doing things
+// solved by prrohibiting structs from being moved or copied
+// TODO this might make things inneficient
+// only apply this to non trivial structs!!!
+#define NON_COPYABLE_AND_NON_MOVABLE(TypeName)                    \
+    TypeName(const TypeName&) = delete;                                          \
+    TypeName& operator=(const TypeName&) = delete;                               \
+    TypeName(TypeName&&) = delete;                                               \
+    TypeName& operator=(TypeName&&) = delete;
+
 // TODO make this whole thing including serialization not suck, lots of hardcoded values and strings
 enum class Component : uint32_t {
 	Position = 0,
@@ -22,6 +33,8 @@ struct Position {
 	Position(const glm::vec3 &pos)
 		: pos(pos) {}
 	~Position() = default;
+
+	// NON_COPYABLE_AND_NON_MOVABLE(Position)
 };
 
 // TODO break into other components, only done this way for now as a test to use camera more easily
@@ -66,6 +79,8 @@ struct Direction {
 		right = glm::normalize(glm::cross(front, worldup));
         up    = glm::normalize(glm::cross(right, front));
 	}
+
+	// NON_COPYABLE_AND_NON_MOVABLE(Direction)
 };
 
 // movement modifiers
@@ -78,6 +93,8 @@ struct Movement {
 
 	Movement(GLfloat speed, bool speedup)
 		: speed(speed), speedup(speedup) {}
+
+	// NON_COPYABLE_AND_NON_MOVABLE(Movement)
 };
 
 struct Physics {
@@ -109,6 +126,8 @@ struct Physics {
 	void setUserData(UserData data) {
 		Phys::setUserData(body, data);
 	}
+
+	NON_COPYABLE_AND_NON_MOVABLE(Physics)
 };
 
 // to render, info is obtained using this ID
@@ -119,6 +138,8 @@ struct Render {
 	Render() : object_id(0) {};
 	Render(uint32_t object_id) : object_id(object_id) {}
 	~Render() = default;
+
+	// NON_COPYABLE_AND_NON_MOVABLE(Render)
 };
 
 // TODO lots of hardcoded things
@@ -165,6 +186,8 @@ struct PhysicsCharacter {
 	JPH::Quat getRotation() const {
 		return physCharacter->GetRotation();
 	}
+
+	NON_COPYABLE_AND_NON_MOVABLE(PhysicsCharacter)
 };
 
 // for now, entities have 1 source each
@@ -195,6 +218,9 @@ struct AudioComponent {
 	~AudioComponent() = default;
 
 	Audio::Source source;
+
+
+	NON_COPYABLE_AND_NON_MOVABLE(AudioComponent)
 };
 
 struct Selected {

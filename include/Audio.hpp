@@ -43,6 +43,7 @@ struct Source {
 	}
 
 	~Source() {
+		// ALCall(alSourceStop(id));
 		ALCall(alDeleteSources(1, &id));
 	}
 
