@@ -60,7 +60,11 @@ struct Source {
 	}
 
 	void setGain(const ALfloat gain) const {
-		alSourcef(id, AL_GAIN, gain);
+		ALCall(alSourcef(id, AL_GAIN, gain));
+	}
+
+	void setLoop() const {
+		ALCall(alSourcei(id, AL_LOOPING, AL_TRUE));
 	}
 
 	ALuint id;

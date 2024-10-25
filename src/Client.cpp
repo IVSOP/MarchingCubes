@@ -160,7 +160,7 @@ void Client::mainloop() {
 
 	for (int i = 0; i < 100; i++) {
 		entt::entity ball = world->spawn(2, JPH::Vec3(0.0f, 0.0f + (i * 5.0f), 0.0f), JPH::Quat::sIdentity());
-		AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(ball, "crazy_frog_mono.wav");
+		AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(ball, "sound1.wav");
 		Physics &phys = world->entt_registry.get<Physics>(ball);
 		phys.activate();
 		audio.setGain(1.0f);

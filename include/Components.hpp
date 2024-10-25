@@ -196,6 +196,8 @@ struct AudioComponent {
 	AudioComponent(const std::string &filename) {
 		const Audio::Buffer &buff = Audio::ALContext::createBufferFromWavIfNotExists(filename);
 
+		source.setLoop();
+
 		source.setBuffer(buff);
 	}
 
