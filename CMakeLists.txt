@@ -76,10 +76,10 @@ if (WIN32)
 
 	cmake_policy(SET CMP0072 NEW) # ???????????????????????????????????????
 
-	# if (Distribution)
-	# 	set(IPO off)
-	# 	message(WARNING "IPO cannot be used with mingw, not using it")
-	# endif (Distribution)
+	if (Distribution)
+		set(IPO off)
+		message(WARNING "IPO cannot be used with mingw, not using it")
+	endif (Distribution)
 
 else (WIN32)
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g3>") # ${CMAKE_CXX_FLAGS_DEBUG} ${GCC_COVERAGE_COMPILE_FLAGS}
