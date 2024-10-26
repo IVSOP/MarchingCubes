@@ -84,7 +84,7 @@ Image::Image(const std::string &path, int desired_width, int desired_height, CHA
 	stbi_set_flip_vertically_on_load(true);
 	_buffer = stbi_load(path.c_str(), &_width, &_height, &_BPP, channels); // 4 -> RGBA or just use STBI_rgb_alpha
 
-	CRASH_IF(!_buffer, "Error loading image");
+	CRASH_IF(!_buffer, "Error loading image: " + path);
 
 	// if (_BPP != 4) {
 	// 	Log::log(LOG_TYPE::WARN, std::string(__PRETTY_FUNCTION__), std::string(path) + " is not RGBA, BPP is " + std::to_string(_BPP));
