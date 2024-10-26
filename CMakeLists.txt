@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # TODO see link options like -Wl,--as-needed -Wl,-Bdynamic
 
+set(LIB_OUTPUT_DIR "${CMAKE_BINARY_DIR}/lib")
+file(MAKE_DIRECTORY ${LIB_OUTPUT_DIR})
+
 add_executable(MarchingCubes
 		src/main.cpp
 		src/common.cpp
@@ -45,6 +48,13 @@ add_executable(MarchingCubes
 		external/imgui/backends/imgui_impl_glfw.cpp
 		external/imgui/backends/imgui_impl_opengl3.cpp
 )
+
+# set_target_properties(MarchingCubes PROPERTIES
+#     BUILD_WITH_INSTALL_RPATH TRUE    # Use build RPATH
+#     INSTALL_RPATH "$ORIGIN/../lib"   # Set RPATH for installed executable
+#     BUILD_RPATH "$ORIGIN/../lib"      # Set RPATH for built executable
+#     SKIP_BUILD_RPATH FALSE            # Do not skip building RPATH
+# )
 
 target_include_directories(MarchingCubes
 		PUBLIC include/
@@ -115,40 +125,40 @@ find_package(OpenGL REQUIRED)
 if (WIN32)
 	include_directories(external/glew/include)
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/glew32.dll)
-		file(COPY external/glew/bin/Release/x64/glew32.dll DESTINATION ${CMAKE_BINARY_DIR})
+	if (NOT EXISTS ${LIB_OUTPUT_DIR}/glew32.dll)
+		file(COPY external/glew/bin/Release/x64/glew32.dll DESTINATION ${LIB_OUTPUT_DIR})
 	endif()
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/steam_api64.dll)
-		file(COPY external/steamworks/sdk/redistributable_bin/win64/steam_api64.dll DESTINATION ${CMAKE_BINARY_DIR})
+	if (NOT EXISTS ${LIB_OUTPUT_DIR}/steam_api64.dll)
+		file(COPY external/steamworks/sdk/redistributable_bin/win64/steam_api64.dll DESTINATION ${LIB_OUTPUT_DIR})
 	endif()
 
-	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/phonon.dll)
-	# 	file(COPY external/steamaudio/lib/windows-x64/phonon.dll DESTINATION ${CMAKE_BINARY_DIR})
+	# if (NOT EXISTS ${LIB_OUTPUT_DIR}/phonon.dll)
+	# 	file(COPY external/steamaudio/lib/windows-x64/phonon.dll DESTINATION ${LIB_OUTPUT_DIR})
 	# endif()
 
-	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/assimp.dll)
-	# 	file(COPY external/assimp_windows/bin/assimp.dll DESTINATION ${CMAKE_BINARY_DIR})
+	# if (NOT EXISTS ${LIB_OUTPUT_DIR}/assimp.dll)
+	# 	file(COPY external/assimp_windows/bin/assimp.dll DESTINATION ${LIB_OUTPUT_DIR})
 	# endif()
 
 	include_directories(external/zstd-v1.5.6-win64/include/)
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/OpenAL32.dll)
-		file(COPY external/openal-soft/win64/OpenAL32.dll DESTINATION ${CMAKE_BINARY_DIR})
+	if (NOT EXISTS ${LIB_OUTPUT_DIR}/OpenAL32.dll)
+		file(COPY external/openal-soft/win64/OpenAL32.dll DESTINATION ${LIB_OUTPUT_DIR})
 	endif()
 	include_directories(external/openal-soft/win64/include)
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/sndfile.dll)
-		file(COPY external/libsndfile/win64/sndfile.dll DESTINATION ${CMAKE_BINARY_DIR})
+	if (NOT EXISTS ${LIB_OUTPUT_DIR}/sndfile.dll)
+		file(COPY external/libsndfile/win64/sndfile.dll DESTINATION ${LIB_OUTPUT_DIR})
 	endif()
 	include_directories(external/libsndfile/win64/include)
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/embree4.dll)
-		file(COPY external/embree/win64/bin/embree4.dll DESTINATION ${CMAKE_BINARY_DIR})
+	if (NOT EXISTS ${LIB_OUTPUT_DIR}/embree4.dll)
+		file(COPY external/embree/win64/bin/embree4.dll DESTINATION ${LIB_OUTPUT_DIR})
 	endif()
 	include_directories(external/embree/win64/include)
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/tbb12.dll)
-		file(COPY external/embree/win64/bin/tbb12.dll DESTINATION ${CMAKE_BINARY_DIR})
+	if (NOT EXISTS ${LIB_OUTPUT_DIR}/tbb12.dll)
+		file(COPY external/embree/win64/bin/tbb12.dll DESTINATION ${LIB_OUTPUT_DIR})
 	endif()
 	include_directories(external/embree/win64/include)
 
@@ -162,42 +172,42 @@ if (WIN32)
 		external/openal-soft/win64/
 		external/libsndfile/win64/
 		external/embree/win64/lib/
-		${CMAKE_BINARY_DIR}/
+		${LIB_OUTPUT_DIR}/
 	)
 
 else (WIN32) # linux
 	find_package(GLEW REQUIRED)
 	find_package(zstd REQUIRED)
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libsteam_api.so)
-		file(COPY external/steamworks/sdk/redistributable_bin/linux64/libsteam_api.so DESTINATION ${CMAKE_BINARY_DIR})
+	if (NOT EXISTS ${LIB_OUTPUT_DIR}/libsteam_api.so)
+		file(COPY external/steamworks/sdk/redistributable_bin/linux64/libsteam_api.so DESTINATION ${LIB_OUTPUT_DIR})
 	endif()
 
-	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/libphonon.so)
-	# 	file(COPY external/steamaudio/lib/linux-x64/libphonon.so DESTINATION ${CMAKE_BINARY_DIR})
+	# if (NOT EXISTS ${LIB_OUTPUT_DIR}/libphonon.so)
+	# 	file(COPY external/steamaudio/lib/linux-x64/libphonon.so DESTINATION ${LIB_OUTPUT_DIR})
 	# endif()
 
-	# if (NOT EXISTS ${CMAKE_BINARY_DIR}/libassimp.so)
-	# 	file(COPY external/assimp/build/bin/libassimp.so DESTINATION ${CMAKE_BINARY_DIR} FOLLOW_SYMLINK_CHAIN)
+	# if (NOT EXISTS ${LIB_OUTPUT_DIR}/libassimp.so)
+	# 	file(COPY external/assimp/build/bin/libassimp.so DESTINATION ${LIB_OUTPUT_DIR} FOLLOW_SYMLINK_CHAIN)
 	# endif()
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libopenal.so)
-		file(COPY external/openal-soft/linux64/libopenal.so DESTINATION ${CMAKE_BINARY_DIR})
+	if (NOT EXISTS ${LIB_OUTPUT_DIR}/libopenal.so)
+		file(COPY external/openal-soft/linux64/libopenal.so DESTINATION ${LIB_OUTPUT_DIR})
 	endif()
 	include_directories(external/openal-soft/linux64/include)
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libsndfile.so)
-		file(COPY external/libsndfile/linux64/libsndfile.so DESTINATION ${CMAKE_BINARY_DIR})
+	if (NOT EXISTS ${LIB_OUTPUT_DIR}/libsndfile.so)
+		file(COPY external/libsndfile/linux64/libsndfile.so DESTINATION ${LIB_OUTPUT_DIR})
 	endif()
 	include_directories(external/libsndfile/linux64/include)
 
-	if (NOT EXISTS ${CMAKE_BINARY_DIR}/libembree4.so)
-		file(COPY external/embree/linux64/lib/libembree4.so DESTINATION ${CMAKE_BINARY_DIR} FOLLOW_SYMLINK_CHAIN)
+	if (NOT EXISTS ${LIB_OUTPUT_DIR}/libembree4.so)
+		file(COPY external/embree/linux64/lib/libembree4.so DESTINATION ${LIB_OUTPUT_DIR} FOLLOW_SYMLINK_CHAIN)
 	endif()
 	include_directories(external/embree/linux64/include)
 
 	target_link_directories(MarchingCubes PRIVATE
-		${CMAKE_BINARY_DIR}/
+		${LIB_OUTPUT_DIR}/
 	)
 
 endif (WIN32)
