@@ -11,8 +11,8 @@ fi
 
 if [ "$1" == "linux" ]
 then
-	LIBS=$(cd build_dist/lib; echo *)
-	tar --owner=0 --group=0 --no-same-owner --no-same-permissions -c steam_appid.txt --files-from <(grep -Ev '^(\#|\/\/).*' files.txt) -C build_dist MarchingCubes -C lib $LIBS -f - | zstd -10 --long --threads=0 --stdout > MarchingCubes.tar.zst
+	# LIBS=$(cd build_dist/lib; echo *)
+	tar --owner=0 --group=0 --no-same-owner --no-same-permissions -c steam_appid.txt --files-from <(grep -Ev '^(\#|\/\/).*' files.txt) -C build_dist MarchingCubes lib/ -f - | zstd -10 --long --threads=0 --stdout > MarchingCubes.tar.zst
 else
     if [ "$1" == "windows" ]
     then
