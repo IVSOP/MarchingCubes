@@ -354,11 +354,11 @@ void Renderer::loadTextures() {
 	this->textureArray = std::make_unique<TextureArray>(TEXTURE_WIDTH, TEXTURE_HEIGHT, TEXTURE_LAYERS);
 
 	TextureArray *tex = textureArray.get();
-	tex->addTexture("textures/missing_texture.png"); // 0
-	tex->addTexture("textures/black.png"); // 1
-	tex->addTexture("textures/white.png"); // 2
-	tex->addTexture("textures/birch_planks.png"); // 3
-	tex->addTexture("textures/redstone_block.png"); // 4
+	tex->addTexture("textures/sprites/missing_texture.png"); // 0
+	tex->addTexture("textures/sprites/black.png"); // 1
+	tex->addTexture("textures/sprites/white.png"); // 2
+	tex->addTexture("textures/sprites/lava.png"); // 3
+	tex->addTexture("textures/sprites/stone.png"); // 4
 	tex->setTextureArrayToSlot(TEXSLOTS::TEX_ARRAY_SLOT);
 }
 
