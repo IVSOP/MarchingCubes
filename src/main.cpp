@@ -6,7 +6,16 @@
 
 #define APP_ID 480
 
+#if (defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
+#include <windows.h>
+#endif
+
 int main(int argc, char **argv) {
+
+#if (defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
+	// fuck windows
+	timeBeginPeriod(1);
+#endif
 
 	Audio::ALContext::setupContext();
 	// if (SteamAPI_RestartAppIfNecessary(APP_ID)) {
@@ -31,6 +40,13 @@ int main(int argc, char **argv) {
 	client = nullptr;
 	// SteamAPI_Shutdown();
 	Audio::ALContext::destroyContext();
+
+
+#if (defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
+	// fuck windows
+	timeEndPeriod(1);
+#endif
+
 	return 0;
 }
 

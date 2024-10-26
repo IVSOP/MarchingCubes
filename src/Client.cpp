@@ -5,6 +5,7 @@
 #include "Audio.hpp"
 #include "Assets.hpp"
 #include "Settings.hpp"
+#include <chrono>
 
 #define PLAYER_POS Position(glm::vec3(64, 16, 64))
 #define PLAYER_LOOKAT glm::vec3(0, 0, -1)
@@ -340,7 +341,7 @@ void Client::mainloop() {
 			const double fps_time = 1.0f / Settings::fps;
 			if (deltaTime < fps_time) {
 				const double sleepTime = (fps_time - deltaTime) * 10E5; // multiply to get from seconds to microseconds, this is prob platform dependent and very bad
-				usleep(sleepTime);
+				std::this_thread::sleep_for(std::chrono::microseconds(static_cast<long>(sleepTime)));
 				deltaTime = fps_time;
 			}
 		}
