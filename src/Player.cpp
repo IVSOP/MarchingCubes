@@ -238,10 +238,25 @@ void Player::noclipCallback(void *_player, const void *_data) {
 }
 
 void Player::noclip(bool activation) {
+	// this->noclip_active = activation;
+
+	JPH::BodyID bodyID = physCharacter->GetBodyID();
+
 	if (activation) {
-		printf("noclip is on\n");
+		// activate noclip
+		// disable gravity
+		Phys::setGravityFactor(bodyID, 0.0f);
+		// put it in the noclip layer
+		Phys::setLayer(bodyID, Layers::NOCLIP);
+		// also set velocity to 0 for good measure
+		physCharacter->SetLinearVelocity(JPH::Vec3::sZero());
+
 	} else {
-		printf("noclip is off\n");
+		// deactivate noclip
+		// give gravity back to the body
+		Phys::setGravityFactor(bodyID, 1.0f);
+		// put it in the moving layer
+		Phys::setLayer(bodyID, Layers::MOVING);
 	}
 }
 

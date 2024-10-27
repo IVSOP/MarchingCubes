@@ -56,6 +56,7 @@ namespace Layers
 {
 	static constexpr JPH::ObjectLayer NON_MOVING = 0;
 	static constexpr JPH::ObjectLayer MOVING = 1;
+	static constexpr JPH::ObjectLayer NOCLIP = 2;
 	static constexpr JPH::ObjectLayer NUM_LAYERS = 3;
 };
 
@@ -70,7 +71,11 @@ public:
 		case Layers::NON_MOVING:
 			return inObject2 == Layers::MOVING; // Non moving only collides with moving
 		case Layers::MOVING:
-			return true; // Moving collides with everything
+			// return true;
+			// Moving collides with everything, except for noclip
+			return inObject2 != Layers::NOCLIP;
+		case Layers::NOCLIP:
+			return false; // noclip never collides with anything
 		default:
 			JPH_ASSERT(false);
 			return false;
@@ -100,6 +105,7 @@ public:
 		// Create a mapping table from object to broad phase layer
 		mObjectToBroadPhase[Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
 		mObjectToBroadPhase[Layers::MOVING] = BroadPhaseLayers::MOVING;
+		mObjectToBroadPhase[Layers::NOCLIP] = BroadPhaseLayers::MOVING; // TODO I don't know what to do here but it prob doesn't matter too much
 	}
 
 	virtual JPH::uint GetNumBroadPhaseLayers() const override
@@ -234,6 +240,9 @@ public:
 	static UserData getUserData(JPH::BodyID bodyID);
 
 	static bool canBePlaced(const InsertInfo &insertInfo);
+
+	static void setGravityFactor(const JPH::BodyID bodyID, float gravity);
+	static void setLayer(const JPH::BodyID bodyID, const JPH::ObjectLayer &layer);
 };
 
 // TODO GET THIS THE FUCK OUT OF HERE

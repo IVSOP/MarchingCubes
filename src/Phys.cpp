@@ -744,3 +744,13 @@ bool Phys::canBePlaced(const InsertInfo &insertInfo) {
 
     return res;
 }
+
+void Phys::setGravityFactor(const JPH::BodyID bodyID, float gravity) {
+	BodyInterface &bodyInterface = getBodyInterface();
+	bodyInterface.SetGravityFactor(bodyID, gravity);
+}
+
+void Phys::setLayer(const JPH::BodyID bodyID, const JPH::ObjectLayer &layer) {
+	BodyInterface &bodyInterface = getBodyInterface();
+	bodyInterface.SetObjectLayer(bodyID, layer);
+}
