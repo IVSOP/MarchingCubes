@@ -179,6 +179,8 @@ if (WIN32)
 	)
 
 else (WIN32) # linux
+	# I got some issues where people didn't have a high enough version of glew so I'll just link it statically for now
+	set(GLEW_USE_STATIC_LIBS ON)
 	find_package(GLEW REQUIRED)
 	find_package(zstd REQUIRED)
 

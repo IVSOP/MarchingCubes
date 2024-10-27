@@ -11,4 +11,4 @@ MarchingCubes.tar.zst
 *.blend
 *.blend1
 build_dist
-
+*.tar.zst
