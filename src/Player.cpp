@@ -1,7 +1,7 @@
 #include "Player.hpp"
 
 Player::Player()
-	: dir(), mov(10.0f, false)
+	: dir(), mov(10.0f, false), noclip_active(false)
 {
 	// TODO what a mess
 	dir.up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -92,21 +92,6 @@ void Player::setupPhys(const Position &position, const glm::vec3 &lookatPoint) {
 		// 	*mTempAllocator);
 
 void Player::move(Camera_Movement direction, float deltaTime) {
-	// movement speed
-	// const Movement &mov = registry.get<Movement>(player_entity);
-
-	// JPH::Vec3 velocity;
-	// // if on ground, do nothing
-	// if (physCharacter->GetGroundState() == JPH::Character::EGroundState::OnGround) {
-	// 	velocity = JPH::Vec3::sZero();
-	// } else {
-	// 	// use up from character or from the camera
-	// 	velocity = mAnimatedCharacterVirtual->GetLinearVelocity() * physCharacter->GetUp() + Phys::getPhysSystem()->GetGravity() * deltaTime;
-	// }
-
-	// TODO fix this mess
-	JPH::Vec3 current_velocity = physCharacter->GetLinearVelocity();
-
 	float speed; // depends on deltatime
 	if (mov.speedup) {
 		speed = 10 * mov.speed * deltaTime;
@@ -115,50 +100,79 @@ void Player::move(Camera_Movement direction, float deltaTime) {
 	}
 
 	glm::vec3 mov_dir(0.0f);
-	switch(direction) {
-		case(FORWARD):
-			// normalize this too?????
-			mov_dir = dir.front;
-			break;
-		case(BACKWARD):
-			// normalize this too?????
-			mov_dir = - dir.front;
-			break;
+		switch(direction) {
+			case(FORWARD):
+				// normalize this too?????
+				mov_dir = dir.front;
+				break;
+			case(BACKWARD):
+				// normalize this too?????
+				mov_dir = - dir.front;
+				break;
 
-		case(FRONT):
-			// normalize needed since it would get different speeds for different Y values
-			// contas manhosas sao para em vez de ir para a frente manter-se no mesmo plano (ex minecraft voar ao carregar no W nunca sobe nem desce)
-			mov_dir = glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup));
-			break;
-		case(BACK):
-			// normalize needed since it would get different speeds for different Y values
-			// contas manhosas sao para em vez de ir para a frente manter-se no mesmo plano (ex minecraft voar ao carregar no W nunca sobe nem desce)
-			mov_dir = - glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup));
-			break;
-		case(LEFT):
-			mov_dir = - dir.right;
-			break;
-		case(RIGHT):
-			mov_dir = dir.right;
-			break;
-		case(UP):
-			mov_dir = glm::normalize(dir.worldup); // dir.up * dir.worldup); // why * up?????????
-			break;
-		case(DOWN):
-			mov_dir = - glm::normalize(dir.worldup); // dir.up * dir.worldup); // why * up?????????
-			break;
+			case(FRONT):
+				// normalize needed since it would get different speeds for different Y values
+				// contas manhosas sao para em vez de ir para a frente manter-se no mesmo plano (ex minecraft voar ao carregar no W nunca sobe nem desce)
+				mov_dir = glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup));
+				break;
+			case(BACK):
+				// normalize needed since it would get different speeds for different Y values
+				// contas manhosas sao para em vez de ir para a frente manter-se no mesmo plano (ex minecraft voar ao carregar no W nunca sobe nem desce)
+				mov_dir = - glm::normalize(dir.front * (glm::vec3(1.0f, 1.0f, 1.0f) - dir.worldup));
+				break;
+			case(LEFT):
+				mov_dir = - dir.right;
+				break;
+			case(RIGHT):
+				mov_dir = dir.right;
+				break;
+			case(UP):
+				mov_dir = glm::normalize(dir.worldup); // dir.up * dir.worldup); // why * up?????????
+				break;
+			case(DOWN):
+				mov_dir = - glm::normalize(dir.worldup); // dir.up * dir.worldup); // why * up?????????
+				break;
+		}
+
+	if (noclip_active) {
+
+		JPH::Vec3 pos = physCharacter->GetPosition();
+
+		// cur + (movement_dir * speed)
+		JPH::Vec3 new_pos = pos + (JPH::Vec3(mov_dir.x, mov_dir.y, mov_dir.z) * speed);
+
+		physCharacter->SetPosition(new_pos);
+
+
+	} else {
+		// movement speed
+		// const Movement &mov = registry.get<Movement>(player_entity);
+
+		// JPH::Vec3 velocity;
+		// // if on ground, do nothing
+		// if (physCharacter->GetGroundState() == JPH::Character::EGroundState::OnGround) {
+		// 	velocity = JPH::Vec3::sZero();
+		// } else {
+		// 	// use up from character or from the camera
+		// 	velocity = mAnimatedCharacterVirtual->GetLinearVelocity() * physCharacter->GetUp() + Phys::getPhysSystem()->GetGravity() * deltaTime;
+		// }
+
+		// TODO fix this mess
+		JPH::Vec3 current_velocity = physCharacter->GetLinearVelocity();
+
+		// cur + (movement_dir * speed)
+		JPH::Vec3 new_velocity = current_velocity + (JPH::Vec3(mov_dir.x, mov_dir.y, mov_dir.z) * speed);
+
+		// if (!new_velocity.IsNearZero() || !physCharacter->IsSupported()) {
+		// 	new_velocity.SetY(current_velocity.GetY());
+		// }
+
+		// Update the velocity
+		physCharacter->SetLinearVelocity(new_velocity);
+		// printf("velocity was %f %f %f, is now %f %f %f\n", current_velocity.GetX(), current_velocity.GetY(), current_velocity.GetZ(), new_velocity.GetX(), new_velocity.GetY(), new_velocity.GetZ());
+
 	}
 
-	// cur + (movement * speed)
-	JPH::Vec3 new_velocity = current_velocity + (JPH::Vec3(mov_dir.x, mov_dir.y, mov_dir.z) * speed);
-
-	// if (!new_velocity.IsNearZero() || !physCharacter->IsSupported()) {
-	// 	new_velocity.SetY(current_velocity.GetY());
-	// }
-
-	// Update the velocity
-	physCharacter->SetLinearVelocity(new_velocity);
-	// printf("velocity was %f %f %f, is now %f %f %f\n", current_velocity.GetX(), current_velocity.GetY(), current_velocity.GetZ(), new_velocity.GetX(), new_velocity.GetY(), new_velocity.GetZ());
 }
 
 void Player::look(float xoffset, float yoffset) {
@@ -238,7 +252,7 @@ void Player::noclipCallback(void *_player, const void *_data) {
 }
 
 void Player::noclip(bool activation) {
-	// this->noclip_active = activation;
+	this->noclip_active = activation;
 
 	JPH::BodyID bodyID = physCharacter->GetBodyID();
 

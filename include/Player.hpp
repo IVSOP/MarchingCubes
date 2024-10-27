@@ -59,6 +59,7 @@ public:
 
 	static void noclipCallback(void *player, const void *data);
 	void noclip(bool activation);
+	bool noclip_active;
 
 	// Player(std::ifstream &file);
 	// void saveTo(std::ofstream &file) const;
