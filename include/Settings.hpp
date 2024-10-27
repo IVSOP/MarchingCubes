@@ -49,6 +49,8 @@ struct Settings {
 	static bool limitFPS;
 	static float fps;
 
+	static bool noclip;
+
 	static void setFov(GLdouble _fov) {
 		Settings::fov = _fov;
 	}

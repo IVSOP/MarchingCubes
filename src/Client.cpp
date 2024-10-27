@@ -178,6 +178,9 @@ void Client::mainloop() {
 	}
 
 
+	renderer->addMenuCallback<bool>(&Settings::noclip, "Noclip", player.get(), Player::noclipCallback);
+
+
 	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
 	// // world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 

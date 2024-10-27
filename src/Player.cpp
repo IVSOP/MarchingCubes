@@ -231,6 +231,20 @@ glm::vec3 Player::getVelocity() const {
 	return glm::vec3(vel.GetX(), vel.GetY(), vel.GetZ());
 }
 
+void Player::noclipCallback(void *_player, const void *_data) {
+	Player *player = reinterpret_cast<Player *>(_player);
+	bool data = *reinterpret_cast<const bool *>(_data);
+	player->noclip(data);
+}
+
+void Player::noclip(bool activation) {
+	if (activation) {
+		printf("noclip is on\n");
+	} else {
+		printf("noclip is off\n");
+	}
+}
+
 // Player::Player(std::ifstream &file)
 // : camera(file)
 // { }

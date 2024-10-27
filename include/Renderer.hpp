@@ -16,6 +16,32 @@
 
 using DrawObjects = std::vector<std::pair<GameObject *, std::vector<glm::mat4>>>;
 
+using callbackfunc = void (*)(void *, const void *);
+
+template <typename T>
+struct MenuCallbackData {
+	// when a setting has changed, callback is called with user_data and data
+	// to tell if it has changed, last value is saved here too (but no longer as a pointer)
+	// data is a pointer since it's going to be changed by imgui
+	T *data;
+	T old_data;
+
+	const std::string name;
+	void *user_data;
+	callbackfunc callback;
+
+	MenuCallbackData(T *data, const std::string &name, void *user_data, callbackfunc callback)
+		: data(data), old_data(*data), name(name), user_data(user_data), callback(callback) {}
+	~MenuCallbackData() = default;
+
+	void callbackIfNeeded() {
+		if (old_data != *data) {
+			old_data = *data;
+			callback(user_data, data);
+		}
+	}
+};
+
 // TODO many things are not deleted (ex: all related to models)
 class Renderer {
 public:
@@ -83,6 +109,9 @@ public:
 	void generate_FBO_texture(GLuint *textureID, GLenum attachmentID); // makes the texture, needs to be called whenever viewport is resized (for now)
 	void checkFrameBuffer();
 
+	template<typename T>
+	void addMenuCallback(T *data, const std::string &name, void *user_data, callbackfunc callback);
+
 private:
 	void prepareFrame(GLuint num_verts, Position &pos, Direction &dir, Movement &mov, GLfloat deltatime, const SelectedBlockInfo &selectedInfo);
 	void drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view); // camera is for debugging
@@ -90,6 +119,8 @@ private:
 	void drawNormals(const CustomVec<Vertex> &verts, const std::vector<IndirectData> &indirect, const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 	void bloomBlur(int passes);
 	void merge();
+
+	std::vector<MenuCallbackData<bool>> boolMenu;
 };
 
 #endif

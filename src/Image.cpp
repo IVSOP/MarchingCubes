@@ -91,7 +91,7 @@ Image::Image(const std::string &path, int desired_width, int desired_height, CHA
 	// }
 
 	if (_width != desired_width || _height != desired_height) {
-		Log::log(LOG_TYPE::WARN, "image dimensions for " + std::string(path) + ": Expected " + std::to_string(desired_width) + " " + std::to_string(desired_height) + 
+		Log::log(LOG_TYPE::WARN, "Image loader", "image dimensions for " + std::string(path) + ": Expected " + std::to_string(desired_width) + " " + std::to_string(desired_height) + 
 			" got " + std::to_string(_width) + " " + std::to_string(_height) + ". The image will be automatically resized");
 
 		resize_to(desired_width, desired_height);

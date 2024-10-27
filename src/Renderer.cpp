@@ -403,6 +403,12 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::SliderFloat("FPS limit", &Settings::fps, 0.0f, 240.0f, "FPS limit = %.3f");
 	ImGui::Checkbox("Insert", &Settings::insert);
 	ImGui::Checkbox("Brake and place voxels", &Settings::edit_terrain);
+
+
+	for (MenuCallbackData<bool> &menudata : this->boolMenu) {
+		ImGui::Checkbox(menudata.name.c_str(), menudata.data);
+		menudata.callbackIfNeeded();
+	}
 }
 
 void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view) {
@@ -1178,4 +1184,14 @@ void Renderer::drawInsert(const glm::mat4 &view, const glm::mat4 &projection, co
 	if (Settings::wireframe_models) {
 		GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 	}
+}
+
+
+
+
+
+
+template<>
+void Renderer::addMenuCallback<bool>(bool *data, const std::string &name, void *user_data, callbackfunc callback) {
+	this->boolMenu.emplace_back(data, name, user_data, callback);
 }

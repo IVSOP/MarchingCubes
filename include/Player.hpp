@@ -57,6 +57,9 @@ public:
 	glm::vec3 getUpVector(); // TODO make this const
 	glm::vec3 getVelocity() const;
 
+	static void noclipCallback(void *player, const void *data);
+	void noclip(bool activation);
+
 	// Player(std::ifstream &file);
 	// void saveTo(std::ofstream &file) const;
 private:
