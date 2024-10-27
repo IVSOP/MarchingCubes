@@ -5,8 +5,12 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-#define ALCall(f) ALClearError();\
-	f;\
+#if (DISTRIBUTION)
+	#define ALCall(f) ALClearError();\
+		f;
+#else
+	#define ALCall(f) f;
+#endif
 
 void ALClearError();
 

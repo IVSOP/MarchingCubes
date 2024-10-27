@@ -74,6 +74,9 @@ if (Distribution)
 	set(TRACY_ENABLE off)
 	set(TRACY_ONLY_LOCALHOST off)
 	set(TRACY_NO_CRASH_HANDLER off)
+	target_compile_definitions(MarchingCubes
+		PRIVATE DISTRIBUTION=true
+	)
 else (Distribution)
 	set(TRACY_ENABLE on)
 	set(TRACY_ONLY_LOCALHOST on)

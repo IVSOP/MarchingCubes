@@ -120,9 +120,11 @@ WindowManager::WindowManager(int windowWidth, int windowHeight, Client *client)
 
 	// During init, enable debug output
 
-#if not (defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
-	glEnable( GL_DEBUG_OUTPUT );
-	glDebugMessageCallback( openglCallbackFunction, NULL );
+#if not defined(DISTRIBUTION)
+	#if not (defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
+		glEnable( GL_DEBUG_OUTPUT );
+		glDebugMessageCallback( openglCallbackFunction, NULL );
+	#endif
 #endif
 
     // IMGUI

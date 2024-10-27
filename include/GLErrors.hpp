@@ -26,14 +26,12 @@
 
 #define ASSERT(x) if (!(x)) raise(SIGTRAP);
 
-// on mac and windows do nothing, skill issue
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-     #define GLCall(f) GLClearError();\
-        f
+#if defined(DISTRIBUTION)
+	#define GLCall(f) f;
 #else
 	// for now just make it clear errors and nothing else
 	#define GLCall(f) GLClearError();\
-		f;\
+		f;
 		// ASSERT(GLLogCall(#f, __FILE__, __LINE__))
 #endif
 
