@@ -180,8 +180,18 @@ if (WIN32)
 
 else (WIN32) # linux
 	# I got some issues where people didn't have a high enough version of glew so I'll just link it statically for now
+	# on arch linux that won't be available, so link manually
+	# I make it link to a certain file manually, and also have to change the name that gets linked
 	set(GLEW_USE_STATIC_LIBS ON)
-	find_package(GLEW REQUIRED)
+	find_package(GLEW)
+	if(NOT GLEW_FOUND)
+		message(STATUS "static glew not found, using local copy")
+		set(GLEW_LOCAL_LIB external/glew/lib/linux/x64/)
+		set(GLEW_LIB libGLEW.a)
+	else()
+		set(GLEW_LIB GLEW::GLEW)
+	endif()
+
 	find_package(zstd REQUIRED)
 
 	if (NOT EXISTS ${LIB_OUTPUT_DIR}/libsteam_api.so)
@@ -213,6 +223,7 @@ else (WIN32) # linux
 
 	target_link_directories(MarchingCubes PRIVATE
 		${LIB_OUTPUT_DIR}/
+		${GLEW_LOCAL_LIB}
 	)
 
 endif (WIN32)
@@ -284,7 +295,8 @@ if (WIN32)
 else (WIN32) # linux
 	target_link_libraries(MarchingCubes
 		glfw
-		GLEW::GLEW
+		# GLEW::GLEW
+		${GLEW_LIB}
 		OpenGL::GL
 		EnTT::EnTT
 		Jolt
