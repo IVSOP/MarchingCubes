@@ -1164,7 +1164,7 @@ void Renderer::drawInsert(const glm::mat4 &view, const glm::mat4 &projection, co
 
 
 	// TODO get this out of here
-	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(insertInfo.pos));
+	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), insertInfo.pos);
 	glm::mat4 rotationMatrix = glm::toMat4(insertInfo.rot); // TODO use glm::rotate instead???
 	const glm::mat4 model = translationMatrix * rotationMatrix;
 	insertShader.setMat4("u_Model", model);

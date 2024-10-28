@@ -618,16 +618,16 @@ UserData Phys::getUserData(JPH::BodyID bodyID) {
 // https://jrouwe.github.io/JoltPhysics/class_narrow_phase_query.html
 // https://jrouwe.github.io/JoltPhysics/class_shape.html
 // TODO clean this up
-bool Phys::canBePlaced(const InsertInfo &insertInfo) {
+bool Phys::canBePlaced(const JPH::AABox &aabb, const JPH::Mat44 &transform, JPH::RefConst<JPH::Shape> phys_shape) {
 	const JPH::Vec3 scale = JPH::Vec3::sReplicate(1.0f);
-	const JPH::Vec3 pos = JPH::Vec3(static_cast<float>(insertInfo.pos.x), static_cast<float>(insertInfo.pos.y), static_cast<float>(insertInfo.pos.z));
-	const JPH::Quat rot = JPH::Quat(insertInfo.rot.x, insertInfo.rot.y, insertInfo.rot.z, insertInfo.rot.w);
-	const JPH::Mat44 transform = JPH::Mat44::sRotationTranslation(rot, pos);
+	// const JPH::Vec3 pos = JPH::Vec3(static_cast<float>(insertInfo.pos.x), static_cast<float>(insertInfo.pos.y), static_cast<float>(insertInfo.pos.z));
+	// const JPH::Quat rot = JPH::Quat(insertInfo.rot.x, insertInfo.rot.y, insertInfo.rot.z, insertInfo.rot.w);
+	// const JPH::Mat44 transform = JPH::Mat44::sRotationTranslation(rot, pos);
 
-	// // since world space bounds is relative to center of mass, I need to apply an offset
-	// JPH::Vec3 centerOfMassOffset = insertInfo.obj->phys_shape->GetCenterOfMass();
-	// JPH::AABox aabb = insertInfo.obj->phys_shape->GetWorldSpaceBounds(JPH::Mat44::sRotationTranslation(rot, pos - centerOfMassOffset), JPH::Vec3::sReplicate(1.0f));
-	JPH::AABox aabb = insertInfo.obj->phys_shape->GetWorldSpaceBounds(transform, scale);
+	// // // since world space bounds is relative to center of mass, I need to apply an offset
+	// // JPH::Vec3 centerOfMassOffset = insertInfo.obj->phys_shape->GetCenterOfMass();
+	// // JPH::AABox aabb = insertInfo.obj->phys_shape->GetWorldSpaceBounds(JPH::Mat44::sRotationTranslation(rot, pos - centerOfMassOffset), JPH::Vec3::sReplicate(1.0f));
+	// JPH::AABox aabb = insertInfo.obj->phys_shape->GetWorldSpaceBounds(transform, scale);
 
 
 // // Assuming you have a Jolt physics system initialized
@@ -730,8 +730,10 @@ bool Phys::canBePlaced(const InsertInfo &insertInfo) {
 	// 	const ShapeFilter &  	inShapeFilter = { } 
 	// )
 		// TODO add all the filters
+		// TODO read the comment and change this, bad fix
+		JPH::Vec3 pos = transform.GetTranslation();
 		Phys::getNarrowPhase().CollideShape(
-			insertInfo.obj->phys_shape,
+			phys_shape,
 			scale,
 			transform,
 			collideSettings,

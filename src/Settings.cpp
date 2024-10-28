@@ -25,4 +25,4 @@ bool Settings::limitFPS = true;
 float Settings::fps = 165.0f;
 bool Settings::insert = false;
 bool Settings::edit_terrain = false;
-bool Settings::noclip = false;
+bool Settings::noclip = true;

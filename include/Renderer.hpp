@@ -42,6 +42,17 @@ struct MenuCallbackData {
 	}
 };
 
+// TODO get this out of here
+struct InsertInfo {
+	const GameObject *obj;
+	glm::quat rot;
+	glm::vec3 pos;
+
+	InsertInfo(const GameObject *obj, const glm::quat &rot, const glm::vec3 &pos)
+		: obj(obj), rot(rot), pos(pos) {}
+	~InsertInfo() = default;
+};
+
 // TODO many things are not deleted (ex: all related to models)
 class Renderer {
 public:

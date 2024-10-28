@@ -147,6 +147,8 @@ public:
 			return inLayer2 == BroadPhaseLayers::MOVING;
 		case Layers::MOVING:
 			return true;
+		// case Layers::NOCLIP:
+		// 	return false; // is this right???
 		default:
 			JPH_ASSERT(false);
 			return false;
@@ -239,22 +241,10 @@ public:
 	static UserData getUserData(JPH::Body *body);
 	static UserData getUserData(JPH::BodyID bodyID);
 
-	static bool canBePlaced(const InsertInfo &insertInfo);
+	static bool canBePlaced(const JPH::AABox &aabb, const JPH::Mat44 &transform, JPH::RefConst<JPH::Shape> phys_shape);
 
 	static void setGravityFactor(const JPH::BodyID bodyID, float gravity);
 	static void setLayer(const JPH::BodyID bodyID, const JPH::ObjectLayer &layer);
-};
-
-// TODO GET THIS THE FUCK OUT OF HERE
-struct InsertInfo {
-	const GameObject *obj;
-	glm::quat rot;
-	glm::ivec3 pos; // make this already be vec3??
-
-	InsertInfo(const GameObject *obj, glm::quat &rot, const glm::ivec3 &pos)
-	: obj(obj), rot(rot), pos(pos) {}
-
-	~InsertInfo() = default;
 };
 
 // JPH_NAMESPACE_END

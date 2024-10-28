@@ -159,6 +159,9 @@ void Client::mainloop() {
 	// audio.setGain(10.0f);
 	// audio.play();
 
+	// shitty workaround, TODO
+	player->noclip(Settings::noclip);
+
 	for (int i = 0; i < 100; i++) {
 		entt::entity ball = world->spawn(2, JPH::Vec3(0.0f, 0.0f + (i * 5.0f), 0.0f), JPH::Quat::sIdentity());
 		AudioComponent &audio = world->entt_registry.emplace<AudioComponent>(ball, "sound1.wav");
@@ -301,16 +304,40 @@ void Client::mainloop() {
 			GLuint insertID = 0;
 			const GameObject *insertObj = world->getObject(insertID);
 			GLfloat rotationAngle = 5 * glm::radians(inputHandler.getYScroll());
-			glm::quat rot = glm::angleAxis(rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f)); // rotation around the Y axis
-			glm::ivec3 pos = selectedBlock.world_pos;
-			pos.y += 12; // TODO use the bounding box for this
-			const InsertInfo insertInfo = InsertInfo(insertObj, rot, pos);
+			// TODO get rid of these
+			const glm::quat rot = glm::angleAxis(rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f)); // rotation around the Y axis
+			const glm::ivec3 pos = selectedBlock.world_pos;
 
-			bool valid = Phys::canBePlaced(insertInfo);
+			JPH::Vec3 pos_jph(pos.x, pos.y, pos.z);
+			JPH::Quat rot_jph(rot.x, rot.y, rot.z, rot.w);
+
+			// get the bounding box of the rotated shape
+			JPH::Mat44 transform = JPH::Mat44::sRotation(rot_jph);
+			JPH::AABox aabox = insertObj->phys_shape->GetLocalBounds().Transformed(transform);
+
+			// get the vertical distance from the center of mass to the min of the bounding box
+			float offset = insertObj->phys_shape->GetCenterOfMass().GetY() - aabox.mMin.GetY();
+
+			// compute final position of the center of mass
+			pos_jph.SetY(pos_jph.GetY() + offset);
+
+			// translate the bounding box there
+			aabox.Translate(pos_jph);
+
+			// translate the transform to new position
+			transform = transform.PostTranslated(pos_jph);
+
+			// use bounding box for checking collision
+			bool valid = Phys::canBePlaced(aabox, transform, insertObj->phys_shape);
 
 			if (valid && inputHandler.single_click(GLFW_MOUSE_BUTTON_LEFT)) {
-				world->spawn(insertID, JPH::Vec3(pos.x, pos.y, pos.z), JPH::Quat(rot.x, rot.y, rot.z, rot.w));
+				world->spawn(insertID, pos_jph, rot_jph);
 			} else {
+				// TODO pass in transform in the future
+				glm::vec3 pos_float = glm::vec3(pos);
+				pos_float.y += offset;
+				InsertInfo insertInfo = InsertInfo(insertObj, rot, pos_float);
+
 				renderer->drawInsert(view, windowManager->projection, insertInfo, valid);
 			}
 

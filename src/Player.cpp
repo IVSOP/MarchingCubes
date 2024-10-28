@@ -1,4 +1,5 @@
 #include "Player.hpp"
+#include "Settings.hpp"
 
 Player::Player()
 	: dir(), mov(10.0f, false), noclip_active(false)
@@ -259,7 +260,9 @@ void Player::noclip(bool activation) {
 	if (activation) {
 		// activate noclip
 		// disable gravity
-		Phys::setGravityFactor(bodyID, 0.0f);
+		// Phys::setGravityFactor(bodyID, 0.0f);
+		// instead of disabling gravity I set the body to kinematic, I have no idea which one is best, TODO clean this up
+		Phys::getBodyInterface().SetMotionType(bodyID, JPH::EMotionType::Kinematic, JPH::EActivation::Activate);
 		// put it in the noclip layer
 		Phys::setLayer(bodyID, Layers::NOCLIP);
 		// also set velocity to 0 for good measure
