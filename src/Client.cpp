@@ -316,18 +316,20 @@ void Client::mainloop() {
 			JPH::AABox aabox = insertObj->phys_shape->GetLocalBounds().Transformed(transform);
 
 			// get the vertical distance from the center of mass to the min of the bounding box
+			// this will act as an offset since I am concerned with terrain position, not COM position
 			float offset = insertObj->phys_shape->GetCenterOfMass().GetY() - aabox.mMin.GetY();
 
 			// compute final position of the center of mass
 			pos_jph.SetY(pos_jph.GetY() + offset);
 
-			// translate the bounding box there
+			// translate the bounding box there (so it can be used to check broad collision)
 			aabox.Translate(pos_jph);
 
 			// translate the transform to new position
-			transform = transform.PostTranslated(pos_jph);
+			transform = transform.PreTranslated(pos_jph);
 
-			// use bounding box for checking collision
+			// use bounding box for broad checking collision
+			// transform and shape are still needed, for finer check
 			bool valid = Phys::canBePlaced(aabox, transform, insertObj->phys_shape);
 
 			if (valid && inputHandler.single_click(GLFW_MOUSE_BUTTON_LEFT)) {
