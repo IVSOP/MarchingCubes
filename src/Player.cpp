@@ -274,6 +274,8 @@ void Player::noclip(bool activation) {
 		Phys::setGravityFactor(bodyID, 1.0f);
 		// put it in the moving layer
 		Phys::setLayer(bodyID, Layers::MOVING);
+		// reset motion type
+		Phys::getBodyInterface().SetMotionType(bodyID, JPH::EMotionType::Dynamic, JPH::EActivation::Activate);
 	}
 }
 
