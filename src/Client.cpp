@@ -322,11 +322,14 @@ void Client::mainloop() {
 			// compute final position of the center of mass
 			pos_jph.SetY(pos_jph.GetY() + offset);
 
-			// translate the bounding box there (so it can be used to check broad collision)
-			aabox.Translate(pos_jph);
+			// printf("%f %f %f | %f %f %f\n", aabox.mMin.GetX(), aabox.mMin.GetY(), aabox.mMin.GetZ(), aabox.mMax.GetX(), aabox.mMax.GetY(), aabox.mMax.GetZ());
 
 			// translate the transform to new position
 			transform = transform.PreTranslated(pos_jph);
+
+			// translate the bounding box there (so it can be used to check broad collision)
+			// TODO using aabox.Translate would invalidade the rotation somehow, fix this
+			aabox = aabox.Transformed(transform);
 
 			// use bounding box for broad checking collision
 			// transform and shape are still needed, for finer check

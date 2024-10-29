@@ -714,7 +714,7 @@ bool Phys::canBePlaced(const JPH::AABox &aabb, const JPH::Mat44 &transform, JPH:
 
 	bool res = true;
 
-	// if broad phase hits, check narrow phase
+	// broad phase collided, so we need to check narrow phase
 	if (collector.collision) {
 		CollideShapeSettings collideSettings;
 		MyCollideShapeCollector collisionCollector;
