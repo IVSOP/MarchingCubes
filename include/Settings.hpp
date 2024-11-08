@@ -51,6 +51,9 @@ struct Settings {
 
 	static bool noclip;
 
+	static GLfloat speed;
+	static bool speedup;
+
 	static void setFov(GLdouble _fov) {
 		Settings::fov = _fov;
 	}

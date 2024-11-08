@@ -362,7 +362,7 @@ void Renderer::loadTextures() {
 	tex->setTextureArrayToSlot(TEXSLOTS::TEX_ARRAY_SLOT);
 }
 
-void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir, Movement &mov, GLfloat deltaTime, const SelectedBlockInfo &selectedInfo) {
+void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir, GLfloat deltaTime, const SelectedBlockInfo &selectedInfo) {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -375,9 +375,9 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 
 	ImGui::Text("%u triangles", num_triangles);
 	ImGui::InputFloat3("Position", glm::value_ptr(pos.pos));
-	ImGui::SliderFloat("##Camera_speed", &mov.speed, 0.0f, 1000.0f, "Camera speed = %.3f");
+	ImGui::SliderFloat("##Camera_speed", &Settings::speed, 0.0f, 1000.0f, "Camera speed = %.3f");
 	ImGui::SameLine();
-	ImGui::InputFloat("Camera speed", &mov.speed, 1.0f, 10.0f);
+	ImGui::InputFloat("Camera speed", &Settings::speed, 1.0f, 10.0f);
 	float fov = static_cast<GLfloat>(Settings::fov);
 	ImGui::SliderFloat("FOV", &fov, 0.0f, 140.0f, "fov = %.3f");
 	Settings::setFov(static_cast<GLdouble>(fov));
@@ -710,10 +710,10 @@ void Renderer::postProcess(int bloomBlurPasses) {
 	merge();
 }
 
-void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const DrawObjects &objs, const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo) {
+void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const DrawObjects &objs, const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, const SelectedBlockInfo &selectedInfo) {
 	ZoneScoped;
-	
-	prepareFrame(verts.size(), pos, dir, mov, deltaTime, selectedInfo);
+
+	prepareFrame(verts.size(), pos, dir, deltaTime, selectedInfo);
 	drawLighting(verts, points, indirect, chunkInfo, projection, view);
 	drawObjects(view, projection, objs);
 	drawSelectedObjects(view, projection, selected_objs);

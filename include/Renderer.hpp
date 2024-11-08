@@ -105,7 +105,7 @@ public:
 	PhysRenderer *phys_renderer;
 
 	void draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const DrawObjects &objs,
-		const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, Movement &mov, const SelectedBlockInfo &selectedInfo); // const
+		const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, const SelectedBlockInfo &selectedInfo); // const
 	void postProcess(int bloomBlurPasses);
 	void endFrame(GLFWwindow * window);
 	void drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
@@ -124,7 +124,7 @@ public:
 	void addMenuCallback(T *data, const std::string &name, void *user_data, callbackfunc callback);
 
 private:
-	void prepareFrame(GLuint num_verts, Position &pos, Direction &dir, Movement &mov, GLfloat deltatime, const SelectedBlockInfo &selectedInfo);
+	void prepareFrame(GLuint num_verts, Position &pos, Direction &dir, GLfloat deltatime, const SelectedBlockInfo &selectedInfo);
 	void drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view); // camera is for debugging
 	void drawAxis(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 	void drawNormals(const CustomVec<Vertex> &verts, const std::vector<IndirectData> &indirect, const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);

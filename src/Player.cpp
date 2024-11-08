@@ -2,7 +2,7 @@
 #include "Settings.hpp"
 
 Player::Player()
-	: dir(), mov(10.0f, false), noclip_active(false)
+	: dir(), noclip_active(false)
 {
 	// TODO what a mess
 	dir.up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -94,10 +94,10 @@ void Player::setupPhys(const Position &position, const glm::vec3 &lookatPoint) {
 
 void Player::move(Camera_Movement direction, float deltaTime) {
 	float speed; // depends on deltatime
-	if (mov.speedup) {
-		speed = 10 * mov.speed * deltaTime;
+	if (Settings::speedup) {
+		speed = 10 * Settings::speed * deltaTime;
 	} else {
-		speed = mov.speed * deltaTime;
+		speed = Settings::speed * deltaTime;
 	}
 
 	glm::vec3 mov_dir(0.0f);
@@ -205,7 +205,7 @@ void Player::look(float xoffset, float yoffset) {
 
 void Player::speedUp(bool speedup) {
 	// registry.get<Movement>(player_entity).speedup = speedup;
-	mov.speedup = speedup;
+	Settings::speedup = speedup;
 }
 
 glm::mat4 Player::getViewMatrix() {
@@ -225,10 +225,10 @@ Direction &Player::getDir() {
 	return dir;
 }
 
-Movement &Player::getMov() {
-	// return registry.get<Movement>(player_entity);
-	return mov;
-}
+// Movement &Player::getMov() {
+// 	// return registry.get<Movement>(player_entity);
+// 	return mov;
+// }
 
 glm::vec3 Player::getRotation() const {
 	JPH::Quat rot_jph = physCharacter->GetRotation();

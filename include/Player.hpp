@@ -17,7 +17,6 @@ public:
 	// after a physics update, this recalculates the needed vectors
 	void postTick();
 	Direction dir; // Direction has angles and other things which are not needed but make my life easier
-	Movement mov;
 
 	// phys info
 	// TODO the description of these references does not sound good, seems like a shared_ptr, change to something else
@@ -52,7 +51,7 @@ public:
 	Position  getPos() const; // not a reference for complicated reasons
 	// this is only valid after postick is called!!!!!
 	Direction &getDir();
-	Movement  &getMov();
+	// Movement  &getMov();
 	glm::vec3 getRotation() const;
 	glm::vec3 getUpVector(); // TODO make this const
 	glm::vec3 getVelocity() const;

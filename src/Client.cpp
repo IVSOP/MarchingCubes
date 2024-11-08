@@ -218,7 +218,7 @@ void Client::mainloop() {
 		// TODO sometimes I use this data, other times I call functions from Player which gets them again, what a mess
 		Position  pos = player->getPos();
 		Direction dir = player->getDir();
-		Movement  mov = player->getMov();
+		// Movement  mov = player->getMov();
 
         inputHandler.move(
 			world.get(),
@@ -297,7 +297,6 @@ void Client::mainloop() {
 			windowManager->window, deltaTime,
 			pos,
 			dir,
-			mov,
 			selectedBlock);
 
 		if (Settings::insert) {

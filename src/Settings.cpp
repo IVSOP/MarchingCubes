@@ -26,3 +26,5 @@ float Settings::fps = 165.0f;
 bool Settings::insert = false;
 bool Settings::edit_terrain = false;
 bool Settings::noclip = true;
+GLfloat Settings::speed = 10.0f;
+bool Settings::speedup = false;
