@@ -7,10 +7,11 @@
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
+#include "Components.hpp" // for physics component
 
 struct Plane {
     glm::vec3 normal; // Normal vector of the plane
-    GLfloat distance;   // Distance from the origin
+    GLfloat distance;   // Distance from the origin to nearest point in the plane
 
 	Plane() = default;
     constexpr Plane(const glm::vec3& n, GLfloat d) : normal(n), distance(d) {}
@@ -26,6 +27,19 @@ struct Plane {
     }
 
 	~Plane() = default;
+
+	bool isOnOrForwardPlane(const glm::vec3 &min, const glm::vec3 &max) const {
+		// Determine the positive and negative vertices of the AABB with respect to the plane normal
+		glm::vec3 p_vertex = glm::vec3(
+			(normal.x >= 0) ? max.x : min.x,
+			(normal.y >= 0) ? max.y : min.y,
+			(normal.z >= 0) ? max.z : min.z
+		);
+
+		// Check if the AABB is on or in front of the plane by testing the "most negative" vertex
+		return distanceToPoint(p_vertex) >= 0;
+	}
+
 };
 
 struct Frustum {
@@ -65,6 +79,7 @@ struct Frustum {
     //                       vpMatrix[3][3] - vpMatrix[3][2]); // Far
     // }
 
+	// TODO just copy this from learnopengl
     Frustum(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up, GLfloat fov, GLfloat aspect, GLfloat nearDist, GLfloat farDist) {
         const glm::vec3 right = glm::normalize(glm::cross(direction, up));
         const glm::vec3 upVector = glm::normalize(glm::cross(right, direction));
@@ -97,20 +112,46 @@ struct Frustum {
         planes[5] = Plane(farTopRight, farTopLeft, farBottomLeft); // Far
     }
 
-    // Frustum(const glm::vec3& position, const Direction& direction, const glm::vec3& up, GLfloat fov, GLfloat aspect, GLfloat nearDist, GLfloat farDist) {
-	// 	const GLfloat halfVSide = farDist * tanf(fov * .5f);
-	// 	const GLfloat halfHSide = halfVSide * aspect;
-	// 	const glm::vec3 frontMultFar = farDist * direction.front;
-
-	// 	planes[4] = Plane(position + nearDist * direction.front, direction.front);
-	// 	planes[5] = Plane(position + frontMultFar, -direction.front);
-	// 	planes[2] = Plane(position, glm::cross(frontMultFar - direction.right * halfHSide, direction.up));
-	// 	planes[3] = Plane(position, glm::cross(direction.up,frontMultFar + direction.right * halfHSide));
-	// 	planes[0] = Plane(position, glm::cross(direction.right, frontMultFar - direction.up * halfVSide));
-	// 	planes[1] = Plane(position, glm::cross(frontMultFar + direction.up * halfVSide, direction.right));
-    // }
-
 	~Frustum() = default;
+
+	bool contains(const Physics &phys) const {
+		JPH::AABox aabb = phys.getAABB();
+
+		// TODO ugly, look into Vec3 type??
+		glm::vec3 max(aabb.mMax.GetX(), aabb.mMax.GetY(), aabb.mMax.GetZ());
+		glm::vec3 min(aabb.mMin.GetX(), aabb.mMin.GetY(), aabb.mMin.GetZ());
+
+
+		return planes[0].isOnOrForwardPlane(min, max) && 
+			   planes[1].isOnOrForwardPlane(min, max) &&
+			   planes[2].isOnOrForwardPlane(min, max) &&
+			   planes[3].isOnOrForwardPlane(min, max) &&
+			   planes[4].isOnOrForwardPlane(min, max) &&
+			   planes[5].isOnOrForwardPlane(min, max);
+
+
+		// for (const Plane &plane : planes) {
+
+
+			// // only needed to check if fully inside frustum???
+			// // glm::vec3 positive_vertex(
+			// // 	plane.normal.x >= 0 ? max.x : min.x,
+			// // 	plane.normal.y >= 0 ? max.y : min.y,
+			// // 	plane.normal.z >= 0 ? max.z : min.z
+			// // );
+			// glm::vec3 negative_vertex(
+			// 	plane.normal.x >= 0 ? min.x : max.x,
+			// 	plane.normal.y >= 0 ? min.y : max.y,
+			// 	plane.normal.z >= 0 ? min.z : max.z
+			// );
+
+			// // check if negative vertex is outside the plane
+			// // TODO cursed, just multiply the vectors??
+			// if (plane.normal.x * negative_vertex.x + plane.normal.y * negative_vertex.y + plane.normal.z * negative_vertex.z + plane.distance > 0) {
+			// 	return true;
+			// }
+		// }
+	}
 };
 
 #endif

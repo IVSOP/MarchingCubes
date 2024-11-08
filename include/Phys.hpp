@@ -245,6 +245,10 @@ public:
 
 	static void setGravityFactor(const JPH::BodyID bodyID, float gravity);
 	static void setLayer(const JPH::BodyID bodyID, const JPH::ObjectLayer &layer);
+
+	static JPH::AABox getAABB(const JPH::Body *body);
+	// static JPH::AABox getAABB(const JPH::BodyID bodyID);
+	// static JPH::AABox getAABB(JPH::RefConst<JPH::Character> character);
 };
 
 // JPH_NAMESPACE_END

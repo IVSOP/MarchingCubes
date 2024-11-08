@@ -756,3 +756,17 @@ void Phys::setLayer(const JPH::BodyID bodyID, const JPH::ObjectLayer &layer) {
 	BodyInterface &bodyInterface = getBodyInterface();
 	bodyInterface.SetObjectLayer(bodyID, layer);
 }
+
+JPH::AABox Phys::getAABB(const JPH::Body *body) {
+	return body->GetWorldSpaceBounds();
+}
+
+// JPH::AABox Phys::getAABB(const JPH::BodyID bodyID) {
+// 	BodyInterface &bodyInterface = getBodyInterface();
+// 	return bodyInterface.GetWorldSpaceBounds(bodyID);
+// }
+
+// JPH::AABox Phys::getAABB(JPH::RefConst<JPH::Character> character) {
+// 	return getAABB(character.GetBodyID());
+// }
+

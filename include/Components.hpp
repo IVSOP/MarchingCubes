@@ -127,6 +127,10 @@ struct Physics {
 		Phys::setUserData(body, data);
 	}
 
+	JPH::AABox getAABB() const {
+		return Phys::getAABB(body);
+	}
+
 	NON_COPYABLE_AND_NON_MOVABLE(Physics)
 };
 
@@ -186,6 +190,10 @@ struct PhysicsCharacter {
 	JPH::Quat getRotation() const {
 		return physCharacter->GetRotation();
 	}
+
+	// JPH::AABox getAABB() const {
+	// 	return Phys::getAABB(physCharacter);
+	// }
 
 	NON_COPYABLE_AND_NON_MOVABLE(PhysicsCharacter)
 };

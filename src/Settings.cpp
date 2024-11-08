@@ -28,3 +28,4 @@ bool Settings::edit_terrain = false;
 bool Settings::noclip = true;
 GLfloat Settings::speed = 10.0f;
 bool Settings::speedup = false;
+bool Settings::frustum_cull = true;

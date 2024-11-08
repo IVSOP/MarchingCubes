@@ -53,6 +53,8 @@ struct Settings {
 
 	static GLfloat speed;
 	static bool speedup;
+
+	static bool frustum_cull;
 };
 
 

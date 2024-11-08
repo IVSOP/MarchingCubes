@@ -406,6 +406,7 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::SliderFloat("FPS limit", &Settings::fps, 0.0f, 240.0f, "FPS limit = %.3f");
 	ImGui::Checkbox("Insert", &Settings::insert);
 	ImGui::Checkbox("Break and place voxels", &Settings::edit_terrain);
+	ImGui::Checkbox("Frustum culling for entities", &Settings::frustum_cull); 
 
 
 	for (MenuCallbackData<bool> &menudata : this->boolMenu) {

@@ -12,6 +12,8 @@
 
 #include "Archive.hpp"
 
+#include "Settings.hpp"
+
 constexpr bool isChunkInFrustum(const Frustum &frustum, const glm::vec3 &minCorner) {
 	const glm::vec3 maxCorner = minCorner + glm::vec3(CHUNK_SIZE_CORNERS_FLOAT);
 
@@ -528,12 +530,17 @@ solution was to make not even the Render be owned
 // this returns a vector of pair<pointer to object, vector of transform matrix>. a given object can be instanced in many places, using the transform
 const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEntitiesToDraw(const Frustum &frustum) {
 	std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> res(objects_info.size());
-
 	{
 		auto group = entt_registry.group<>(entt::get<Render, Physics>, entt::exclude<Selected>);
 		for (const auto entity : group) {
 			const Physics &phys = group.get<Physics>(entity);
 			const Render &render = group.get<Render>(entity);
+
+			if (Settings::frustum_cull) {
+				if (! frustum.contains(phys)) {
+					continue; // not in frustum, do not keep going and do not render dthe entity
+				}
+			}
 
 			res[render.object_id].second.emplace_back(phys.getTransform());
 		}
@@ -545,6 +552,7 @@ const std::vector<std::pair<GameObject *, std::vector<glm::mat4>>> World::getEnt
 			const PhysicsCharacter &physcharacter = group.get<PhysicsCharacter>(entity);
 			const Render &render = group.get<Render>(entity);
 
+			// TODO frustum culling
 			res[render.object_id].second.emplace_back(physcharacter.getTransform());
 		}
 	}
