@@ -1,6 +1,6 @@
 #include "Settings.hpp"
 
-GLdouble Settings::fov = 90.0;
+GLfloat Settings::fov = 90.0;
 GLdouble Settings::znear = 0.1;
 GLdouble Settings::zfar = 10000.0;
 std::string Settings::saves_dir = "saves/";

@@ -8,7 +8,7 @@
 // it makes sense to make them be owned by many classes, so no one ows them
 struct Settings {
 	// camera
-	static GLdouble fov;
+	static GLfloat fov; // TODO this is only a float because of the terrible menu system
 	static GLdouble znear;
 	static GLdouble zfar;
 
@@ -53,10 +53,6 @@ struct Settings {
 
 	static GLfloat speed;
 	static bool speedup;
-
-	static void setFov(GLdouble _fov) {
-		Settings::fov = _fov;
-	}
 };
 
 

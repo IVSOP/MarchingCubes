@@ -378,9 +378,12 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 	ImGui::SliderFloat("##Camera_speed", &Settings::speed, 0.0f, 1000.0f, "Camera speed = %.3f");
 	ImGui::SameLine();
 	ImGui::InputFloat("Camera speed", &Settings::speed, 1.0f, 10.0f);
-	float fov = static_cast<GLfloat>(Settings::fov);
-	ImGui::SliderFloat("FOV", &fov, 0.0f, 140.0f, "fov = %.3f");
-	Settings::setFov(static_cast<GLdouble>(fov));
+
+	for (MenuCallbackData<float> &menudata : this->floatSliderMenu) {
+		ImGui::SliderFloat(menudata.name.c_str(), menudata.data, menudata.min, menudata.max, menudata.format.c_str());
+		menudata.callbackIfNeeded();
+	}
+
 	ImGui::SliderFloat("gamma", &Settings::gamma, 0.0f, 10.0f, "gamma = %.3f");
 	ImGui::SliderFloat("exposure", &Settings::exposure, 0.0f, 10.0f, "exposure = %.3f");
 	ImGui::InputInt("bloomPasses", &Settings::bloomBlurPasses, 1, 1); if (Settings::bloomBlurPasses < 0) Settings::bloomBlurPasses = 0;
@@ -1187,11 +1190,10 @@ void Renderer::drawInsert(const glm::mat4 &view, const glm::mat4 &projection, co
 }
 
 
-
-
-
-
-template<>
-void Renderer::addMenuCallback<bool>(bool *data, const std::string &name, void *user_data, callbackfunc callback) {
+void Renderer::addMenuCallbackBool(bool *data, const std::string &name, void *user_data, callbackfunc callback) {
 	this->boolMenu.emplace_back(data, name, user_data, callback);
+}
+
+void Renderer::addMenuCallbackFloat(float *data, const std::string &name, void *user_data, callbackfunc callback,float min, float max, const std::string &format) {
+	this->floatSliderMenu.emplace_back(data, name, user_data, callback, min, max, format);
 }

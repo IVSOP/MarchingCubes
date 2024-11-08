@@ -16,12 +16,22 @@ void glfw_resizeViewport_callback(GLFWwindow* window, int windowWidth, int windo
 	client->resizeViewport(windowWidth, windowHeight);
 }
 
+void WindowManager::fovCallback(void *_windowmanager, const void *_data) {
+	WindowManager *wm = reinterpret_cast<WindowManager *>(_windowmanager);
+	GLfloat fov = *reinterpret_cast<const GLfloat *>(_data);
+	wm->updateProjection(fov);
+}
+
+void WindowManager::updateProjection(GLfloat fov) {
+    this->projection = glm::perspective(glm::radians(fov), static_cast<GLfloat>(this->aspectRatio), static_cast<GLfloat>(Settings::znear), static_cast<GLfloat>(Settings::zfar));
+}
+
 void WindowManager::resizeViewport(int windowWidth, int windowHeight) {
     // Compute window's ration
     this->aspectRatio = static_cast<GLfloat>(windowWidth) / static_cast<GLfloat>(windowHeight);
 
     // Set perspective
-    this->projection = glm::perspective(glm::radians(static_cast<GLfloat>(Settings::fov)), static_cast<GLfloat>(this->aspectRatio), static_cast<GLfloat>(Settings::znear), static_cast<GLfloat>(Settings::zfar));
+	updateProjection(Settings::fov);
 
     // Set viewport to be the entire window
     glViewport(0, 0, windowWidth, windowHeight);

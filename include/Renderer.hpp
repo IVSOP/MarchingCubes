@@ -29,9 +29,33 @@ struct MenuCallbackData {
 	const std::string name;
 	void *user_data;
 	callbackfunc callback;
-
 	MenuCallbackData(T *data, const std::string &name, void *user_data, callbackfunc callback)
 		: data(data), old_data(*data), name(name), user_data(user_data), callback(callback) {}
+	~MenuCallbackData() = default;
+
+	void callbackIfNeeded() {
+		if (old_data != *data) {
+			old_data = *data;
+			callback(user_data, data);
+		}
+	}
+};
+// ugly hack, specific for floats, idc, entire =menu will have to get reworked eventually
+template <>
+struct MenuCallbackData<float> {
+	float *data;
+	float old_data;
+
+	const std::string name;
+	void *user_data;
+	callbackfunc callback;
+	// specific for floats
+	float min, max;
+	// specific for sliders
+	const std::string format; // fov = %.3f
+
+	MenuCallbackData(float *data, const std::string &name, void *user_data, callbackfunc callback, float min, float max, const std::string &format)
+		: data(data), old_data(*data), name(name), user_data(user_data), callback(callback), min(min), max(max), format(format) {}
 	~MenuCallbackData() = default;
 
 	void callbackIfNeeded() {
@@ -120,8 +144,9 @@ public:
 	void generate_FBO_texture(GLuint *textureID, GLenum attachmentID); // makes the texture, needs to be called whenever viewport is resized (for now)
 	void checkFrameBuffer();
 
-	template<typename T>
-	void addMenuCallback(T *data, const std::string &name, void *user_data, callbackfunc callback);
+	// a mess since the args are different
+	void addMenuCallbackBool(bool *data, const std::string &name, void *user_data, callbackfunc callback);
+	void addMenuCallbackFloat(float *data, const std::string &name, void *user_data, callbackfunc callback,float min, float max, const std::string &format);
 
 private:
 	void prepareFrame(GLuint num_verts, Position &pos, Direction &dir, GLfloat deltatime, const SelectedBlockInfo &selectedInfo);
@@ -132,6 +157,7 @@ private:
 	void merge();
 
 	std::vector<MenuCallbackData<bool>> boolMenu;
+	std::vector<MenuCallbackData<float>> floatSliderMenu;
 };
 
 #endif

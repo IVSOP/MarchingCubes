@@ -24,6 +24,8 @@ public:
 	WindowManager(int windowWidth, int windowHeight, Client *client);
 	~WindowManager();
 
+	static void fovCallback(void *_windowmanager, const void *_data);
+	void updateProjection(GLfloat fov);
 	void resizeViewport(int windowWidth, int windowHeight);
 };
 
