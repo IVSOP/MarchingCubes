@@ -147,8 +147,8 @@ public:
 			return inLayer2 == BroadPhaseLayers::MOVING;
 		case Layers::MOVING:
 			return true;
-		// case Layers::NOCLIP:
-		// 	return false; // is this right???
+		case Layers::NOCLIP:
+			return false; // is this right???
 		default:
 			JPH_ASSERT(false);
 			return false;
