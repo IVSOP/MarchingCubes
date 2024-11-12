@@ -49,7 +49,7 @@ void TextureArray::addTexture(const std::string &path) {
 	this->sp ++;
 }
 
-void TextureArray::setTextureArrayToSlot(const GLuint slot) {
+void TextureArray::bindTextureArrayToSlot(const GLuint slot) {
 	GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, ID));
 }

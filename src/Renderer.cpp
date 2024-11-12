@@ -34,7 +34,8 @@ struct TEXSLOTS {
 	static constexpr GLint CHUNKINFO_TEXTURE_BUFFER_SLOT = 7;
 	static constexpr GLint MODELS_TRANSFORM_TEXTURE_BUFFER_SLOT = 8;
 	static constexpr GLint MODELS_NORMALMAT_TEXTURE_BUFFER_SLOT = 9;
-	static constexpr GLint MAXSLOT = 10;
+	static constexpr GLint SKYBOX_CUBEMAP_SLOT = 10;
+	static constexpr GLint MAXSLOT = 11;
 };
 
 #define MAX_MATERIALS 8
@@ -133,6 +134,7 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer
   modelNormalShader("shaders/model_normals.vert", "shaders/model_normals.frag", "shaders/model_normals.gs"),
   outlineShader("shaders/outline.vert", "shaders/outline.frag"),
   insertShader("shaders/insert.vert", "shaders/insert.frag"),
+  skybox_shader("shaders/skybox.vert", "shaders/skybox.frag"),
   phys_renderer(phys_renderer)
 {
 	// TODO make a workaround for this
@@ -241,6 +243,64 @@ Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer
 	GLCall(glGenTextures(1, &TBO_models));
 	GLCall(glBindTexture(GL_TEXTURE_BUFFER, TBO_models));
 	GLCall(glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, TBO_models_buffer)); // bind the buffer to the texture
+
+	//////////////////////////// LOADING VAO FOR SKYBOX ////////////////////////////
+	GLCall(glGenVertexArrays(1, &this->VAO_skybox));
+	GLCall(glBindVertexArray(this->VAO_skybox));
+
+	//////////////////////////// LOADING VBO FOR SKYBOX ////////////////////////////
+	constexpr glm::vec3 skyboxVertices[] = {
+		// positions          
+		glm::vec3(-1.0f,  1.0f, -1.0f),
+		glm::vec3(-1.0f, -1.0f, -1.0f),
+		glm::vec3(1.0f, -1.0f, -1.0f),
+		glm::vec3(1.0f, -1.0f, -1.0f),
+		glm::vec3(1.0f,  1.0f, -1.0f),
+		glm::vec3(-1.0f,  1.0f, -1.0f),
+
+		glm::vec3(-1.0f, -1.0f,  1.0f),
+		glm::vec3(-1.0f, -1.0f, -1.0f),
+		glm::vec3(-1.0f,  1.0f, -1.0f),
+		glm::vec3(-1.0f,  1.0f, -1.0f),
+		glm::vec3(-1.0f,  1.0f,  1.0f),
+		glm::vec3(-1.0f, -1.0f,  1.0f),
+
+		glm::vec3(1.0f, -1.0f, -1.0f),
+		glm::vec3(1.0f, -1.0f,  1.0f),
+		glm::vec3(1.0f,  1.0f,  1.0f),
+		glm::vec3(1.0f,  1.0f,  1.0f),
+		glm::vec3(1.0f,  1.0f, -1.0f),
+		glm::vec3(1.0f, -1.0f, -1.0f),
+
+		glm::vec3(-1.0f, -1.0f,  1.0f),
+		glm::vec3(-1.0f,  1.0f,  1.0f),
+		glm::vec3(1.0f,  1.0f,  1.0f),
+		glm::vec3(1.0f,  1.0f,  1.0f),
+		glm::vec3(1.0f, -1.0f,  1.0f),
+		glm::vec3(-1.0f, -1.0f,  1.0f),
+
+		glm::vec3(-1.0f,  1.0f, -1.0f),
+		glm::vec3(1.0f,  1.0f, -1.0f),
+		glm::vec3(1.0f,  1.0f,  1.0f),
+		glm::vec3(1.0f,  1.0f,  1.0f),
+		glm::vec3(-1.0f,  1.0f,  1.0f),
+		glm::vec3(-1.0f,  1.0f, -1.0f),
+
+		glm::vec3(-1.0f, -1.0f, -1.0f),
+		glm::vec3(-1.0f, -1.0f,  1.0f),
+		glm::vec3(1.0f, -1.0f, -1.0f),
+		glm::vec3(1.0f, -1.0f, -1.0f),
+		glm::vec3(-1.0f, -1.0f,  1.0f),
+		glm::vec3(1.0f, -1.0f,  1.0f)
+	};
+	GLCall(glGenBuffers(1, &this->VBO_skybox));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO_skybox));
+	{
+		GLuint vertex_position_layout = 0;
+		GLCall(glEnableVertexAttribArray(vertex_position_layout));					// size appart				// offset
+		GLCall(glVertexAttribPointer(vertex_position_layout, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (const void *)0));
+	}
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW));
 
 	//////////////////////////// INDIRECT BUFFER ////////////////////////////
 	GLCall(glGenBuffers(1, &this->indirectBuffer));
@@ -359,7 +419,7 @@ void Renderer::loadTextures() {
 	tex->addTexture("textures/sprites/white.png"); // 2
 	tex->addTexture("textures/sprites/lava.png"); // 3
 	tex->addTexture("textures/sprites/stone.png"); // 4
-	tex->setTextureArrayToSlot(TEXSLOTS::TEX_ARRAY_SLOT);
+	tex->bindTextureArrayToSlot(TEXSLOTS::TEX_ARRAY_SLOT);
 }
 
 void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir, GLfloat deltaTime, const SelectedBlockInfo &selectedInfo) {
@@ -413,6 +473,10 @@ void Renderer::prepareFrame(GLuint num_triangles, Position &pos, Direction &dir,
 		ImGui::Checkbox(menudata.name.c_str(), menudata.data);
 		menudata.callbackIfNeeded();
 	}
+
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, lightingFBO));
+	glStencilMask(0xFF); // allow writing to all bits, otherwise clear does not even work
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const glm::mat4 &projection, const glm::mat4 &view) {
@@ -425,8 +489,6 @@ void Renderer::drawLighting(const CustomVec<Vertex> &verts, const CustomVec<Poin
 
 	//////////////////////////////////////////////// he normal scene is drawn into the lighting framebuffer, where the bright colors are then separated
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, lightingFBO));
-		glStencilMask(0xFF); // allow writing to all bits, otherwise clear does not even work
-    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		if (Settings::wireframe) {
 			GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 		}
@@ -714,10 +776,11 @@ void Renderer::postProcess(int bloomBlurPasses) {
 	merge();
 }
 
-void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const DrawObjects &objs, const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, const SelectedBlockInfo &selectedInfo) {
+void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const DrawObjects &objs, const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, const SelectedBlockInfo &selectedInfo, const Cubemap &skybox) {
 	ZoneScoped;
 
 	prepareFrame(verts.size(), pos, dir, deltaTime, selectedInfo);
+	drawSkybox(skybox, view, projection);
 	drawLighting(verts, points, indirect, chunkInfo, projection, view);
 	drawObjects(view, projection, objs);
 	drawSelectedObjects(view, projection, selected_objs);
@@ -1197,4 +1260,28 @@ void Renderer::addMenuCallbackBool(bool *data, const std::string &name, void *us
 
 void Renderer::addMenuCallbackFloat(float *data, const std::string &name, void *user_data, callbackfunc callback,float min, float max, const std::string &format) {
 	this->floatSliderMenu.emplace_back(data, name, user_data, callback, min, max, format);
+}
+
+void Renderer::drawSkybox(const Cubemap &skybox, const glm::mat4 &view, const glm::mat4 &projection) {
+	GLCall(glDepthMask(GL_FALSE));
+	skybox_shader.use();
+	// remove translation from view matrix
+	skybox_shader.setMat4("u_View", glm::mat4(glm::mat3(view)));
+	skybox_shader.setMat4("u_Projection", projection);
+
+	GLCall(glBindVertexArray(VAO_skybox));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, this->VBO_skybox));
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.ID));
+
+	// TODO this should not have to be bound constantly
+	skybox.bindCubemapToSlot(TEXSLOTS::SKYBOX_CUBEMAP_SLOT);
+	skybox_shader.setInt("skybox", TEXSLOTS::SKYBOX_CUBEMAP_SLOT);
+
+
+	// specify 2 attachments
+	constexpr GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	GLCall(glDrawBuffers(2, attachments));
+
+	GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
+	GLCall(glDepthMask(GL_TRUE));
 }

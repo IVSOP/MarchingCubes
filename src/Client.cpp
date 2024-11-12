@@ -159,6 +159,16 @@ void Client::mainloop() {
 	// audio.setGain(10.0f);
 	// audio.play();
 
+	std::array<Image, 6> images = {
+		Image("assets/cubemaps/skybox/right.jpg", CHANNELS::RGB, false),
+		Image("assets/cubemaps/skybox/left.jpg", CHANNELS::RGB, false),
+		Image("assets/cubemaps/skybox/top.jpg", CHANNELS::RGB, false),
+		Image("assets/cubemaps/skybox/bottom.jpg", CHANNELS::RGB, false),
+		Image("assets/cubemaps/skybox/front.jpg", CHANNELS::RGB, false),
+		Image("assets/cubemaps/skybox/back.jpg", CHANNELS::RGB, false)
+	};
+	Cubemap skybox_cubemap = Cubemap(images);
+
 	// shitty workaround, TODO
 	player->noclip(Settings::noclip);
 
@@ -288,6 +298,7 @@ void Client::mainloop() {
 		auto entitiesSelected = world->getSelectedEntities();
 
 		glm::mat4 view = player->getViewMatrix();
+		// renderer->drawSkybox(skybox_cubemap, view, windowManager->projection);
 		renderer->draw(
 			view,
 			world->getVerts(),
@@ -300,7 +311,8 @@ void Client::mainloop() {
 			windowManager->window, deltaTime,
 			pos,
 			dir,
-			selectedBlock);
+			selectedBlock,
+			skybox_cubemap);
 
 		if (Settings::insert) {
 			GLuint insertID = 0;

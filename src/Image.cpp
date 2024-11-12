@@ -47,6 +47,9 @@ stbir_pixel_layout channels_to_layout(CHANNELS channels) {
 	*/
 
 	switch(channels) {
+		case CHANNELS::DEFAULT: // idk it makes stbi use some default value or something
+			return (stbir_pixel_layout)0;
+			break;
 		case CHANNELS::GREY:
 			return STBIR_1CHANNEL;
 			break;
@@ -65,10 +68,10 @@ stbir_pixel_layout channels_to_layout(CHANNELS channels) {
 	}
 }
 
-Image::Image(const std::string &path, CHANNELS channels)
+Image::Image(const std::string &path, CHANNELS channels, bool flip)
 : channels(channels)
 {
-	stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(flip);
 	_buffer = stbi_load(path.c_str(), &_width, &_height, &_BPP, channels); // 4 -> RGBA or just use STBI_rgb_alpha
 
 	CRASH_IF(!_buffer, "Error loading image");

@@ -48,6 +48,7 @@ constexpr bool isChunkInFrustum(const Frustum &frustum, const glm::vec3 &minCorn
         p.z = (plane.normal.z > 0) ? maxCorner.z : minCorner.z;
 
         // If positive vertex is outside, the entire box is outside
+		// WHAT????????? HOW DOES THIS WORK??????????
         if (plane.distanceToPoint(p) < 0) {
             return false;
         }

@@ -9,6 +9,7 @@
 #include "Components.hpp"
 #include <vector>
 #include "Assets.hpp"
+#include "Cubemap.hpp"
 
 #include "PhysRenderer.hpp"
 
@@ -124,14 +125,20 @@ public:
 	GLuint TBO_models_buffer, TBO_models;
 	GLuint IBO_models;
 
+	// for skybox
+	GLuint VAO_skybox;
+	GLuint VBO_skybox;
+	Shader skybox_shader;
+
 	std::unique_ptr<TextureArray> textureArray = nullptr; // pointer since it starts as null and gets initialized later. unique_ptr so it always gets deleted
 
 	PhysRenderer *phys_renderer;
 
 	void draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const CustomVec<Point> &points, const std::vector<IndirectData> &indirect, const std::vector<ChunkInfo> &chunkInfo, const DrawObjects &objs,
-		const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, const SelectedBlockInfo &selectedInfo); // const
+		const DrawObjects &selected_objs, const glm::mat4 &projection, GLFWwindow * window, GLfloat deltaTime, Position &pos, Direction &dir, const SelectedBlockInfo &selectedInfo, const Cubemap &skybox); // const
 	void postProcess(int bloomBlurPasses);
 	void endFrame(GLFWwindow * window);
+	void drawSkybox(const Cubemap &skybox, const glm::mat4 &view, const glm::mat4 &projection);
 	void drawObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
 	void drawSelectedObjects(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);
 	void drawObjectNormals(const glm::mat4 &view, const glm::mat4 &projection, const DrawObjects &objs);

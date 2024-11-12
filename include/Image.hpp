@@ -25,7 +25,7 @@ enum CHANNELS {
 class Image {
 public:
 	Image() = delete;
-	Image(const std::string &path, CHANNELS channels = CHANNELS::RGBA);
+	Image(const std::string &path, CHANNELS channels = CHANNELS::RGBA, bool flip = true); // I assume compiler sorts this out
 	// will auto resize
 	Image(const std::string &path, int desired_width, int desired_height, CHANNELS channels = CHANNELS::RGBA);
 	~Image();
