@@ -82,6 +82,8 @@ public:
 	static void setListenerPosition(const glm::vec3 &pos);
 	static void setListenerVelocity(const glm::vec3 &vel);
 	static void setListenerOrientation(const glm::vec3 &front, const glm::vec3 &up);
+	static void setListenerGain(const float gain);
+	static void setListenerGainCallback(void *useless_data, const void *gain);
 
 private:
 	static ALCdevice *device;

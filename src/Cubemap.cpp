@@ -1,5 +1,4 @@
 #include "Crash.hpp"
-#include "Logs.hpp"
 #include "Cubemap.hpp"
 
 Cubemap::Cubemap(const std::array<Image, 6> &images) {
@@ -20,7 +19,8 @@ Cubemap::Cubemap(const std::array<Image, 6> &images) {
 }
 
 Cubemap::~Cubemap() {
-	CRASH_IF(true, "NOT IMPLEMENTED");
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+	GLCall(glDeleteTextures(1, &ID));
 }
 
 void Cubemap::bindCubemapToSlot(const GLuint slot) const {

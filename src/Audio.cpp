@@ -13,7 +13,7 @@ Buffer &ALContext::createBufferFromWavIfNotExists(const std::string &filename) {
 		return lookup->second;
 	}
 
-	// else inser it...
+	// else insert it...
 
 	// Load WAV file using libsndfile
 	SF_INFO sfInfo;
@@ -108,4 +108,13 @@ void ALContext::setListenerOrientation(const glm::vec3 &front, const glm::vec3 &
 	ALfloat rot[6] = {front.x, front.y, front.z, up.x, up.y, up.z};
 
 	ALCall(alListenerfv(AL_ORIENTATION, rot));
+}
+
+void ALContext::setListenerGain(const float gain) {
+	ALCall(alListenerf(AL_GAIN, gain));
+}
+
+void ALContext::setListenerGainCallback(void *useless_data, const void *gain) {
+	(void)useless_data;
+	ALContext::setListenerGain(*(reinterpret_cast<const float *>(gain)));
 }

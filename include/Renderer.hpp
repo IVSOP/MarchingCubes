@@ -41,7 +41,7 @@ struct MenuCallbackData {
 		}
 	}
 };
-// ugly hack, specific for floats, idc, entire =menu will have to get reworked eventually
+// ugly hack, specific for floats, idc, entire menu will have to get reworked eventually
 template <>
 struct MenuCallbackData<float> {
 	float *data;

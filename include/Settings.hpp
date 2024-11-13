@@ -55,6 +55,9 @@ struct Settings {
 	static bool speedup;
 
 	static bool frustum_cull;
+
+	// % but [0, 1]
+	static float master_gain;
 };
 
 

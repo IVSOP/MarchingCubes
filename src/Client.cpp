@@ -197,6 +197,9 @@ void Client::mainloop() {
 	// that is extremely unlikely so I don't care for now
 	renderer->addMenuCallbackFloat(&Settings::fov, "FOV", windowManager.get(), WindowManager::fovCallback, 0.0f, 140.0f, "fov = %.3f");
 
+	renderer->addMenuCallbackFloat(&Settings::master_gain, "Volume", nullptr, Audio::ALContext::setListenerGainCallback, 0.0f, 1.0f, "volume = %.5f");
+
+
 	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");
 	// // world->spawn(idlivingroom, JPH::Vec3(0.0f, 50.0f, 0.0f), JPH::Quat::sIdentity());
 
