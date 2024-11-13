@@ -198,6 +198,8 @@ void Client::mainloop() {
 	renderer->addMenuCallbackFloat(&Settings::fov, "FOV", windowManager.get(), WindowManager::fovCallback, 0.0f, 140.0f, "fov = %.3f");
 
 	renderer->addMenuCallbackFloat(&Settings::master_gain, "Volume", nullptr, Audio::ALContext::setListenerGainCallback, 0.0f, 1.0f, "volume = %.5f");
+	// also manually set the volume
+	Audio::ALContext::setListenerGain(Settings::master_gain);
 
 
 	// // uint32_t idlivingroom = world->loadModel("livingroom/InteriorTest.fbx");

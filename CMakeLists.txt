@@ -39,6 +39,7 @@ add_executable(MarchingCubes
 		src/ALErrors.cpp
 		src/Audio.cpp
 		src/embree.cpp
+		src/Cubemap.cpp
 
 		external/imgui/imgui.cpp
 		external/imgui/imgui_demo.cpp
