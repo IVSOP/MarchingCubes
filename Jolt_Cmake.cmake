@@ -1,8 +1,9 @@
 #TAKEN FROM https://github.com/jrouwe/JoltPhysicsHelloWorld/blob/main/Build/CMakeLists.txt
+# removed most things to do with changing global cmake variables, including exceptions and rtti (assimp uses both of them for some reason)
 # cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-set(CPP_EXCEPTIONS_ENABLED OFF)
-set(CPP_RTTI_ENABLED OFF)
+# set(CPP_EXCEPTIONS_ENABLED OFF)
+# set(CPP_RTTI_ENABLED OFF)
 
 # The configurations we support
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Distribution")
@@ -14,6 +15,9 @@ set(DOUBLE_PRECISION OFF)
 if (NOT Distribution)
 	set(GENERATE_DEBUG_SYMBOLS ON)
 endif (NOT Distribution)
+
+# When turning this option on, the library will override the default CMAKE_CXX_FLAGS_DEBUG/RELEASE values, otherwise they will use the platform defaults
+set(OVERRIDE_CXX_FLAGS OFF) # ??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
 # When turning this option on, the library will be compiled in such a way to attempt to keep the simulation deterministic across platforms
 set(CROSS_PLATFORM_DETERMINISTIC OFF)
@@ -51,40 +55,52 @@ set(USE_FMADD ON)
 # set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (MSVC) # TODO LOOK AT THIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+if (MSVC) # if you use MSVC you're on your own
 	# 64 bit architecture
 	set(CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE "x64")
 
 	# Set runtime library
 	if (USE_STATIC_MSVC_RUNTIME_LIBRARY)
 		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-	else()
-		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 	endif()
 
 	# Set general compiler flags
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /Gm- /Wall /WX /MP /nologo /diagnostics:classic /FC /fp:except- /Zc:inline")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /Gm- /MP /nologo /diagnostics:classic /FC /fp:except- /Zc:inline")
+
+	# Enable warnings
+	if (ENABLE_ALL_WARNINGS)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Wall /WX")
+	endif()
 	
 	# Optionally generate debug symbols
 	if (GENERATE_DEBUG_SYMBOLS)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
 	endif()
 
-	# Remove any existing compiler flag that enables RTTI
-	string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+	if (NOT CPP_RTTI_ENABLED)
+		# Set compiler flag for disabling RTTI
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
+	else()
+		# Set compiler flag for enabling RTTI
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR")
+	endif()
 
-	# Set compiler flag for disabling RTTI
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
+	if (NOT CPP_EXCEPTIONS_ENABLED)
+		# Remove any existing compiler flag that enables exceptions
+		string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
-	if ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "ARM")
-		# On ARM the exception handling flag is missing which causes warnings
+		# Disable warning about STL and compiler-generated types using noexcept when exceptions are disabled
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4577")
+	else()
+		# Enable exceptions
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 	endif()
 
 	# Set compiler flags for various configurations
-	set(CMAKE_CXX_FLAGS_DEBUG "/GS /Od /Ob0 /RTC1")
-	set(CMAKE_CXX_FLAGS_RELEASE "/GS- /Gy /O2 /Oi /Ot")
-	set(CMAKE_CXX_FLAGS_DISTRIBUTION "/GS- /Gy /O2 /Oi /Ot")
+	if (OVERRIDE_CXX_FLAGS)
+		set(CMAKE_CXX_FLAGS_DEBUG "/GS /Od /Ob0 /RTC1")
+		set(CMAKE_CXX_FLAGS_RELEASE "/GS- /Gy /O2 /Oi /Ot")
+	endif()
 
 	# Set linker flags
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -98,6 +114,27 @@ if (MSVC) # TODO LOOK AT THIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments") # Clang emits warnings about unused arguments such as /MP and /GL
 	endif()
 else()
+
+	# if (GENERATE_DEBUG_SYMBOLS)
+	# 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+	# endif()
+
+	# if (NOT CPP_RTTI_ENABLED)
+	# 	# Set compiler flag for disabling RTTI
+	# 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+	# else()
+	# 	# Set compiler flag for enabling RTTI
+	# 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti")
+	# endif()
+
+	# if (NOT CPP_EXCEPTIONS_ENABLED)
+	# 	# Set compiler flag for disabling exception-handling
+	# 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
+	# else()
+	# 	# Set compiler flag for enabling exception-handling
+	# 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
+	# endif()
+
 
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 		# Also disable -Wstringop-overflow or it will generate false positives that can't be disabled from code when link-time optimizations are enabled
@@ -113,15 +150,6 @@ else()
 		endif()
 	endif()
 
-	# # Set compiler flags for various configurations
-	# set(CMAKE_CXX_FLAGS_DEBUG "")
-	# set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-	# set(CMAKE_CXX_FLAGS_DISTRIBUTION "-O3")
-
-	# # Set linker flags
-	# if (NOT ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows"))
-	# 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
-	# endif()
 endif()
 
 # Set linker flags

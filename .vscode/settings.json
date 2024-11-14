@@ -89,5 +89,6 @@
 		"hash_set": "cpp",
 		"expected": "cpp",
 		"*.inc": "cpp"
-	}
+	},
+	"java.configuration.updateBuildConfiguration": "disabled"
 }

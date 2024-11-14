@@ -84,9 +84,15 @@ else (Distribution)
 	set(TRACY_NO_CRASH_HANDLER on)
 endif (Distribution)
 
+# disable rtti and exceptions globally (you can ignore the warnings that come from this)
+# add_compile_options(-fno-rtti) # I REALLY wanted to disable this shit, but assimp needs it, and using it only in assimp will cause linking issues with jolt
+# so ill have to enable it
+add_compile_options(-frtti)
+add_compile_options(-fno-exceptions)
+
 if (WIN32)
 
-	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELEASE>:-O2>")
+	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELEASE>:-O3>")
 
 	cmake_policy(SET CMP0072 NEW) # ???????????????????????????????????????
 
@@ -94,11 +100,10 @@ if (WIN32)
 		set(IPO off)
 		message(WARNING "IPO cannot be used with mingw, not using it")
 	endif (Distribution)
-
 else (WIN32)
 	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g3>") # ${CMAKE_CXX_FLAGS_DEBUG} ${GCC_COVERAGE_COMPILE_FLAGS}
-	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELEASE>:-O2;-Wall;-Wextra;-pedantic;-Wno-unused-parameter>") # ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}
-	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELWITHDEBINFO>:-O2;-Wall;-Wextra;-pedantic;-Wno-unused-parameter>") # ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}
+	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELEASE>:-O3;-Wall;-Wextra;-pedantic;-Wno-unused-parameter>") # ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}
+	target_compile_options(MarchingCubes PRIVATE "$<$<CONFIG:RELWITHDEBINFO>:-O3;-Wall;-Wextra;-pedantic;-Wno-unused-parameter>") # ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}
 	# MinSizeRel
 
 	if (Distribution)
@@ -116,6 +121,7 @@ if (IPO)
 		message(STATUS "Using IPO")
 		# set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON) # this sets it for ALL libraries and inlines them. this is illegal for some of them
 		set_property(TARGET MarchingCubes PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+		# TODO add more targets???
 		# set_property(TARGET foo PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 	else(result)
 		message(FATAL_ERROR "IPO not supported :)")
@@ -229,8 +235,6 @@ else (WIN32) # linux
 
 endif (WIN32)
 
-set(JPH_DEBUG_RENDERER ON)
-
 add_subdirectory(external/glm)
 include_directories(external/glm)
 
@@ -245,6 +249,7 @@ include_directories(external/stb)
 add_subdirectory(external/entt)
 include_directories(external/entt/single_include/entt)
 
+set(JPH_DEBUG_RENDERER ON)
 add_subdirectory(external/JoltPhysics/Build)
 include_directories(external/JoltPhysics/Jolt)
 include(Jolt_Cmake.cmake)
@@ -259,6 +264,8 @@ include_directories(external/steamaudio/include/)
 # set(BUILD_SHARED_LIBS ON)
 # TODO if doing this as shared lib, copy the .so/.dll to build/buildWin
 add_subdirectory(external/assimp)
+# assimp uses exceptions for some reason, so use them here specifically
+target_compile_options(assimp PRIVATE -fexceptions -Wno-error)
 # set(BUILD_SHARED_LIBS OFF)
 
 #include_directories(external/assimp/code)
