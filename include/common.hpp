@@ -105,10 +105,11 @@ struct SelectedBlockInfo {
 
 // same
 struct IndirectData {
-	GLuint count;
-	GLuint instanceCount;
-	GLuint first;
-	GLuint baseInstance;
+	// for use with glMultiDrawArraysIndirect!!!!!!!!!!!
+	GLuint count;		  // Number of vertices per instance. I set it to 3 since I am instancing 4B of information as 3 vertices
+	GLuint instanceCount; // Number of instances to draw, num of triangles in a chunk
+	GLuint first;		  // Offset into the array of vertices (???????????)
+	GLuint baseInstance;  // instance offset
 
 // same as glDrawArraysInstancedBaseInstance(mode,     cmd->first,             cmd->count,         cmd->instanceCount,             cmd->baseInstance); many times
 

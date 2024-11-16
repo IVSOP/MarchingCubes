@@ -2,8 +2,8 @@
 # removed most things to do with changing global cmake variables, including exceptions and rtti (assimp uses both of them for some reason)
 # cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-# set(CPP_EXCEPTIONS_ENABLED OFF)
-# set(CPP_RTTI_ENABLED OFF)
+set(CPP_EXCEPTIONS_ENABLED OFF)
+set(CPP_RTTI_ENABLED OFF)
 
 # The configurations we support
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Distribution")
