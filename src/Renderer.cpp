@@ -780,10 +780,10 @@ void Renderer::draw(const glm::mat4 &view, const CustomVec<Vertex> &verts, const
 	ZoneScoped;
 
 	prepareFrame(verts.size(), pos, dir, deltaTime, selectedInfo);
-	drawSkybox(skybox, view, projection);
 	drawLighting(verts, points, indirect, chunkInfo, projection, view);
 	drawObjects(view, projection, objs);
-	drawSelectedObjects(view, projection, selected_objs);
+	drawSkybox(skybox, view, projection);
+	drawSelectedObjects(view, projection, selected_objs); // needs to be after skybox :)
 
 	if (Settings::render_physics) {
 		draw_phys(view, projection);
@@ -1263,7 +1263,8 @@ void Renderer::addMenuCallbackFloat(float *data, const std::string &name, void *
 }
 
 void Renderer::drawSkybox(const Cubemap &skybox, const glm::mat4 &view, const glm::mat4 &projection) {
-	GLCall(glDepthMask(GL_FALSE));
+	GLCall(glDepthFunc(GL_LEQUAL)); // change depth function so depth test passes when values are equal to depth buffer's content // why?????
+	GLCall(glDepthMask(GL_FALSE)); // make it so that this render pass does not write to the depth buffer, while still being able to use it for depth testing
 	skybox_shader.use();
 	// remove translation from view matrix
 	skybox_shader.setMat4("u_View", glm::mat4(glm::mat3(view)));
@@ -1284,4 +1285,5 @@ void Renderer::drawSkybox(const Cubemap &skybox, const glm::mat4 &view, const gl
 
 	GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
 	GLCall(glDepthMask(GL_TRUE));
+	GLCall(glDepthFunc(GL_LESS)); // set depth function back to default
 }
