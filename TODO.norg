@@ -1,0 +1,19 @@
+* ( ) texture system
+** ( ) make textures for loading geometry as marching cubes
+** ( ) allow editing textures
+
+* ( ) culling
+** ( ) add frustum culling to physics characters (could not figure out the world space bounds. have to use a character controller???)
+
+* ( ) random
+** ( ) select insert id and rotation axis
+** ( ) call character.PostSimulation on world physics characters
+** ( ) implement min and max size on loading geometry as marching cubes
+*** ( ) allow it to be specified in the hitbox json
+*** ( ) allow it to be calculated automatically based on the bounding box (innacurate)
+** ( ) multithreading, separate physics from rendering
+** ( ) optimize chunk frustum culling to take advantage of it being chunks (or make octa tree)
+
+* ( ) devlog
+** ( ) page for audio
+
