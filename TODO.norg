@@ -1,3 +1,11 @@
+* ( ) rendering
+** ( ) make LOD system on a different render call, for 2x2 chunks (how do I mesh them together??????)
+** ( ) shadows
+*** ( ) implement a simple shadow map
+*** ( ) implement cascaded shadow maps
+** ( ) AO
+*** ( ) implement SSAO
+
 * ( ) texture system
 ** ( ) make textures for loading geometry as marching cubes
 ** ( ) allow editing textures

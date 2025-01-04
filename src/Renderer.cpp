@@ -1,13 +1,10 @@
 #include "Renderer.hpp"
 
-#include <iostream>
 #include <vector>
 #include <cstdio>
 #include "Vertex.hpp"
 #include "Material.hpp"
-#include "Camera.hpp"
 #include "Crash.hpp"
-#include "Logs.hpp"
 #include "Profiling.hpp"
 #include "Phys.hpp"
 #include "Settings.hpp"
@@ -123,18 +120,18 @@ void Renderer::drawAxis(const glm::mat4 &model, const glm::mat4 &view, const glm
 
 Renderer::Renderer(GLsizei viewport_width, GLsizei viewport_height, PhysRenderer *phys_renderer)
 : viewport_width(viewport_width), viewport_height(viewport_height), VAO(0), VBO(0),
-  mainShader("shaders/lighting.vert", "shaders/lighting.frag"),
-  axisShader("shaders/axis.vert", "shaders/axis.frag"),
-  normalShader("shaders/normals.vert", "shaders/normals.frag", "shaders/normals.gs"),
-  blurShader("shaders/blur.vert", "shaders/blur.frag"),
-  hdrBbloomMergeShader("shaders/hdrBloomMerge.vert", "shaders/hdrBloomMerge.frag"),
-  pointshader("shaders/points.vert", "shaders/points.frag"),
-  modelShader("shaders/lighting_models.vert", "shaders/lighting_models.frag"),
-  selectedModelShader("shaders/selected_models.vert", "shaders/selected_models.frag"),
-  modelNormalShader("shaders/model_normals.vert", "shaders/model_normals.frag", "shaders/model_normals.gs"),
-  outlineShader("shaders/outline.vert", "shaders/outline.frag"),
-  insertShader("shaders/insert.vert", "shaders/insert.frag"),
-  skybox_shader("shaders/skybox.vert", "shaders/skybox.frag"),
+  mainShader("shaders/lighting.vert.glsl", "shaders/lighting.frag.glsl"),
+  axisShader("shaders/axis.vert.glsl", "shaders/axis.frag.glsl"),
+  normalShader("shaders/normals.vert.glsl", "shaders/normals.frag.glsl", "shaders/normals.gs"),
+  blurShader("shaders/blur.vert.glsl", "shaders/blur.frag.glsl"),
+  hdrBbloomMergeShader("shaders/hdrBloomMerge.vert.glsl", "shaders/hdrBloomMerge.frag.glsl"),
+  pointshader("shaders/points.vert.glsl", "shaders/points.frag.glsl"),
+  modelShader("shaders/lighting_models.vert.glsl", "shaders/lighting_models.frag.glsl"),
+  selectedModelShader("shaders/selected_models.vert.glsl", "shaders/selected_models.frag.glsl"),
+  modelNormalShader("shaders/model_normals.vert.glsl", "shaders/model_normals.frag.glsl", "shaders/model_normals.gs"),
+  outlineShader("shaders/outline.vert.glsl", "shaders/outline.frag.glsl"),
+  insertShader("shaders/insert.vert.glsl", "shaders/insert.frag.glsl"),
+  skybox_shader("shaders/skybox.vert.glsl", "shaders/skybox.frag.glsl"),
   phys_renderer(phys_renderer)
 {
 	// TODO make a workaround for this
