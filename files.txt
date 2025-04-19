@@ -1,6 +1,7 @@
 attribution/
 assets/magujo
 assets/prim
+assets/cubemaps
 shaders/
 saves/
 textures/sprites/
