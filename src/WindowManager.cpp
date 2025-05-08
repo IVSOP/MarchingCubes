@@ -99,7 +99,12 @@ WindowManager::WindowManager(int windowWidth, int windowHeight, Client *client)
 	CRASH_IF(window == nullptr, "GLFW window failed to create"); // call glfwTerminate?????
     glfwMakeContextCurrent(window);
 
-	CRASH_IF(glewInit() != GLEW_OK, "GLEW failed");
+    bool glewinit = glewInit();
+    if (glewinit != GLEW_OK) {
+        // on wayland, this error is caused and should be ignored
+        CRASH_IF(glewInit() != GLEW_ERROR_NO_GLX_DISPLAY, "GLEW failed");
+    }
+
 
 	glfwSetWindowUserPointer(window, client);
 

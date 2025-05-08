@@ -218,9 +218,10 @@ else (WIN32) # linux
 	endif()
 	include_directories(external/openal-soft/linux64/include)
 
-	if (NOT EXISTS ${LIB_OUTPUT_DIR}/libsndfile.so)
-		file(COPY external/libsndfile/linux64/libsndfile.so DESTINATION ${LIB_OUTPUT_DIR})
-	endif()
+    # using the dynamic file has broken flac lib dependencies, but I can't distribute it without this
+	# if (NOT EXISTS ${LIB_OUTPUT_DIR}/libsndfile.so)
+	# 	file(COPY external/libsndfile/linux64/libsndfile.so DESTINATION ${LIB_OUTPUT_DIR})
+	# endif()
 	include_directories(external/libsndfile/linux64/include)
 
 	if (NOT EXISTS ${LIB_OUTPUT_DIR}/libembree4.so)
@@ -231,6 +232,7 @@ else (WIN32) # linux
 	target_link_directories(MarchingCubes PRIVATE
 		${LIB_OUTPUT_DIR}/
 		${GLEW_LOCAL_LIB}
+        external/libsndfile/linux64
 	)
 
 endif (WIN32)
@@ -315,7 +317,7 @@ else (WIN32) # linux
 		# phonon
 		zstd
 		openal
-		sndfile
+		libsndfile.a
 		embree4
 		# ${Boost_LIBRARIES}
 	)
