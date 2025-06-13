@@ -1,4 +1,4 @@
-**Devlog and binary release:** [https://ivsop.github.io/MarchingCubesDev/](https://ivsop.github.io/MarchingCubesDev/)
+**Devlog and binary release:** [https://marchingcubes.ivsop.dev](https://marchingcubes.ivsop.dev)
 
 WARNING: I have abandoned this; the code is uglier than I liked since I planned on cleaning it up in the future, some refactors were needed
 
